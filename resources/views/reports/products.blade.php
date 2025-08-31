@@ -23,8 +23,8 @@
             <!-- Filter Form -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
-                    <form method="GET" action="{{ route('reports.products') }}" class="flex flex-wrap items-end gap-4">
-                        <div class="flex-1 min-w-48">
+                    <form method="GET" action="{{ route('reports.products') }}" class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-4">
+                        <div class="w-full sm:flex-1 min-w-48">
                             <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Filter Kategori</label>
                             <select name="category" id="category" 
                                     class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
@@ -36,9 +36,9 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 w-full sm:w-auto">
                             <button type="submit" 
-                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200">
+                                    class="w-full justify-center flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200">
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -80,18 +80,18 @@
             <!-- Export Buttons -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                         <h3 class="text-lg font-semibold text-gray-900">Export Laporan</h3>
-                        <div class="flex gap-2">
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <a href="{{ route('reports.products', array_merge(request()->query(), ['format' => 'pdf'])) }}" 
-                               class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200">
+                               class="inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 Download PDF
                             </a>
                             <a href="{{ route('reports.products', array_merge(request()->query(), ['format' => 'excel'])) }}" 
-                               class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200">
+                               class="inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
@@ -106,7 +106,8 @@
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Daftar Produk</h3>
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table -->
+                    <div class="overflow-x-auto hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -190,6 +191,64 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Cards -->
+                    <div class="md:hidden space-y-4">
+                        @forelse($products as $product)
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                                <div class="flex items-start gap-4">
+                                    @if($product->image)
+                                        <img class="h-16 w-16 rounded-lg object-cover" src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}">
+                                    @else
+                                        <div class="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                        </div>
+                                    @endif
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="font-bold text-gray-900">{{ $product->name }}</p>
+                                                <p class="text-sm text-gray-500">{{ $product->category->name ?? 'N/A' }}</p>
+                                            </div>
+                                            @if($product->stock <= 0)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Habis</span>
+                                            @elseif($product->stock <= $product->minimum_stock)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rendah</span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Normal</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-1">#{{ $product->barcode }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-t border-gray-200 text-sm space-y-2">
+                                    <div class="flex justify-between">
+                                        <p class="text-gray-500">Stok</p>
+                                        <p class="font-medium {{ $product->stock <= $product->minimum_stock ? 'text-red-600' : 'text-gray-900' }}">{{ $product->stock }} / min: {{ $product->minimum_stock }}</p>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <p class="text-gray-500">Harga Beli</p>
+                                        <p class="font-medium">Rp {{ number_format($product->purchase_price, 0, ',', '.') }}</p>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <p class="text-gray-500">Harga Jual</p>
+                                        <p class="font-bold text-green-600">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</p>
+                                    </div>
+                                    <div class="flex justify-between border-t pt-2 mt-2">
+                                        <p class="text-gray-500">Nilai Stok (Jual)</p>
+                                        <p class="font-bold">Rp {{ number_format($product->stock * $product->selling_price, 0, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada produk</h3>
+                                <p class="mt-1 text-sm text-gray-500">Tidak ada produk yang sesuai dengan filter.</p>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>

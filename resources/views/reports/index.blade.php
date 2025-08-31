@@ -4,20 +4,30 @@
 <div class="py-8">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">📊 Laporan & Statistik</h1>
+        <!-- <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 sm:gap-0"> -->
+        <div class="mb-6 px-4 sm:px-0">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">📊 Laporan & Statistik</h1>
                 <p class="text-gray-600 mt-1">Dashboard analisis dan laporan bisnis</p>
-            </div>
-            <div class="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+        </div>
+            <!-- <div class="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg self-start sm:self-center">
                 {{ now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
+            </div>
+        </div> -->
+
+        <!-- Current Time Display -->
+        <div class="mb-6 text-center px-4 sm:px-0">
+            <div class="inline-flex items-center px-3 sm:px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="current-time" class="text-xs sm:text-sm font-medium text-gray-700"></span>
             </div>
         </div>
 
-        <div class="space-y-6">
+        <div>
             
             <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-0 mb-6">
                 <!-- Today Sales -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -92,7 +102,7 @@
             </div>
 
             <!-- Report Menu Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0 mb-6">
                 <!-- Sales Report -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg hover:shadow-lg transition-shadow duration-200">
                     <div class="p-6">
@@ -176,7 +186,7 @@
             </div>
 
             <!-- Quick Overview -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 sm:px-0 mb-6">
                 <!-- Recent Transactions -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6">
@@ -226,7 +236,7 @@
 
             <!-- Low Stock Alert -->
             @if($lowStockProducts->count() > 0)
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg mx-4 sm:mx-0">
                 <div class="p-6">
                     <div class="flex items-center mb-4">
                         <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -255,4 +265,30 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Real-time clock update
+    function updateClock() {
+        const now = new Date();
+        const options = {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        };
+        
+        const clockElement = document.getElementById('current-time');
+        if (clockElement) {
+            clockElement.textContent = now.toLocaleString('id-ID', options) + ' WIB';
+        }
+    }
+
+    // Update clock immediately and then every second
+    updateClock();
+    setInterval(updateClock, 1000);
+</script>
 @endsection

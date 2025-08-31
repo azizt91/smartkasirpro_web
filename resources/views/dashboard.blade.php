@@ -27,7 +27,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-blue-100 text-sm">Total Produk</p>
-                            <div class="text-3xl font-bold text-white animate-number" data-value="{{ $stats['total_products'] }}">{{ number_format($stats['total_products']) }}</div>
+                            <div class="text-2xl sm:text-3xl font-bold text-white animate-number" data-value="{{ $stats['total_products'] }}">{{ number_format($stats['total_products']) }}</div>
                             <p class="text-blue-100 text-xs">Produk aktif</p>
                         </div>
                         <div class="text-blue-200">
@@ -45,7 +45,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-yellow-100 text-sm">Stok Rendah</p>
-                            <div class="text-3xl font-bold text-white animate-number" data-value="{{ $stats['low_stock_products'] }}">{{ number_format($stats['low_stock_products']) }}</div>
+                            <div class="text-2xl sm:text-3xl font-bold text-white animate-number" data-value="{{ $stats['low_stock_products'] }}">{{ number_format($stats['low_stock_products']) }}</div>
                             <p class="text-yellow-100 text-xs">Perlu restok</p>
                         </div>
                         <div class="text-yellow-200">
@@ -63,7 +63,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-green-100 text-sm">Transaksi Hari Ini</p>
-                            <div class="text-3xl font-bold text-white animate-number" data-value="{{ $stats['total_transactions'] }}">{{ number_format($stats['total_transactions']) }}</div>
+                            <div class="text-2xl sm:text-3xl font-bold text-white animate-number" data-value="{{ $stats['total_transactions'] }}">{{ number_format($stats['total_transactions']) }}</div>
                             <p class="text-green-100 text-xs">Transaksi berhasil</p>
                         </div>
                         <div class="text-green-200">
@@ -81,7 +81,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-purple-100 text-sm">Penjualan Hari Ini</p>
-                            <div class="text-3xl font-bold text-white">Rp {{ number_format($stats['daily_sales'], 0, ',', '.') }}</div>
+                            <div class="text-2xl sm:text-3xl font-bold text-white">Rp {{ number_format($stats['daily_sales'], 0, ',', '.') }}</div>
                             <p class="text-purple-100 text-xs">Total pendapatan</p>
                         </div>
                         <div class="text-purple-200">
@@ -273,7 +273,8 @@
                             </a>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table -->
+                    <div class="overflow-x-auto hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -347,6 +348,57 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Cards -->
+                    <div class="md:hidden p-4 space-y-4">
+                        @forelse($top_products as $index => $product)
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                                <div class="flex items-center space-x-4">
+                                    <div>
+                                        @if($index == 0)
+                                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-white font-bold text-lg">🏆</span>
+                                        @elseif($index == 1)
+                                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold text-lg">🥈</span>
+                                        @elseif($index == 2)
+                                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-lg">🥉</span>
+                                        @else
+                                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold text-lg">{{ $index + 1 }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex-shrink-0 h-12 w-12">
+                                        @if($product->image)
+                                            <img class="h-12 w-12 rounded-lg object-cover" src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}">
+                                        @else
+                                            <div class="h-12 w-12 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z"></path></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-gray-900 leading-tight">{{ $product->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $product->category->name ?? 'No Category' }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-gray-500">Terjual</p>
+                                        <p class="font-bold text-gray-900">{{ $product->total_sold ?? 0 }} unit</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-gray-500">Pendapatan</p>
+                                        <p class="font-bold text-green-600">Rp {{ number_format(($product->total_sold ?? 0) * $product->selling_price, 0, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-500">Tidak ada data penjualan minggu ini</p>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>

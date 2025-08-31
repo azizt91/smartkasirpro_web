@@ -9,7 +9,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">📦 Manajemen Produk</h1>
                 <p class="text-gray-600 mt-1">Kelola semua produk dan stok di toko Anda.</p>
             </div>
-            <div class="mt-4 sm:mt-0 flex items-center space-x-3">
+            <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row sm:items-center gap-3">
 
                 {{-- Tombol Dropdown Cetak Barcode --}}
                 <div x-data="{ open: false }" class="relative">
@@ -95,7 +95,8 @@
                     </div>
                 </div>
             @else
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-x-auto">
+                <!-- Desktop Table View -->
+                <div class="hidden md:block bg-white rounded-xl shadow-md border border-gray-200 overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -152,6 +153,53 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="block md:hidden space-y-4">
+                    @foreach($products as $product)
+                        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                            <div class="flex items-start space-x-4">
+                                <input type="checkbox" class="product-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mt-1" value="{{ $product->id }}">
+                                <img class="h-16 w-16 rounded-lg object-cover flex-shrink-0" src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}">
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-900 leading-tight">{{ $product->name }}</p>
+                                    <p class="text-sm text-gray-500">{{ $product->barcode }}</p>
+                                    <p class="text-md font-semibold text-green-600 mt-1">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-500">Kategori</p>
+                                    <p class="font-medium text-gray-800">{{ $product->category->name ?? '-' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Stok</p>
+                                    <p class="font-bold {{ $product->stock <= $product->minimum_stock ? ($product->stock == 0 ? 'text-red-600' : 'text-yellow-600') : 'text-gray-900' }}">{{ $product->stock }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                                <div>
+                                    @if($product->stock <= $product->minimum_stock)
+                                        @if($product->stock == 0)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Habis</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rendah</span>
+                                        @endif
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Normal</span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('products.show', $product) }}" class="text-gray-500 hover:text-indigo-600 p-1" title="Detail"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></a>
+                                    <a href="{{ route('products.edit', $product) }}" class="text-gray-500 hover:text-green-600 p-1" title="Edit"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></a>
+                                    <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline" id="delete-form-mobile-{{ $product->id }}">@csrf @method('DELETE')<button type="button" onclick="confirmDelete({{ $product->id }}, '{{ addslashes($product->name) }}', true)" class="text-gray-500 hover:text-red-600 p-1" title="Hapus"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             @endif
         </div>
@@ -233,7 +281,7 @@
     });
 
     // --- FUNGSI KONFIRMASI HAPUS ---
-    function confirmDelete(productId, productName) {
+    function confirmDelete(productId, productName, isMobile = false) {
         Swal.fire({
             title: `Hapus produk "${productName}"?`,
             text: "Anda tidak akan bisa mengembalikan data ini!",
@@ -245,7 +293,8 @@
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById('delete-form-' + productId).submit();
+                const formId = isMobile ? 'delete-form-mobile-' + productId : 'delete-form-' + productId;
+                document.getElementById(formId).submit();
             }
         });
     }
