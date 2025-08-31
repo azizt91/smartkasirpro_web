@@ -4,15 +4,10 @@
 <div class="py-8">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
-        <!-- <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 sm:gap-0"> -->
         <div class="mb-6 px-4 sm:px-0">
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">📊 Laporan & Statistik</h1>
                 <p class="text-gray-600 mt-1">Dashboard analisis dan laporan bisnis</p>
         </div>
-            <!-- <div class="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg self-start sm:self-center">
-                {{ now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
-            </div>
-        </div> -->
 
         <!-- Current Time Display -->
         <div class="mb-6 text-center px-4 sm:px-0">

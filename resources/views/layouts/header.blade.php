@@ -117,7 +117,7 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          @click.away="notificationsOpen = false"
-                         class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                         class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                         <div class="px-4 py-2 border-b border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                         </div>
