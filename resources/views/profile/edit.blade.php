@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="py-8">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">👤 Profile Settings</h1>
+                <h1 class="text-3xl font-bold text-gray-900">👤 Profile</h1>
                 <p class="text-gray-600 mt-1">Kelola informasi akun dan keamanan Anda</p>
             </div>
             <div class="flex items-center space-x-3">
