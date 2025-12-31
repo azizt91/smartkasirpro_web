@@ -151,7 +151,7 @@ class PosController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:cash,card,ewallet,transfer',
+            'payment_method' => 'required|in:cash,utang,card,ewallet,transfer',
             'amount_paid' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'customer_name' => 'nullable|string|max:255',
@@ -205,6 +205,7 @@ class PosController extends Controller
                 'amount_paid' => $amountPaid,
                 'change_amount' => $changeAmount,
                 'status' => 'completed',
+                'customer_name' => $request->customer_name ?? 'Umum',
             ]);
 
             // Create transaction items and update stock

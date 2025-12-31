@@ -32,7 +32,7 @@ class TransactionFactory extends Factory
             'discount' => $discount,
             'tax' => $tax,
             'total_amount' => $totalAmount,
-            'payment_method' => fake()->randomElement(['cash', 'card', 'other']),
+            'payment_method' => fake()->randomElement(['cash', 'utang', 'card', 'ewallet', 'transfer']),
             'amount_paid' => $amountPaid,
             'change_amount' => $changeAmount,
             'status' => 'completed',

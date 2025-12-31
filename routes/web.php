@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/products/export-excel', [ReportController::class, 'exportProductsExcel'])->name('reports.products.excel');
         Route::get('/reports/stock/export-pdf', [ReportController::class, 'exportStockPdf'])->name('reports.stock.pdf');
         Route::get('/reports/stock/export-excel', [ReportController::class, 'exportStockExcel'])->name('reports.stock.excel');
+        Route::get('/reports/receivables', [ReportController::class, 'receivables'])->name('reports.receivables');
+        Route::post('/reports/receivables/{transaction}/paid', [ReportController::class, 'markAsPaid'])->name('reports.receivables.paid');
     });
 });
 

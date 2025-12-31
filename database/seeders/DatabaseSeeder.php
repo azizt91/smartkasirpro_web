@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
                 'discount' => 0,
                 'tax' => 0,
                 'total_amount' => 0,
-                'payment_method' => fake()->randomElement(['cash', 'card', 'other']),
+                'payment_method' => fake()->randomElement(['cash', 'utang', 'card', 'ewallet', 'transfer']),
                 'amount_paid' => 0,
                 'change_amount' => 0,
                 'status' => 'completed',

@@ -212,4 +212,46 @@ class ReportController extends BaseController
 
         return view('reports.stock', compact('products', 'summary', 'status'));
     }
+
+    /**
+     * Display receivables (piutang) report - transactions with payment_method = 'utang'
+     */
+    public function receivables(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
+
+        $transactions = Transaction::with(['user', 'items.product'])
+            ->where('payment_method', 'utang')
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $summary = [
+            'total_receivables' => $transactions->sum('total_amount'),
+            'total_transactions' => $transactions->count(),
+        ];
+
+        return view('reports.receivables', compact('transactions', 'summary', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Mark a receivable transaction as paid (change payment_method from 'utang' to 'cash')
+     */
+    public function markAsPaid(Transaction $transaction)
+    {
+        $this->checkAdminAccess();
+
+        if ($transaction->payment_method !== 'utang') {
+            return back()->with('error', 'Transaksi ini bukan piutang.');
+        }
+
+        $transaction->update([
+            'payment_method' => 'cash',
+        ]);
+
+        return back()->with('success', 'Piutang berhasil ditandai sebagai lunas.');
+    }
 }

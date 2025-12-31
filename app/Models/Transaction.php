@@ -67,6 +67,7 @@ class Transaction extends Model
         'amount_paid',
         'change_amount',
         'status',
+        'customer_name',
     ];
 
     /**
@@ -107,7 +108,21 @@ class Transaction extends Model
     public static function generateTransactionCode(): string
     {
         $date = now()->format('Ymd');
-        $sequence = static::whereDate('created_at', now())->count() + 1;
-        return "TRX{$date}" . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
+        $prefix = "TRX{$date}";
+        
+        // Find the last transaction code for today
+        $lastTransaction = static::where('transaction_code', 'like', "{$prefix}%")
+            ->orderBy('transaction_code', 'desc')
+            ->first();
+        
+        if ($lastTransaction) {
+            // Extract the sequence number from the last transaction code
+            $lastSequence = (int) substr($lastTransaction->transaction_code, -4);
+            $sequence = $lastSequence + 1;
+        } else {
+            $sequence = 1;
+        }
+        
+        return $prefix . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }
 }
