@@ -1,102 +1,111 @@
 # Kasir App - Aplikasi Kasir Berbasis Web
 
-Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah pengguna, dirancang untuk membantu mengelola transaksi penjualan, produk, dan stok dengan efisien. Aplikasi ini dibangun menggunakan teknologi terkini dan menyediakan antarmuka yang intuitif untuk pengalaman pengguna yang lebih baik.
+Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah pengguna, dirancang untuk membantu mengelola transaksi penjualan, produk, dan stok dengan efisien.
 
 ## Fitur Utama
 
-  - **Manajemen Produk:** Kelola produk dengan mudah, termasuk menambah, mengubah, dan menghapus data produk.
-  - **Manajemen Kategori:** Kategorikan produk untuk organisasi yang lebih baik.
-  - **Sistem Kasir (POS):** Antarmuka kasir yang cepat dan mudah digunakan untuk memproses transaksi.
-  - **Multi Metode Pembayaran:** Mendukung berbagai metode pembayaran:
-    - 💵 Tunai (Cash)
-    - 📝 Utang (Piutang)
-    - 💳 Kartu (Debit/Credit)
-    - 📱 E-Wallet (GoPay, OVO, Dana, dll)
-    - 🏦 Transfer Bank
-  - **Manajemen Piutang:** Kelola transaksi utang dengan fitur pencatatan nama customer dan tandai lunas.
-  - **Manajemen Pengguna:** Kelola pengguna dengan peran yang berbeda (Admin dan Kasir).
-  - **Laporan:** Hasilkan laporan penjualan, stok, produk, dan piutang untuk wawasan bisnis.
-  - **Cetak Struk & Barcode:** Cetak struk transaksi dan label barcode untuk produk.
-  - **Pengaturan Aplikasi:** Sesuaikan pengaturan dasar aplikasi seperti nama toko, alamat, logo, dan lainnya.
+- **Sistem Kasir (POS):** Antarmuka kasir yang cepat dan mudah digunakan
+- **Manajemen Produk & Kategori:** Kelola produk dengan mudah
+- **Multi Metode Pembayaran:** Tunai, Utang, Kartu, E-Wallet, Transfer
+- **Manajemen Piutang:** Pencatatan nama customer dan tandai lunas
+- **Laporan:** Penjualan, stok, produk, dan piutang
+- **Cetak Struk & Barcode:** Cetak struk transaksi dan label barcode
+- **Multi User:** Admin dan Kasir dengan hak akses berbeda
+- **Pengaturan Toko:** Nama toko, alamat, logo, dan lainnya
 
-## Teknologi yang Digunakan
+## Teknologi
 
-  - **Backend:** Laravel
-  - **Frontend:** Vue.js (digunakan dengan Inertia.js), Tailwind CSS
-  - **Database:** MySQL (default, dapat dikonfigurasi)
-  - **Web Server:** Nginx (untuk production dengan Docker)
+- **Backend:** Laravel 11
+- **Frontend:** Blade, Tailwind CSS, Alpine.js
+- **Database:** MySQL / MariaDB
+
+## Prasyarat
+
+- PHP >= 8.2
+- Composer
+- Node.js & NPM
+- MySQL / MariaDB
 
 ## Instalasi
 
-### Prasyarat
+### 1. Extract File
 
-  - PHP \>= 8.2
-  - Composer
-  - Node.js & NPM
-  - Database (MySQL, PostgreSQL, dll.)
+Extract file `kasir-app.zip` ke folder htdocs (XAMPP) atau www (Laragon):
 
-### Langkah-langkah Instalasi
+```
+C:\xampp\htdocs\kasir-app\
+```
 
-1.  **Clone repositori:**
+### 2. Install Dependencies
 
-    ```bash
-    git clone https://github.com/azizt91/kasir-app.git
-    cd kasir-app
-    ```
+Buka terminal/command prompt, masuk ke folder project:
 
-2.  **Install dependensi:**
+```bash
+cd C:\xampp\htdocs\kasir-app
+composer install
+npm install
+```
 
-    ```bash
-    composer install
-    npm install
-    ```
+### 3. Konfigurasi Environment
 
-3.  **Konfigurasi Lingkungan:**
+Salin file `.env.example` menjadi `.env`:
 
-      - Salin file `.env.example` menjadi `.env`.
-        ```bash
-        cp .env.example .env
-        ```
-      - Buat *app key* baru.
-        ```bash
-        php artisan key:generate
-        ```
-      - Konfigurasi koneksi database Anda di file `.env`.
+```bash
+cp .env.example .env
+```
 
-4.  **Migrasi dan Seeding Database:**
+Edit file `.env` dan sesuaikan konfigurasi database:
 
-      - Jalankan migrasi untuk membuat tabel-tabel yang diperlukan.
-        ```bash
-        php artisan migrate
-        ```
-      - (Opsional) Jalankan *seeder* untuk mengisi data awal.
-        ```bash
-        php artisan db:seed
-        ```
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=kasir_db
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-5.  **Build Aset Frontend:**
+### 4. Generate App Key
 
-    ```bash
-    npm run build
-    ```
+```bash
+php artisan key:generate
+```
 
-6.  **Jalankan Server:**
+### 5. Migrasi Database
 
-    ```bash
-    php artisan serve
-    ```
+Buat database baru di phpMyAdmin dengan nama `kasir_db`, lalu jalankan:
 
-    Aplikasi sekarang akan berjalan di `http://127.0.0.1:8000`.
+```bash
+php artisan migrate --seed
+```
+
+### 6. Build Assets
+
+```bash
+npm run build
+```
+
+### 7. Jalankan Aplikasi
+
+```bash
+php artisan serve
+```
+
+Buka browser dan akses: `http://127.0.0.1:8000`
 
 ## Akun Demo
 
-Anda dapat menggunakan akun demo berikut untuk mencoba aplikasi:
+| Role  | Email                    | Password |
+|-------|--------------------------|----------|
+| Admin | admin@minimarket.com     | password |
+| Kasir | kasir1@minimarket.com    | password |
 
-  - **Admin:**
-      - **Email:** `admin@minimarket.com`
-      - **Password:** `password`
-  - **Kasir:**
-      - **Email:** `kasir1@minimarket.com`
-      - **Password:** `password`
+## Catatan Penting
 
------
+- Pastikan XAMPP/Laragon sudah running (Apache & MySQL)
+- Jika menggunakan XAMPP, bisa langsung akses via `http://localhost/kasir-app/public`
+- Untuk production, arahkan document root ke folder `public/`
+
+---
+
+© 2025 Kasir App

@@ -754,6 +754,14 @@
         const tx = window.currentTransaction;
         const now = new Date();
         const ESC = '\x1B', GS = '\x1D';
+        const isUtang = tx.payment_method === 'utang';
+        const paymentMethodLabels = {
+            'cash': 'Tunai',
+            'utang': 'UTANG',
+            'card': 'Kartu',
+            'ewallet': 'E-Wallet',
+            'transfer': 'Transfer'
+        };
         let receipt = '';
         receipt += ESC + '@'; // Initialize
         receipt += ESC + 'a' + '\x01'; // Center align
@@ -767,6 +775,9 @@
         receipt += `No: ${tx.transaction_code}\n`;
         receipt += `Tgl: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}\n`;
         receipt += `Kasir: ${AUTH_USER.name}\n`;
+        if (tx.customer_name && tx.customer_name !== 'Umum') {
+            receipt += `Customer: ${tx.customer_name}\n`;
+        }
         receipt += '================================\n';
         tx.items.forEach(item => {
             receipt += `${item.product.name}\n`;
@@ -775,10 +786,18 @@
         receipt += '================================\n';
         receipt += ESC + 'a' + '\x02'; // Right align
         receipt += `Total: ${formatRupiah(tx.total_amount)}\n`;
-        // receipt += `Bayar: ${formatRupiah(tx.paid_amount)}\n`;
-        receipt += `Bayar: ${formatRupiah(tx.amount_paid)}\n`;
-        receipt += `Kembali: ${formatRupiah(tx.change_amount)}\n`;
+        receipt += `Metode: ${paymentMethodLabels[tx.payment_method] || tx.payment_method}\n`;
+        if (!isUtang) {
+            receipt += `Bayar: ${formatRupiah(tx.amount_paid)}\n`;
+            receipt += `Kembali: ${formatRupiah(tx.change_amount)}\n`;
+        }
         receipt += ESC + 'a' + '\x01'; // Center align
+        if (isUtang) {
+            receipt += '--------------------------------\n';
+            receipt += ESC + '!' + '\x08'; // Bold
+            receipt += '** BELUM DIBAYAR - PIUTANG **\n';
+            receipt += ESC + '!' + '\x00'; // Normal
+        }
         receipt += '================================\n';
         receipt += 'Terima kasih!\n\n\n';
         receipt += GS + 'V' + '\x41' + '\x03'; // Cut paper
@@ -790,6 +809,14 @@
         const printArea = document.getElementById('print-area');
         if (!transaction || !printArea) return;
         const now = new Date();
+        const isUtang = transaction.payment_method === 'utang';
+        const paymentMethodLabels = {
+            'cash': '💵 Tunai',
+            'utang': '📝 UTANG',
+            'card': '💳 Kartu',
+            'ewallet': '📱 E-Wallet',
+            'transfer': '🏦 Transfer'
+        };
         const receiptHTML = `
            <div style="font-family: 'Courier New', monospace; font-size: 11px; width: 280px; padding: 10px; color: black;">
                 <div style="text-align: center;">
@@ -813,6 +840,12 @@
                         <td>Kasir</td>
                         <td>: ${AUTH_USER.name}</td>
                     </tr>
+                    ${transaction.customer_name && transaction.customer_name !== 'Umum' ? `
+                    <tr>
+                        <td>Customer</td>
+                        <td>: ${transaction.customer_name}</td>
+                    </tr>
+                    ` : ''}
                 </table>
 
                 <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
@@ -837,6 +870,11 @@
                         <span style="font-weight: bold;">${formatRupiah(transaction.total_amount)}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
+                        <span>Metode:</span>
+                        <span>${paymentMethodLabels[transaction.payment_method] || transaction.payment_method}</span>
+                    </div>
+                    ${!isUtang ? `
+                    <div style="display: flex; justify-content: space-between;">
                         <span>Bayar:</span>
                         <span>${formatRupiah(transaction.amount_paid)}</span>
                     </div>
@@ -844,7 +882,15 @@
                         <span>Kembali:</span>
                         <span>${formatRupiah(transaction.change_amount)}</span>
                     </div>
+                    ` : ''}
                 </div>
+
+                ${isUtang ? `
+                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
+                <div style="text-align: center; font-weight: bold; padding: 8px; background: #f0f0f0; border: 1px dashed black;">
+                    ⚠️ BELUM DIBAYAR - PIUTANG
+                </div>
+                ` : ''}
 
                 <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
 

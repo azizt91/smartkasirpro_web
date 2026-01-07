@@ -63,12 +63,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="purchase_price" class="block text-sm font-medium text-gray-700 mb-1">Harga Beli <span class="text-red-500">*</span></label>
-                                <div class="relative"><span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span><input type="number" name="purchase_price" id="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}" class="pl-10 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required></div>
+                                <div class="relative"><span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span><input type="number" name="purchase_price" id="purchase_price" value="{{ old('purchase_price', (int) $product->purchase_price) }}" step="1" min="0" class="pl-10 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required></div>
                                 @error('purchase_price')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label for="selling_price" class="block text-sm font-medium text-gray-700 mb-1">Harga Jual <span class="text-red-500">*</span></label>
-                                <div class="relative"><span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span><input type="number" name="selling_price" id="selling_price" value="{{ old('selling_price', $product->selling_price) }}" class="pl-10 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required></div>
+                                <div class="relative"><span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span><input type="number" name="selling_price" id="selling_price" value="{{ old('selling_price', (int) $product->selling_price) }}" step="1" min="0" class="pl-10 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required></div>
                                 @error('selling_price')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
