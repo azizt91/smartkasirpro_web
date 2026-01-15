@@ -42,6 +42,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::resource('purchases', \App\Http\Controllers\PurchaseController::class);
         Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
+        Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
+        Route::resource('customers', \App\Http\Controllers\CustomerController::class);
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');

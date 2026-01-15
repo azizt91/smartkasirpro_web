@@ -180,8 +180,13 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="customer-name" class="block text-xs font-medium text-gray-500 mb-1">Nama Customer</label>
-                    <input type="text" id="customer-name" placeholder="Umum"
-                           class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <select id="customer-name" 
+                            class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <option value="Umum">Umum</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->name }}">{{ $customer->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                  <div>
                     <label for="payment-method" class="block text-xs font-medium text-gray-500 mb-1">Metode Pembayaran</label>

@@ -19,7 +19,8 @@ class PosController extends Controller
     public function index()
     {
         $categories = Category::all();
-        return view('pos.index', compact('categories'));
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        return view('pos.index', compact('categories', 'customers'));
     }
 
     /**

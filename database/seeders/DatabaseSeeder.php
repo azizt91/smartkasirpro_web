@@ -164,6 +164,12 @@ class DatabaseSeeder extends Seeder
             }
         });
 
+        // Create expenses and purchases
+        $this->call([
+            ExpenseSeeder::class,
+            PurchaseSeeder::class,
+        ]);
+
         $this->command->info('Database seeded successfully!');
         $this->command->info('Admin credentials: admin@minimarket.com / password');
         $this->command->info('Kasir credentials: kasir1@minimarket.com / password');
