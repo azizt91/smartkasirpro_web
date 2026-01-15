@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::resource('purchases', \App\Http\Controllers\PurchaseController::class);
+        Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');

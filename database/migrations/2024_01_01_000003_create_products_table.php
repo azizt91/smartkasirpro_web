@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('selling_price', 10, 2)->comment('Selling price to customer');
             $table->integer('stock')->default(0)->comment('Current stock quantity');
             $table->integer('minimum_stock')->default(10)->comment('Minimum stock warning level');
+            $table->string('image')->nullable()->comment('Product image path');
             $table->timestamps();
             
             $table->index('barcode');

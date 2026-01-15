@@ -102,30 +102,67 @@ class ReportController extends BaseController
         $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
         $format = $request->get('format', 'view');
 
-        $transactions = Transaction::with(['user', 'items.product'])
+        $transactionsQuery = Transaction::with(['user', 'items.product'])
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        $expensesQuery = \App\Models\Expense::with('user')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date', 'desc');
+
+        $purchasesQuery = \App\Models\Purchase::with(['supplier', 'user'])
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date', 'desc');
+
+        // Calculate Totals (Before Pagination)
+        $totalSales = $transactionsQuery->sum('total_amount');
+        $totalReceivables = $transactionsQuery->clone()->where('payment_method', 'utang')->sum('total_amount');
+        $totalReceived = $totalSales - $totalReceivables;
+        
+        $totalExpenses = $expensesQuery->sum('amount');
+        $totalPurchases = $purchasesQuery->sum('total_amount');
+        
+        $netIncome = $totalSales - ($totalExpenses + $totalPurchases);
 
         $summary = [
-            'total_transactions' => $transactions->count(),
-            'total_amount' => $transactions->sum('total_amount'),
-            'total_discount' => $transactions->sum('discount'),
-            'total_tax' => $transactions->sum('tax'),
-            'average_transaction' => $transactions->count() > 0 ? $transactions->sum('total_amount') / $transactions->count() : 0,
+            'total_transactions' => $transactionsQuery->count(),
+            'total_amount' => $totalSales,
+            'total_received' => $totalReceived,
+            'total_receivables' => $totalReceivables,
+            'total_discount' => $transactionsQuery->sum('discount'),
+            'total_tax' => $transactionsQuery->sum('tax'),
+            'average_transaction' => $transactionsQuery->count() > 0 ? $totalSales / $transactionsQuery->count() : 0,
+            'total_expenses' => $totalExpenses,
+            'total_purchases' => $totalPurchases,
+            'net_income' => $netIncome,
         ];
 
         if ($format === 'pdf') {
-            $pdf = Pdf::loadView('reports.sales-pdf', compact('transactions', 'summary', 'startDate', 'endDate'));
-            return $pdf->download('laporan-penjualan-' . $startDate . '-to-' . $endDate . '.pdf');
+            // honest get() for export
+            $transactions = $transactionsQuery->get();
+            $expenses = $expensesQuery->get();
+            $purchases = $purchasesQuery->get();
+
+            $pdf = Pdf::loadView('reports.sales-pdf', compact('transactions', 'expenses', 'purchases', 'summary', 'startDate', 'endDate'));
+            return $pdf->download('laporan-laba-rugi-' . $startDate . '-to-' . $endDate . '.pdf');
         }
 
         if ($format === 'excel') {
-            return Excel::download(new SalesReportExport($transactions, $summary, $startDate, $endDate), 
-                'laporan-penjualan-' . $startDate . '-to-' . $endDate . '.xlsx');
+            // honest get() for export
+            $transactions = $transactionsQuery->get();
+            $expenses = $expensesQuery->get();
+            $purchases = $purchasesQuery->get();
+
+            return Excel::download(new SalesReportExport($transactions, $expenses, $purchases, $summary, $startDate, $endDate), 
+                'laporan-laba-rugi-' . $startDate . '-to-' . $endDate . '.xlsx');
         }
 
-        return view('reports.sales', compact('transactions', 'summary', 'startDate', 'endDate'));
+        // Pagination for Web View
+        $transactions = $transactionsQuery->paginate(10, ['*'], 'trans_page');
+        $expenses = $expensesQuery->paginate(10, ['*'], 'exp_page');
+        $purchases = $purchasesQuery->paginate(10, ['*'], 'purch_page');
+
+        return view('reports.sales', compact('transactions', 'expenses', 'purchases', 'summary', 'startDate', 'endDate'));
     }
 
     public function products(Request $request)
@@ -223,16 +260,17 @@ class ReportController extends BaseController
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
 
-        $transactions = Transaction::with(['user', 'items.product'])
+        $query = Transaction::with(['user', 'items.product'])
             ->where('payment_method', 'utang')
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
 
         $summary = [
-            'total_receivables' => $transactions->sum('total_amount'),
-            'total_transactions' => $transactions->count(),
+            'total_receivables' => $query->sum('total_amount'),
+            'total_transactions' => $query->count(),
         ];
+
+        $transactions = $query->paginate(10);
 
         return view('reports.receivables', compact('transactions', 'summary', 'startDate', 'endDate'));
     }

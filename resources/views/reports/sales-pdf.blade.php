@@ -99,21 +99,30 @@
         <h3 style="margin-top: 0; text-align: center;">RINGKASAN PENJUALAN</h3>
         <div class="summary-grid">
             <div class="summary-item">
-                <div class="label">TOTAL TRANSAKSI</div>
-                <div class="value">{{ number_format($summary['total_transactions']) }}</div>
-            </div>
-            <div class="summary-item">
                 <div class="label">TOTAL PENJUALAN</div>
                 <div class="value">Rp {{ number_format($summary['total_amount'], 0, ',', '.') }}</div>
+                <div style="font-size: 10px; color: #666; margin-top: 3px;">
+                    Tunai: Rp {{ number_format($summary['total_received'], 0, ',', '.') }}<br>
+                    Piutang: Rp {{ number_format($summary['total_receivables'], 0, ',', '.') }}
+                </div>
             </div>
             <div class="summary-item">
-                <div class="label">TOTAL DISKON</div>
-                <div class="value">Rp {{ number_format($summary['total_discount'], 0, ',', '.') }}</div>
+                <div class="label">PENGELUARAN OPERASIONAL</div>
+                <div class="value" style="color: #d32f2f;">(Rp {{ number_format($summary['total_expenses'], 0, ',', '.') }})</div>
             </div>
             <div class="summary-item">
-                <div class="label">RATA-RATA TRANSAKSI</div>
-                <div class="value">Rp {{ number_format($summary['average_transaction'], 0, ',', '.') }}</div>
+                <div class="label">PEMBELIAN STOK</div>
+                <div class="value" style="color: #ed6c02;">(Rp {{ number_format($summary['total_purchases'], 0, ',', '.') }})</div>
             </div>
+            <div class="summary-item">
+                <div class="label">LABA BERSIH</div>
+                <div class="value" style="color: {{ $summary['net_income'] >= 0 ? '#2e7d32' : '#d32f2f' }};">
+                    Rp {{ number_format($summary['net_income'], 0, ',', '.') }}
+                </div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #666;">
+            * Laba Bersih = Total Penjualan - (Pengeluaran Operasional + Pembelian Stok)
         </div>
     </div>
 
@@ -159,6 +168,78 @@
                 <td class="text-right">Rp {{ number_format($transactions->sum('tax'), 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($transactions->sum('total_amount'), 0, ',', '.') }}</td>
                 <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Expense Details -->
+    <h3 style="margin-top: 30px; color: #d32f2f;">RINCIAN PENGELUARAN OPERASIONAL</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">No</th>
+                <th style="width: 15%;">Tanggal</th>
+                <th style="width: 40%;">Keterangan</th>
+                <th style="width: 20%;">Dicatat Oleh</th>
+                <th style="width: 20%;" class="text-right">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($expenses as $index => $expense)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ \Carbon\Carbon::parse($expense->date)->isoFormat('D MMM YYYY') }}</td>
+                    <td>{{ $expense->description }}</td>
+                    <td>{{ $expense->user->name ?? '-' }}</td>
+                    <td class="text-right" style="color: #d32f2f;">Rp {{ number_format($expense->amount, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center">Tidak ada data pengeluaran</td>
+                </tr>
+            @endforelse
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #ffebee; font-weight: bold;">
+                <td colspan="4" class="text-center">TOTAL PENGELUARAN</td>
+                <td class="text-right" style="color: #d32f2f;">Rp {{ number_format($summary['total_expenses'], 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Purchase Details -->
+    <h3 style="margin-top: 30px; color: #ed6c02;">RINCIAN PEMBELIAN STOK</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">No</th>
+                <th style="width: 15%;">Tanggal</th>
+                <th style="width: 15%;">Kode TRX</th>
+                <th style="width: 20%;">Supplier</th>
+                <th style="width: 25%;">Catatan</th>
+                <th style="width: 20%;" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($purchases as $index => $purchase)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</td>
+                    <td>{{ $purchase->transaction_code }}</td>
+                    <td>{{ $purchase->supplier->name ?? 'Umum' }}</td>
+                    <td>{{ $purchase->note ?? '-' }}</td>
+                    <td class="text-right" style="color: #ed6c02;">Rp {{ number_format($purchase->total_amount, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-center">Tidak ada data pembelian stok</td>
+                </tr>
+            @endforelse
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #fff3e0; font-weight: bold;">
+                <td colspan="5" class="text-center">TOTAL PEMBELIAN STOK</td>
+                <td class="text-right" style="color: #ed6c02;">Rp {{ number_format($summary['total_purchases'], 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>

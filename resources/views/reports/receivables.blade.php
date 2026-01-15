@@ -23,18 +23,16 @@
             <!-- Filter Form -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                 <div class="p-4 sm:p-6">
-                    <form method="GET" action="{{ route('reports.receivables') }}" class="flex flex-col gap-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
-                                <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" 
-                                       class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
-                            </div>
-                            <div>
-                                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
-                                <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" 
-                                       class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
-                            </div>
+                    <form method="GET" action="{{ route('reports.receivables') }}" class="flex flex-col sm:flex-row sm:items-end gap-4">
+                        <div class="w-full sm:flex-1">
+                            <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                            <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" 
+                                   class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                        </div>
+                        <div class="w-full sm:flex-1">
+                            <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                            <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" 
+                                   class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring-orange-500">
                         </div>
                         <div>
                             <button type="submit" 
@@ -158,6 +156,10 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination (Desktop) -->
+                    <div class="px-6 pb-6 mt-4 hidden md:block">
+                        {{ $transactions->appends(request()->query())->links() }}
+                    </div>
 
                     <!-- Mobile Cards -->
                     <div class="md:hidden space-y-4">
@@ -234,6 +236,10 @@
                                 <p class="mt-2 text-sm text-gray-500">Tidak ada transaksi piutang pada periode yang dipilih.</p>
                             </div>
                         @endforelse
+                    </div>
+                    <!-- Pagination (Mobile) -->
+                    <div class="md:hidden mt-4">
+                        {{ $transactions->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
