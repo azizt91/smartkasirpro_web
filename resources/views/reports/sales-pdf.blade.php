@@ -89,7 +89,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📊 LAPORAN PENJUALAN</h1>
+        <h1>LAPORAN PENJUALAN</h1>
         <p><strong>Minimarket POS System</strong></p>
         <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
         <p>Dicetak pada: {{ now()->format('d M Y, H:i') }} WIB</p>
@@ -131,12 +131,9 @@
         <thead>
             <tr>
                 <th>No</th>
-                <th>Kode Transaksi</th>
                 <th>Tanggal</th>
                 <th>Kasir</th>
-                <th class="text-right">Subtotal</th>
-                <th class="text-right">Diskon</th>
-                <th class="text-right">Pajak</th>
+                <th>Keterangan</th>
                 <th class="text-right">Total</th>
                 <th class="text-center">Pembayaran</th>
             </tr>
@@ -145,27 +142,21 @@
             @forelse($transactions as $index => $transaction)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $transaction->transaction_code }}</td>
                     <td>{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
                     <td>{{ $transaction->user->name }}</td>
-                    <td class="text-right">Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($transaction->discount, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($transaction->tax, 0, ',', '.') }}</td>
+                    <td>{{ $transaction->note ?? '-' }}</td>
                     <td class="text-right"><strong>Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</strong></td>
                     <td class="text-center">{{ ucfirst($transaction->payment_method) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="text-center" style="padding: 20px;">Tidak ada transaksi pada periode ini</td>
+                    <td colspan="6" class="text-center" style="padding: 20px;">Tidak ada transaksi pada periode ini</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr style="background-color: #f8f9fa; font-weight: bold;">
                 <td colspan="4" class="text-center">TOTAL</td>
-                <td class="text-right">Rp {{ number_format($transactions->sum('subtotal'), 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($transactions->sum('discount'), 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($transactions->sum('tax'), 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($transactions->sum('total_amount'), 0, ',', '.') }}</td>
                 <td></td>
             </tr>
@@ -214,9 +205,10 @@
             <tr>
                 <th style="width: 5%;">No</th>
                 <th style="width: 15%;">Tanggal</th>
-                <th style="width: 15%;">Kode TRX</th>
-                <th style="width: 20%;">Supplier</th>
-                <th style="width: 25%;">Catatan</th>
+                <th style="width: 25%;">Produk</th>
+                <th style="width: 5%;">Qty</th>
+                <th style="width: 15%;">Supplier</th>
+                <th style="width: 15%;">Catatan</th>
                 <th style="width: 20%;" class="text-right">Total</th>
             </tr>
         </thead>
@@ -225,20 +217,33 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</td>
-                    <td>{{ $purchase->transaction_code }}</td>
+                    <td>
+                        <ul style="padding-left: 15px; margin: 0;">
+                            @foreach($purchase->items as $item)
+                                <li>{{ $item->product->name ?? 'Produk Dihapus' }}</li>
+                            @endforeach
+                        </ul>
+                    </td>
+                    <td class="text-center">
+                        <ul style="list-style-type: none; padding: 0; margin: 0;">
+                            @foreach($purchase->items as $item)
+                                <li>{{ $item->quantity }}</li>
+                            @endforeach
+                        </ul>
+                    </td>
                     <td>{{ $purchase->supplier->name ?? 'Umum' }}</td>
                     <td>{{ $purchase->note ?? '-' }}</td>
                     <td class="text-right" style="color: #ed6c02;">Rp {{ number_format($purchase->total_amount, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center">Tidak ada data pembelian stok</td>
+                    <td colspan="7" class="text-center">Tidak ada data pembelian stok</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr style="background-color: #fff3e0; font-weight: bold;">
-                <td colspan="5" class="text-center">TOTAL PEMBELIAN STOK</td>
+                <td colspan="6" class="text-center">TOTAL PEMBELIAN STOK</td>
                 <td class="text-right" style="color: #ed6c02;">Rp {{ number_format($summary['total_purchases'], 0, ',', '.') }}</td>
             </tr>
         </tfoot>

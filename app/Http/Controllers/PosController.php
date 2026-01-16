@@ -158,6 +158,7 @@ class PosController extends Controller
             'customer_name' => 'nullable|string',
             'discount' => 'nullable|numeric|min:0',
             'tax' => 'nullable|numeric|min:0',
+            'note' => 'nullable|string|max:1000',
         ]);
 
         try {
@@ -223,6 +224,7 @@ class PosController extends Controller
                 'change_amount' => $changeAmount,
                 'status' => 'completed',
                 'customer_name' => $request->customer_name ?? 'Umum',
+                'note' => $request->note, // Simpan catatan
             ]);
 
             // Create transaction items and update stock

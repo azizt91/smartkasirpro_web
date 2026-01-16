@@ -36,26 +36,20 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-weight: bold; border: 1px solid #000000;">Kode Transaksi</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Tanggal</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Kasir</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">Keterangan</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Metode Pembayaran</th>
-            <th style="font-weight: bold; border: 1px solid #000000;">Subtotal</th>
-            <th style="font-weight: bold; border: 1px solid #000000;">Diskon</th>
-            <th style="font-weight: bold; border: 1px solid #000000;">Pajak</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Total</th>
         </tr>
     </thead>
     <tbody>
         @foreach($transactions as $transaction)
             <tr>
-                <td style="border: 1px solid #000000;">{{ $transaction->transaction_code }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->user->name }}</td>
+                <td style="border: 1px solid #000000;">{{ $transaction->note ?? '-' }}</td>
                 <td style="border: 1px solid #000000;">{{ ucfirst($transaction->payment_method) }}</td>
-                <td style="border: 1px solid #000000;">{{ $transaction->subtotal }}</td>
-                <td style="border: 1px solid #000000;">{{ $transaction->discount }}</td>
-                <td style="border: 1px solid #000000;">{{ $transaction->tax }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->total_amount }}</td>
             </tr>
         @endforeach
@@ -90,11 +84,13 @@
 <table>
     <tr></tr>
     <tr>
-        <td colspan="5" style="font-weight: bold; font-size: 12px;">RINCIAN PEMBELIAN STOK</td>
+        <td colspan="6" style="font-weight: bold; font-size: 12px;">RINCIAN PEMBELIAN STOK</td>
     </tr>
     <tr>
+    <tr>
         <th style="font-weight: bold; border: 1px solid #000000;">Tanggal</th>
-        <th style="font-weight: bold; border: 1px solid #000000;">Kode TRX</th>
+        <th style="font-weight: bold; border: 1px solid #000000;">Produk</th>
+        <th style="font-weight: bold; border: 1px solid #000000;">Qty</th>
         <th style="font-weight: bold; border: 1px solid #000000;">Supplier</th>
         <th style="font-weight: bold; border: 1px solid #000000;">Catatan</th>
         <th style="font-weight: bold; border: 1px solid #000000;">Total</th>
@@ -102,14 +98,23 @@
     @foreach($purchases as $purchase)
         <tr>
             <td style="border: 1px solid #000000;">{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</td>
-            <td style="border: 1px solid #000000;">{{ $purchase->transaction_code }}</td>
+            <td style="border: 1px solid #000000;">
+                @foreach($purchase->items as $item)
+                    {{ $item->product->name ?? 'Produk Dihapus' }}@if(!$loop->last), @endif
+                @endforeach
+            </td>
+            <td style="border: 1px solid #000000;">
+                @foreach($purchase->items as $item)
+                    {{ $item->quantity }}@if(!$loop->last), @endif
+                @endforeach
+            </td>
             <td style="border: 1px solid #000000;">{{ $purchase->supplier->name ?? 'Umum' }}</td>
             <td style="border: 1px solid #000000;">{{ $purchase->note ?? '-' }}</td>
             <td style="border: 1px solid #000000;">{{ $purchase->total_amount }}</td>
         </tr>
     @endforeach
     <tr>
-        <td colspan="4" style="font-weight: bold; border: 1px solid #000000;">TOTAL PEMBELIAN STOK</td>
+        <td colspan="5" style="font-weight: bold; border: 1px solid #000000;">TOTAL PEMBELIAN STOK</td>
         <td style="font-weight: bold; border: 1px solid #000000;">{{ $summary['total_purchases'] }}</td>
     </tr>
 </table>

@@ -34,7 +34,8 @@
                 </div>
             @else
                 <div class="hidden sm:block bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
+    <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
@@ -69,6 +70,7 @@
                             @endforeach
                         </tbody>
                     </table>
+    </div>
                 </div>
 
                 <!-- Mobile Card View -->

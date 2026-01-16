@@ -9,9 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
-use Milon\Barcode\DNS1D;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
 
 class ProductController extends Controller
 {
@@ -128,6 +126,11 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
+        // Auto-generate barcode if empty
+        if (empty($validated['barcode'])) {
+            $validated['barcode'] = 'BRC-' . time() . '-' . rand(100, 999);
+        }
+
         // Handle image upload
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -229,11 +232,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         // Check if product is used in any transactions
+        // Check if product is used in any transactions
         if ($product->transactionItems()->count() > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Produk tidak dapat dihapus karena sudah digunakan dalam transaksi penjualan. Untuk menghentikan penjualan produk ini, ubah stok menjadi 0.'
-            ], 422);
+            return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena sudah digunakan dalam transaksi penjualan. Untuk menghentikan penjualan produk ini, ubah stok menjadi 0.');
         }
 
         // Delete related stock movements first
@@ -246,10 +247,7 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil dihapus'
-        ]);
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus');
     }
 
     public function printBarcodes(Request $request)

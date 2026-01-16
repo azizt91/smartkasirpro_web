@@ -22,7 +22,7 @@
         <div>
             
             <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-0 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 px-4 sm:px-0 mb-6">
                 <!-- Today Sales -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white">

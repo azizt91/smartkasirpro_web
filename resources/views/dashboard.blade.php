@@ -20,7 +20,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 px-4 sm:px-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 px-4 sm:px-0">
             <!-- Total Produk -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg stat-card transition-all duration-300">
                 <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white">

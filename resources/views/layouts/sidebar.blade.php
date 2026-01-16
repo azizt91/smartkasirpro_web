@@ -3,7 +3,7 @@ use Illuminate\Support\Facades\Storage;
 @endphp
 
 <!-- Desktop Sidebar -->
-<div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50">
+<div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50 shrink-0">
     <div class="flex flex-col flex-grow h-full bg-white border-r border-gray-200 shadow-sm">
         <!-- Logo Section -->
         <div class="flex items-center flex-shrink-0 px-6 py-4 border-b border-gray-200">
@@ -113,6 +113,16 @@ use Illuminate\Support\Facades\Storage;
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 1.5M7 13l1.5 1.5M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z"></path>
                     </svg>
                     <span>Pembelian</span>
+                </a>
+
+                <!-- Transaction History -->
+                <a href="{{ route('transactions.index') }}"
+                   class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('transactions.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
+                   data-tooltip="Riwayat Transaksi">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Riwayat Transaksi</span>
                 </a>
 
                 <!-- Reports -->
@@ -332,6 +342,15 @@ use Illuminate\Support\Facades\Storage;
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 1.5M7 13l1.5 1.5M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z"></path>
                     </svg>
                     <span>Pembelian</span>
+                </a>
+
+                <a href="{{ route('transactions.index') }}"
+                   class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('transactions.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
+                   @click="sidebarOpen = false">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Riwayat Transaksi</span>
                 </a>
 
                 <a href="{{ route('reports.index') }}"

@@ -34,9 +34,9 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {{-- Products Section (Left Side) --}}
-        <div class="lg:col-span-3 space-y-6">
+        <div class="md:col-span-2 lg:col-span-3 space-y-6">
             {{-- Search Area --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex flex-col sm:flex-row gap-4">
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 
-                <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-h-[400px]">
+                <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4 min-h-[400px]">
                     {{-- Products will be loaded here by JavaScript --}}
                 </div>
 
@@ -105,7 +105,7 @@
         </div>
 
         {{-- Cart Section (Right Side) --}}
-        <div class="lg:col-span-1">
+        <div class="md:col-span-1 lg:col-span-1">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-semibold text-gray-900">Shopping Cart</h3>
@@ -239,6 +239,11 @@
                            class="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-lg font-semibold"
                            oninput="updateModalPayment()">
                 </div>
+            </div>
+
+            <div>
+                <label for="transaction-note" class="block text-xs font-medium text-gray-500 mb-1">Catatan (Opsional)</label>
+                <textarea id="transaction-note" rows="2" placeholder="Contoh: Titipan..." class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-sm"></textarea>
             </div>
 
             <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -733,7 +738,8 @@
             customer_name: document.getElementById('customer-name').value || 'Umum',
             discount: discount,
             tax: tax,
-            subtotal: subtotal
+            subtotal: subtotal,
+            note: document.getElementById('transaction-note').value
         };
 
         try {

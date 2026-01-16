@@ -31,7 +31,7 @@
             @include('layouts.sidebar')
 
             <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col lg:ml-64">
+            <div class="flex-1 flex flex-col lg:ml-64 overflow-x-hidden min-w-0">
                 <!-- Top Header -->
                 @include('layouts.header')
 

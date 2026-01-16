@@ -74,7 +74,8 @@
                 </div>
 
                 <div class="hidden md:block bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
@@ -111,7 +112,8 @@
                                 </tr>
                             @endforeach
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 </div>
                 <div class="mt-4">
                     {{ $categories->links() }}

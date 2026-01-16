@@ -110,13 +110,16 @@ class ReportController extends BaseController
             ->whereBetween('date', [$startDate, $endDate])
             ->orderBy('date', 'desc');
 
-        $purchasesQuery = \App\Models\Purchase::with(['supplier', 'user'])
+        $purchasesQuery = \App\Models\Purchase::with(['supplier', 'user', 'items.product'])
             ->whereBetween('date', [$startDate, $endDate])
             ->orderBy('date', 'desc');
 
         // Calculate Totals (Before Pagination)
-        $totalSales = $transactionsQuery->sum('total_amount');
-        $totalReceivables = $transactionsQuery->clone()->where('payment_method', 'utang')->sum('total_amount');
+        // Use a separate query for totals to exclude cancelled transactions
+        $activeTransactionsQuery = $transactionsQuery->clone()->where('status', '!=', 'cancelled');
+
+        $totalSales = $activeTransactionsQuery->sum('total_amount');
+        $totalReceivables = $activeTransactionsQuery->clone()->where('payment_method', 'utang')->sum('total_amount');
         $totalReceived = $totalSales - $totalReceivables;
         
         $totalExpenses = $expensesQuery->sum('amount');
@@ -124,14 +127,16 @@ class ReportController extends BaseController
         
         $netIncome = $totalSales - ($totalExpenses + $totalPurchases);
 
+        $activeCount = $activeTransactionsQuery->count();
+
         $summary = [
-            'total_transactions' => $transactionsQuery->count(),
+            'total_transactions' => $transactionsQuery->count(), // Total Logged Transactions
             'total_amount' => $totalSales,
             'total_received' => $totalReceived,
             'total_receivables' => $totalReceivables,
-            'total_discount' => $transactionsQuery->sum('discount'),
-            'total_tax' => $transactionsQuery->sum('tax'),
-            'average_transaction' => $transactionsQuery->count() > 0 ? $totalSales / $transactionsQuery->count() : 0,
+            'total_discount' => $activeTransactionsQuery->sum('discount'),
+            'total_tax' => $activeTransactionsQuery->sum('tax'),
+            'average_transaction' => $activeCount > 0 ? $totalSales / $activeCount : 0,
             'total_expenses' => $totalExpenses,
             'total_purchases' => $totalPurchases,
             'net_income' => $netIncome,

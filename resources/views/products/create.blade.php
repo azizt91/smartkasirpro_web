@@ -122,7 +122,7 @@ function previewImage(input) {
             </div>
         </div>
 
-        <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" onsubmit="return handleSubmit(this)">
             @csrf
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {{-- Kolom Kiri - Gambar Produk --}}
@@ -211,7 +211,13 @@ function previewImage(input) {
 
             <div class="flex items-center justify-end space-x-4 pt-6 mt-8 border-t border-gray-200">
                 <a href="{{ route('products.index') }}" class="px-6 py-2 text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors duration-200">Batal</a>
-                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 shadow-sm">Simpan Produk</button>
+                <button type="submit" id="submit-btn" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 shadow-sm flex items-center">
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="btn-text">Simpan Produk</span>
+                </button>
             </div>
         </form>
     </div>
@@ -236,10 +242,22 @@ function previewImage(input) {
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Script JS untuk preview gambar
 function previewImage(input) {
     if (input.files && input.files[0]) {
+        // Validasi ukuran file (max 2MB)
+        if (input.files[0].size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ukuran File Terlalu Besar',
+                text: 'Maksimal ukuran gambar adalah 2MB. Silakan pilih gambar yang lebih kecil.'
+            });
+            input.value = ''; // Reset input
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('preview-img').src = e.target.result;
@@ -303,6 +321,19 @@ function closeScannerModal() {
         codeReader.reset();
     }
     document.getElementById('scanner-modal').classList.add('hidden');
+}
+
+function handleSubmit(form) {
+    const btn = document.getElementById('submit-btn');
+    const spinner = document.getElementById('loading-spinner');
+    const text = document.getElementById('btn-text');
+
+    btn.disabled = true;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+    spinner.classList.remove('hidden');
+    text.textContent = 'Menyimpan...';
+
+    return true;
 }
 </script>
 @endpush

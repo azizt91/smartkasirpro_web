@@ -68,6 +68,7 @@ class Transaction extends Model
         'change_amount',
         'status',
         'customer_name',
+        'note',
     ];
 
     /**

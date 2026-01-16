@@ -76,7 +76,7 @@
             </div>
 
             <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
                 <!-- Total Sales -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg p-5 border-l-4 border-blue-500">
                     <div class="flex items-center">
@@ -171,10 +171,12 @@
                                         <p class="text-lg font-bold text-green-600">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-sm space-y-1 text-gray-600">
-                                        <div class="flex justify-between"><p>Subtotal:</p> <p>Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</p></div>
-                                        <div class="flex justify-between"><p>Diskon:</p> <p class="text-orange-600">- Rp {{ number_format($transaction->discount, 0, ',', '.') }}</p></div>
-                                        <div class="flex justify-between"><p>Pajak:</p> <p>+ Rp {{ number_format($transaction->tax, 0, ',', '.') }}</p></div>
-                                        <div class="flex justify-between border-t mt-2 pt-2"><p>Kasir:</p> <p class="font-medium">{{ $transaction->user->name }}</p></div>
+                                        @if($transaction->note)
+                                            <div class="bg-gray-50 p-2 rounded text-xs mb-2">
+                                                <span class="font-semibold">Ket:</span> {{ $transaction->note }}
+                                            </div>
+                                        @endif
+                                        <div class="flex justify-between mt-2 pt-2"><p>Kasir:</p> <p class="font-medium">{{ $transaction->user->name }}</p></div>
                                     </div>
                                 </div>
                             </div>
@@ -194,53 +196,47 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Transaksi</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kasir</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diskon</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pajak</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pembayaran</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse($transactions as $transaction)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $transaction->transaction_code }}
-                                        </td>
+                                    <tr class="hover:bg-gray-50 {{ $transaction->status == 'cancelled' ? 'bg-red-50' : '' }}">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $transaction->created_at->format('d/m/Y H:i') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $transaction->user->name }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            {{ $transaction->note ?? '-' }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600">
-                                            Rp {{ number_format($transaction->discount, 0, ',', '.') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">
-                                            Rp {{ number_format($transaction->tax, 0, ',', '.') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ $transaction->status == 'cancelled' ? 'text-gray-400 line-through' : 'text-green-600' }}">
                                             Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                @if($transaction->payment_method === 'cash') bg-green-100 text-green-800
-                                                @elseif($transaction->payment_method === 'card') bg-blue-100 text-blue-800
-                                                @elseif($transaction->payment_method === 'ewallet') bg-purple-100 text-purple-800
-                                                @else bg-gray-100 text-gray-800 @endif">
-                                                {{ ucfirst($transaction->payment_method) }}
-                                            </span>
+                                            @if($transaction->status == 'cancelled')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    DIBATALKAN
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                    @if($transaction->payment_method === 'cash') bg-green-100 text-green-800
+                                                    @elseif($transaction->payment_method === 'card') bg-blue-100 text-blue-800
+                                                    @elseif($transaction->payment_method === 'ewallet') bg-purple-100 text-purple-800
+                                                    @else bg-gray-100 text-gray-800 @endif">
+                                                    {{ ucfirst($transaction->payment_method) }}
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
@@ -298,25 +294,31 @@
                     <!-- Mobile Cards -->
                     <div class="md:hidden space-y-4">
                         @forelse($transactions as $transaction)
-                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4 {{ $transaction->status == 'cancelled' ? 'bg-red-50' : '' }}">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="font-bold text-gray-900">{{ $transaction->transaction_code }}</p>
+                                        <p class="font-bold text-gray-900 {{ $transaction->status == 'cancelled' ? 'line-through text-gray-500' : '' }}">{{ $transaction->transaction_code }}</p>
                                         <p class="text-sm text-gray-500">{{ $transaction->created_at->format('d M Y, H:i') }}</p>
                                     </div>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                        @if($transaction->payment_method === 'cash') bg-green-100 text-green-800
-                                        @elseif($transaction->payment_method === 'card') bg-blue-100 text-blue-800
-                                        @elseif($transaction->payment_method === 'ewallet') bg-purple-100 text-purple-800
-                                        @else bg-gray-100 text-gray-800 @endif">
-                                        {{ ucfirst($transaction->payment_method) }}
-                                    </span>
+                                    @if($transaction->status == 'cancelled')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            DIBATALKAN
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                            @if($transaction->payment_method === 'cash') bg-green-100 text-green-800
+                                            @elseif($transaction->payment_method === 'card') bg-blue-100 text-blue-800
+                                            @elseif($transaction->payment_method === 'ewallet') bg-purple-100 text-purple-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ ucfirst($transaction->payment_method) }}
+                                        </span>
+                                    @endif
                                 </div>
 
                                 <div class="mt-4 pt-4 border-t border-gray-200">
                                     <div class="flex justify-between items-center mb-2">
                                         <p class="text-sm text-gray-500">Total</p>
-                                        <p class="text-lg font-bold text-green-600">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
+                                        <p class="text-lg font-bold {{ $transaction->status == 'cancelled' ? 'text-gray-400 line-through' : 'text-green-600' }}">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-sm space-y-1 text-gray-600">
                                         <div class="flex justify-between"><p>Subtotal:</p> <p>Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</p></div>
@@ -422,7 +424,8 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode TRX</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
@@ -434,8 +437,19 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                                            {{ $purchase->transaction_code }}
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            <ul class="list-disc list-inside">
+                                                @foreach($purchase->items as $item)
+                                                    <li>{{ $item->product->name ?? 'Produk Dihapus' }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            <ul class="list-none">
+                                                @foreach($purchase->items as $item)
+                                                    <li>{{ $item->quantity }}</li>
+                                                @endforeach
+                                            </ul>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $purchase->supplier->name ?? 'Umum' }}
@@ -449,7 +463,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data pembelian stok.</td>
+                                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data pembelian stok.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -462,10 +476,15 @@
                             <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
                                 <div class="flex justify-between items-start mb-2">
                                     <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-sm font-bold text-indigo-600">{{ $purchase->transaction_code }}</span>
+                                        <div class="flex items-center gap-2 mb-2">
                                             <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</span>
                                         </div>
+                                        <div class="text-sm font-medium text-gray-900 mb-1">Items:</div>
+                                        <ul class="list-disc list-inside text-sm text-gray-600 mb-2">
+                                            @foreach($purchase->items as $item)
+                                                <li>{{ $item->product->name ?? 'Produk Dihapus' }} (x{{ $item->quantity }})</li>
+                                            @endforeach
+                                        </ul>
                                         <p class="text-xs text-gray-500 mt-1">Supplier: {{ $purchase->supplier->name ?? 'Umum' }}</p>
                                     </div>
                                     <span class="text-sm font-bold text-orange-600">Rp {{ number_format($purchase->total_amount, 0, ',', '.') }}</span>

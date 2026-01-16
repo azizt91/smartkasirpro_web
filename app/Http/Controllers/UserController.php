@@ -140,17 +140,11 @@ class UserController extends Controller
 
         // Prevent self-deletion
         if ($user->id === auth()->id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak dapat menghapus akun Anda sendiri!'
-            ], 422);
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri!');
         }
 
         $user->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User berhasil dihapus'
-        ]);
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
     }
 }
