@@ -85,17 +85,13 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         if ($category->products()->count() > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kategori tidak dapat dihapus karena masih memiliki produk. Hapus atau pindahkan semua produk dari kategori ini terlebih dahulu.'
-            ], 422);
+            return redirect()->route('categories.index')
+                ->with('error', 'Kategori tidak dapat dihapus karena masih memiliki produk. Hapus atau pindahkan semua produk dari kategori ini terlebih dahulu.');
         }
 
         $category->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Kategori berhasil dihapus'
-        ]);
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil dihapus.');
     }
 }

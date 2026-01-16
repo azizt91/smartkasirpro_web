@@ -347,7 +347,9 @@
             <div class="bg-white overflow-hidden shadow-sm rounded-lg mt-6">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 text-red-600">🔻 Rincian Pengeluaran Operasional</h3>
-                    <div class="overflow-x-auto">
+                    
+                    <!-- Desktop Table -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -381,6 +383,27 @@
                             </tbody>
                         </table>
                     </div>
+
+                     <!-- Mobile Cards for Expenses -->
+                    <div class="md:hidden space-y-4">
+                        @forelse($expenses as $expense)
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p class="text-xs text-gray-500 font-medium uppercase">{{ \Carbon\Carbon::parse($expense->date)->isoFormat('D MMM YYYY') }}</p>
+                                        <h4 class="text-sm font-bold text-gray-900 mt-1">{{ $expense->description }}</h4>
+                                    </div>
+                                    <span class="text-sm font-bold text-red-600">Rp {{ number_format($expense->amount, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="text-xs text-gray-500 pt-2 border-t border-gray-100">
+                                    Dicatat: {{ $expense->user->name ?? '-' }}
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-center text-sm text-gray-500 py-4">Tidak ada data pengeluaran.</p>
+                        @endforelse
+                    </div>
+
                 </div>
                 <!-- Pagination -->
                 <div class="px-6 pb-6 mt-4">
@@ -392,7 +415,9 @@
             <div class="bg-white overflow-hidden shadow-sm rounded-lg mt-6">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 text-orange-600">📦 Rincian Pembelian Stok</h3>
-                    <div class="overflow-x-auto">
+                    
+                    <!-- Desktop Table -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -430,6 +455,35 @@
                             </tbody>
                         </table>
                     </div>
+
+                     <!-- Mobile Cards for Purchases -->
+                    <div class="md:hidden space-y-4">
+                        @forelse($purchases as $purchase)
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-bold text-indigo-600">{{ $purchase->transaction_code }}</span>
+                                            <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Supplier: {{ $purchase->supplier->name ?? 'Umum' }}</p>
+                                    </div>
+                                    <span class="text-sm font-bold text-orange-600">Rp {{ number_format($purchase->total_amount, 0, ',', '.') }}</span>
+                                </div>
+                                @if($purchase->note)
+                                    <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded mb-2">
+                                        Note: {{ $purchase->note }}
+                                    </div>
+                                @endif
+                                <div class="text-xs text-gray-500 pt-2 border-t border-gray-100">
+                                    Dicatat: {{ $purchase->user->name ?? '-' }}
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-center text-sm text-gray-500 py-4">Tidak ada data pembelian stok.</p>
+                        @endforelse
+                    </div>
+
                 </div>
             </div>
 

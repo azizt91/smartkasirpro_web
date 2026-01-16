@@ -67,8 +67,12 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        // Create some products with low stock
-        Product::factory(5)->lowStock()->create();
+        // Create some products with low stock assigned to existing categories
+        Product::factory(5)->lowStock()->create([
+            'category_id' => function () {
+                return Category::inRandomOrder()->first()->id;
+            }
+        ]);
 
         // Create sample transactions
         $users = User::whereIn('role', ['admin', 'kasir'])->get();

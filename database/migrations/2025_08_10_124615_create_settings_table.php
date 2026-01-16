@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('store_phone')->nullable();
             $table->string('store_logo')->nullable();
             $table->text('store_description')->nullable();
+            $table->decimal('tax_rate', 5, 2)->default(0);
             $table->timestamps();
         });
     }

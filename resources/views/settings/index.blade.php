@@ -51,6 +51,20 @@ use Illuminate\Support\Facades\Storage;
                                           placeholder="Contoh: Terima kasih telah berbelanja! Barang yang sudah dibeli tidak dapat dikembalikan.">{{ old('store_description', $settings->store_description) }}</textarea>
                                 @error('store_description')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
                             </div>
+
+                            <div class="md:col-span-1">
+                                <label for="tax_rate" class="block text-sm font-medium text-gray-700 mb-1">Pajak Default (%)</label>
+                                <div class="relative">
+                                    <input type="number" id="tax_rate" name="tax_rate" value="{{ old('tax_rate', $settings->tax_rate ?? 0) }}" step="0.1" min="0" max="100"
+                                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 pr-8"
+                                           placeholder="0">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">%</span>
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Nilai ini akan menjadi default pajak di halaman kasir.</p>
+                                @error('tax_rate')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </div>
 

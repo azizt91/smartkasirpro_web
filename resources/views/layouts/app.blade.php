@@ -63,61 +63,8 @@
             if (typeof Swal !== 'undefined') {
                 Swal.mixin({
                     customClass: {
-                        confirmButton: 'bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg mx-2',
-                        cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg mx-2'
-                    },
-                    buttonsStyling: false
-                });
-            }
-
-            // Show success/error messages from session
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: '{{ session('success') }}',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            @endif
-
-            @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: '{{ session('error') }}',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true
-                });
-            @endif
-
-            @if($errors->any())
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error!',
-                    html: '<ul style="text-align: left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-                    showConfirmButton: true
-                });
-            @endif
-        </script>
-        @stack('scripts')
-    </body>
-</html>
-
-        <!-- SweetAlert2 for notifications -->
-        <script>
-            // Global SweetAlert configuration
-            if (typeof Swal !== 'undefined') {
-                Swal.mixin({
-                    customClass: {
-                        confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg mx-2',
-                        cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg mx-2'
+                        confirmButton: 'bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg mx-2 transition-colors',
+                        cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg mx-2 transition-colors'
                     },
                     buttonsStyling: false
                 });
@@ -133,7 +80,12 @@
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,
-                    timerProgressBar: true
+                    timerProgressBar: true,
+                    background: '#fff',
+                    iconColor: '#10B981',
+                    customClass: {
+                        popup: 'rounded-xl shadow-xl'
+                    }
                 });
             @endif
 
@@ -146,16 +98,25 @@
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 4000,
-                    timerProgressBar: true
+                    timerProgressBar: true,
+                    background: '#fff',
+                    iconColor: '#EF4444',
+                    customClass: {
+                        popup: 'rounded-xl shadow-xl'
+                    }
                 });
             @endif
 
             @if($errors->any())
                 Swal.fire({
                     icon: 'error',
-                    title: 'Validation Error!',
-                    html: '<ul style="text-align: left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-                    showConfirmButton: true
+                    title: 'Validasi Gagal!',
+                    html: '<ul class="text-left text-sm space-y-1">@foreach($errors->all() as $error)<li>• {{ $error }}</li>@endforeach</ul>',
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        popup: 'rounded-xl shadow-xl',
+                        confirmButton: 'bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                    }
                 });
             @endif
         </script>

@@ -20,7 +20,8 @@ class PosController extends Controller
     {
         $categories = Category::all();
         $customers = \App\Models\Customer::orderBy('name')->get();
-        return view('pos.index', compact('categories', 'customers'));
+        $storeSettings = \App\Models\Setting::getStoreSettings(); // Tambahkan ini
+        return view('pos.index', compact('categories', 'customers', 'storeSettings'));
     }
 
     /**
@@ -154,8 +155,9 @@ class PosController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:cash,utang,card,ewallet,transfer',
             'amount_paid' => 'required|numeric|min:0',
+            'customer_name' => 'nullable|string',
             'discount' => 'nullable|numeric|min:0',
-            'customer_name' => 'nullable|string|max:255',
+            'tax' => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -184,14 +186,28 @@ class PosController extends Controller
                 ];
             }
 
+            // Gunakan nilai diskon dan pajak dari request
             $discount = $request->discount ?? 0;
-            $tax = 0; // No tax for now
-            $totalAmount = $subtotal - $discount + $tax;
+            $tax = $request->tax ?? 0;
+            
+            // Validasi: Total harus dihitung ulang di backend untuk keamanan
+            // Total = (Subtotal - Diskon) + Pajak
+            // Pastikan diskon tidak melebihi subtotal
+            if ($discount > $subtotal) {
+                $discount = $subtotal;
+            }
+            
+            $totalAmount = max(0, $subtotal - $discount + $tax);
             $amountPaid = $request->amount_paid;
-            $changeAmount = $amountPaid - $totalAmount;
+            $changeAmount = 0;
 
-            if ($changeAmount < 0) {
-                throw new \Exception('Jumlah pembayaran kurang dari total belanja.');
+            if ($request->payment_method === 'utang') {
+                $changeAmount = 0; // Utang tidak ada kembalian di POS standar
+            } else {
+                 $changeAmount = $amountPaid - $totalAmount;
+                 if ($changeAmount < 0) {
+                     throw new \Exception('Jumlah pembayaran kurang dari total belanja.');
+                 }
             }
 
             // Create transaction

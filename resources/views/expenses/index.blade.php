@@ -33,7 +33,7 @@
                     <p class="mt-1 text-sm text-gray-500">Mulai dengan mencatat pengeluaran pertama Anda.</p>
                 </div>
             @else
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div class="hidden sm:block bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -69,9 +69,34 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="px-6 py-4 border-t border-gray-200">
-                        {{ $expenses->links() }}
-                    </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="sm:hidden grid grid-cols-1 gap-4">
+                    @foreach($expenses as $expense)
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="text-xs text-gray-500 font-medium uppercase">{{ \Carbon\Carbon::parse($expense->date)->isoFormat('D MMM YYYY') }}</p>
+                                    <h3 class="text-sm font-bold text-gray-900 mt-1">{{ $expense->description }}</h3>
+                                </div>
+                                <span class="text-sm font-bold text-red-600">Rp {{ number_format($expense->amount, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
+                                <div class="text-xs text-gray-500">
+                                    Oleh: {{ $expense->user->name ?? '-' }}
+                                </div>
+                                <div class="flex space-x-3">
+                                    <a href="{{ route('expenses.edit', $expense) }}" class="text-indigo-600 text-xs font-medium hover:text-indigo-800">Edit</a>
+                                    <button type="button" onclick="confirmDeleteExpense({{ $expense->id }}, '{{ addslashes($expense->description) }}')" class="text-red-600 text-xs font-medium hover:text-red-800">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-4">
+                    {{ $expenses->links() }}
                 </div>
             @endif
         </div>

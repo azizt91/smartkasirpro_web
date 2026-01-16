@@ -32,7 +32,7 @@
                     <p class="mt-1 text-sm text-gray-500">Catat pembelian stok pertama Anda untuk menambah stok barang.</p>
                 </div>
             @else
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div class="hidden sm:block bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -81,9 +81,53 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="px-6 py-4 border-t border-gray-200">
-                        {{ $purchases->links() }}
-                    </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="sm:hidden grid grid-cols-1 gap-4">
+                    @foreach($purchases as $purchase)
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-indigo-600">{{ $purchase->transaction_code }}</span>
+                                        <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($purchase->date)->isoFormat('D MMM YYYY') }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Supplier: {{ $purchase->supplier->name ?? 'Umum/Lainnya' }}</p>
+                                </div>
+                                <span class="text-sm font-bold text-gray-900">Rp {{ number_format($purchase->total_amount, 0, ',', '.') }}</span>
+                            </div>
+
+                            <div class="bg-gray-50 p-2 rounded-lg text-xs text-gray-600">
+                                <ul class="list-disc list-inside">
+                                    @foreach($purchase->items->take(2) as $item)
+                                        <li>{{ $item->product->name }} ({{ $item->quantity }})</li>
+                                    @endforeach
+                                    @if($purchase->items->count() > 2)
+                                        <li class="italic text-xs text-gray-400">+ {{ $purchase->items->count() - 2 }} lainnya</li>
+                                    @endif
+                                </ul>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                                <div class="text-xs text-gray-500">
+                                    Oleh: {{ $purchase->user->name ?? '-' }}
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button type="button" onclick="confirmEditPurchase('{{ route('purchases.edit', $purchase) }}', '{{ $purchase->transaction_code }}')" class="text-indigo-600 text-xs font-medium hover:text-indigo-800">Edit</button>
+                                    <form action="{{ route('purchases.destroy', $purchase) }}" method="POST" id="delete-form-{{ $purchase->id }}" class="inline-block">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" onclick="confirmDeletePurchase({{ $purchase->id }}, '{{ $purchase->transaction_code }}')" class="text-red-600 text-xs font-medium hover:text-red-800">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-4 px-2">
+                     {{ $purchases->links() }}
                 </div>
             @endif
         </div>

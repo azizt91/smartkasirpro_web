@@ -30,10 +30,11 @@ class SettingController extends Controller
             'store_address' => 'nullable|string|max:500',
             'store_phone' => 'nullable|string|max:50',
             'store_description' => 'nullable|string|max:1000',
-            'store_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'store_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tax_rate' => 'required|numeric|min:0|max:100',
         ]);
 
-        $data = $request->only(['store_name', 'store_address', 'store_phone', 'store_description']);
+        $data = $request->only(['store_name', 'store_address', 'store_phone', 'store_description', 'tax_rate']);
 
         // Handle logo upload
         if ($request->hasFile('store_logo')) {

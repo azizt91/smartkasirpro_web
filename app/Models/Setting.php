@@ -12,6 +12,7 @@ class Setting extends Model
         'store_phone',
         'store_logo',
         'store_description',
+        'tax_rate',
     ];
 
     /**

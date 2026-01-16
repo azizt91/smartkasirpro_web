@@ -1,12 +1,17 @@
 @extends('layouts.app')
 
 @section('scripts')
-<script>
-    const STORE_SETTINGS = @json($storeSettings ?? [
+@php
+    $defaultSettings = [
         'store_name' => 'Toko Anda',
         'store_address' => 'Alamat Toko Anda',
-        'store_phone' => 'No. Telepon Anda'
-    ]);
+        'store_phone' => 'No. Telepon Anda',
+        'tax_rate' => 0
+    ];
+    $settings = $storeSettings ?? $defaultSettings;
+@endphp
+<script>
+    const STORE_SETTINGS = @json($settings);
     const AUTH_USER = @json(auth()->user() ? ['name' => auth()->user()->name] : ['name' => 'Kasir']);
 </script>
 @endsection
@@ -118,13 +123,37 @@
                 </div>
                 
                 <div class="border-t border-gray-200 pt-6 space-y-3">
-                    <div class="flex justify-between text-sm text-gray-600">
-                        <span>Subtotal</span>
-                        <span id="subtotal" class="font-medium">Rp 0</span>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Diskon (Rp)</span>
+                            <input type="number" id="discount-amount" value="0" min="0" 
+                                   class="w-24 text-right text-sm border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-1"
+                                   oninput="updateCartTotals()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Pajak (%)</span>
+                            <input type="number" id="tax-rate" value="{{ $storeSettings->tax_rate ?? 0 }}" min="0" max="100" step="0.1"
+                                   class="w-24 text-right text-sm border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-1"
+                                   oninput="updateCartTotals()">
+                        </div>
                     </div>
-                    <div class="flex justify-between text-lg font-bold text-gray-900">
-                        <span>Total</span>
-                        <span id="total">Rp 0</span>
+                    <div class="border-t border-gray-100 pt-3">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Subtotal</span>
+                            <span id="subtotal" class="font-medium">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-red-500 mb-1">
+                            <span>Diskon</span>
+                            <span id="display-discount">- Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Pajak</span>
+                            <span id="display-tax">+ Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
+                            <span>Total</span>
+                            <span id="total">Rp 0</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -575,9 +604,32 @@
     }
 
     function updateCartTotals() {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        document.getElementById('subtotal').textContent = formatRupiah(total);
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Ambil nilai diskon dan pajak
+        let discount = parseFloat(document.getElementById('discount-amount').value) || 0;
+        let taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+
+        // Validasi diskon tidak boleh lebih besar dari subtotal
+        if (discount > subtotal) {
+            discount = subtotal;
+            document.getElementById('discount-amount').value = subtotal;
+        }
+
+        // Hitung pajak dari subtotal setelah diskon (opsional: tergantung kebijakan toko, biasanya dari DPP)
+        // Di sini kita asumsikan pajak dihitung dari (Subtotal - Diskon)
+        const taxableAmount = Math.max(0, subtotal - discount);
+        const tax = taxableAmount * (taxRate / 100);
+
+        const total = Math.max(0, subtotal - discount + tax);
+
+        document.getElementById('subtotal').textContent = formatRupiah(subtotal);
+        document.getElementById('display-discount').textContent = `- ${formatRupiah(discount)}`;
+        document.getElementById('display-tax').textContent = `+ ${formatRupiah(tax)}`;
         document.getElementById('total').textContent = formatRupiah(total);
+        
+        // Simpan total ke dataset agar mudah diambil
+        document.getElementById('total').dataset.value = total;
     }
 
     function clearCart() {
@@ -628,7 +680,10 @@
     // === MODAL & TRANSACTION LOGIC ===
     function openPaymentModal() {
         if (cart.length === 0) return;
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Ambil total yang sudah dihitung di updateCartTotals
+        const total = parseFloat(document.getElementById('total').dataset.value) || 0;
+        
         document.getElementById('modal-total').textContent = formatRupiah(total);
         document.getElementById('amount-paid').value = total;
         updateModalPayment();
@@ -646,16 +701,27 @@
     }
 
     function updateModalPayment() {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = parseFloat(document.getElementById('total').dataset.value) || 0;
         const amount = parseFloat(document.getElementById('amount-paid').value) || 0;
         const change = Math.max(0, amount - total);
         document.getElementById('modal-change').textContent = formatRupiah(change);
     }
 
     async function processTransaction() {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // Recalculate everything for safety
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        let discount = parseFloat(document.getElementById('discount-amount').value) || 0;
+        let taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+
+        if (discount > subtotal) discount = subtotal;
+
+        const taxableAmount = Math.max(0, subtotal - discount);
+        const tax = taxableAmount * (taxRate / 100);
+        const total = Math.max(0, subtotal - discount + tax);
+
         const amountPaid = parseFloat(document.getElementById('amount-paid').value) || 0;
         const paymentMethod = document.getElementById('payment-method').value;
+        
         if (cart.length === 0) return alert('Keranjang kosong!');
         if (!paymentMethod) return alert('Pilih metode pembayaran!');
         if (amountPaid < total) return alert('Jumlah bayar kurang!');
@@ -665,6 +731,9 @@
             payment_method: paymentMethod,
             amount_paid: amountPaid,
             customer_name: document.getElementById('customer-name').value || 'Umum',
+            discount: discount,
+            tax: tax,
+            subtotal: subtotal
         };
 
         try {
@@ -790,6 +859,16 @@
         });
         receipt += '================================\n';
         receipt += ESC + 'a' + '\x02'; // Right align
+        
+        // Tambahkan detail Subtotal, Diskon, Pajak
+        receipt += `Subtotal: ${formatRupiah(tx.subtotal)}\n`;
+        if (parseFloat(tx.discount) > 0) {
+            receipt += `Diskon: -${formatRupiah(tx.discount)}\n`;
+        }
+        if (parseFloat(tx.tax) > 0) {
+            receipt += `Pajak: ${formatRupiah(tx.tax)}\n`;
+        }
+        
         receipt += `Total: ${formatRupiah(tx.total_amount)}\n`;
         receipt += `Metode: ${paymentMethodLabels[tx.payment_method] || tx.payment_method}\n`;
         if (!isUtang) {
