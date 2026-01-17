@@ -24,6 +24,7 @@ return new class extends Migration
             $table->decimal('change_amount', 10, 2)->default(0);
             $table->enum('status', ['completed', 'cancelled'])->default('completed');
             $table->string('customer_name')->nullable()->default('Umum');
+            $table->text('note')->nullable();
             $table->timestamps();
             
             $table->index('transaction_code');

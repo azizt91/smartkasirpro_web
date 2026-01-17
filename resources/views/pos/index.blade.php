@@ -22,7 +22,7 @@
     <div class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Point of Sale</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🛒 Point of Sale</h1>
                 <p class="text-gray-600 mt-1">Scan, add products, and process transactions</p>
             </div>
             <div class="mt-4 sm:mt-0 flex items-center space-x-3">
