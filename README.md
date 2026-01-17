@@ -11,6 +11,11 @@ Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah
 - **Laporan:** Penjualan, stok, produk, dan piutang
 - **Cetak Struk & Barcode:** Cetak struk transaksi dan label barcode
 - **Multi User:** Admin dan Kasir dengan hak akses berbeda
+- **Manajemen Supplier:** Kelola data supplier dan kontak
+- **Manajemen Pelanggan:** Database pelanggan untuk layanan personal
+- **Pembelian Stok (Restok):** Catat pembelian barang masuk dan update stok otomatis
+- **Biaya Operasional:** Catat pengeluaran toko (listrik, gaji, dll)
+- **Riwayat Transaksi:** Lihat dan kelola histori penjualan (termasuk fitur Void/Batal)
 - **Pengaturan Toko:** Nama toko, alamat, logo, dan lainnya
 
 ## Teknologi
