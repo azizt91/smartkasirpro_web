@@ -6,6 +6,7 @@ Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah
 
 - **Sistem Kasir (POS):** Antarmuka kasir yang cepat dan mudah digunakan
 - **Manajemen Produk & Kategori:** Kelola produk dengan mudah
+- **Produk Varian:** Dukungan untuk produk dengan varian (Warna/Ukuran) dengan harga dan stok berbeda
 - **Multi Metode Pembayaran:** Tunai, Utang, Kartu, E-Wallet, Transfer
 - **Manajemen Piutang:** Pencatatan nama customer dan tandai lunas
 - **Laporan:** Penjualan, stok, produk, dan piutang

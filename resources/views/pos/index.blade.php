@@ -190,6 +190,26 @@
     </div>
 </div>
 
+{{-- Modal Pilihan Varian --}}
+<div id="variant-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden flex flex-col" style="max-height: 90vh;">
+        <div class="flex justify-between items-center p-4 border-b bg-gray-50 flex-shrink-0">
+            <h3 class="text-lg font-bold text-gray-900" id="variant-modal-title">Pilih Varian</h3>
+            <button onclick="closeVariantModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-4 space-y-2" id="variant-modal-body" style="overflow-y: auto; flex: 1; min-height: 0;">
+            <!-- Varian items rendered here -->
+        </div>
+        <div class="p-4 bg-gray-50 border-t flex-shrink-0">
+            <button onclick="closeVariantModal()" class="w-full py-3 text-center font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Pembayaran --}}
 <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
@@ -329,6 +349,7 @@
     let currentCategory = 'all';
     let perPage = 10;
     let countdownInterval = null;
+    let currentProductsList = []; // New Global store for products
     window.currentTransaction = null;
 
     // === UTILITY FUNCTIONS ===
@@ -371,31 +392,41 @@
         if (categories) renderCategoryTabs(categories);
     }
 
-    // [GANTI SELURUH FUNGSI INI]
     async function loadProducts() {
         const searchInput = document.getElementById('product-search');
         const query = searchInput.value.trim();
 
-        // [FIX] URL sekarang menggunakan variabel global `currentPage`
         const url = `/pos/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&category=${currentCategory}&per_page=${perPage}`;
 
         const data = await fetchData(url);
 
         if (data) {
-            // Logika untuk barcode scanner otomatis (sudah benar, tidak perlu diubah)
-            const products = data.data || [];
-            if (products.length === 1 && query.length > 5 && query === products[0].barcode) {
-                const product = products[0];
-                addToCart(product.id, product.name, product.selling_price, product.stock, product.image);
-                searchInput.value = '';
-                // Saat scan berhasil, panggil loadProducts dengan query kosong untuk kembali ke daftar semua produk
-                currentPage = 1; // Reset ke halaman 1 setelah scan berhasil
-                await loadProducts();
-            } else {
-                // Tampilkan hasil pencarian/halaman seperti biasa
-                displayProductsGrid(products);
-                updatePagination(data);
+            currentProductsList = data.data || []; // Store globally
+            
+            // Logika untuk barcode scanner otomatis (Hanya untuk Single Product)
+            if (currentProductsList.length === 1 && query.length > 5 && !currentProductsList[0].is_group) {
+                 // Check if it matches barcode logic (need barcode in response if we want strict match, but backend search handles it)
+                 // Assuming single result from strict barcode search is what we want.
+                 // WARNING: Backend returns Group. If barcode search matches a VARIANT, backend returns the GROUP containing it.
+                 // We need to check if we can auto-add.
+                 // Current logic: If scan -> Match -> Auto add.
+                 // With Groups: If scan Variant B -> Backend returns Group containing B. 
+                 // We don't know WHICH variant matched unless backend tells us.
+                 // For now, let's DISABLE auto-add for Groups/Variants via simple search to avoid adding wrong item.
+                 // OR: If the Group has only 1 product (Single), auto add.
+                 
+                if (!currentProductsList[0].is_group) {
+                    const product = currentProductsList[0];
+                    addToCart(product.id, product.name, product.selling_price, product.stock, product.image);
+                    searchInput.value = '';
+                    currentPage = 1; 
+                    await loadProducts();
+                    return;
+                }
             }
+            
+            displayProductsGrid(currentProductsList);
+            updatePagination(data);
         } else {
             document.getElementById('products-grid').innerHTML = '<p class="text-red-500 text-center col-span-full">Error memuat produk.</p>';
         }
@@ -418,16 +449,33 @@
             grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Tidak ada produk ditemukan</div>';
             return;
         }
-        grid.innerHTML = products.map(p => `
-            <div class="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer" onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price}, ${p.stock}, '${p.image || ''}')">
-                <div class="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
-                    ${p.image ? `<img src="/storage/${p.image}" alt="${p.name}" class="w-full h-full object-cover">` : `<span class="text-2xl">📦</span>`}
-                </div>
-                <div class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${p.name}</div>
-                <div class="text-xs text-gray-500 mb-2">Stok: ${p.stock}</div>
-                <div class="text-sm font-bold text-teal-600">${formatRupiah(p.selling_price)}</div>
-            </div>
-        `).join('');
+        
+        grid.innerHTML = products.map((p, index) => {
+            if (p.is_group) {
+                // Render Group Card
+                return `
+                <div class="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer relative" onclick="openVariantModal(${index})">
+                     <div class="absolute top-2 right-2 bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">Varian</div>
+                    <div class="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                        ${p.image ? `<img src="/storage/${p.image}" alt="${p.name}" class="w-full h-full object-cover">` : `<span class="text-2xl">📦</span>`}
+                    </div>
+                    <div class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${p.name}</div>
+                    <div class="text-xs text-gray-500 mb-2">Total Stok: ${p.stock}</div>
+                    <div class="text-sm font-bold text-teal-600">${typeof p.price_display === 'number' ? formatRupiah(p.price_display) : formatRupiah(p.selling_price)}</div>
+                </div>`;
+            } else {
+                // Render Single Card
+                return `
+                <div class="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer" onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price}, ${p.stock}, '${p.image || ''}')">
+                    <div class="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                        ${p.image ? `<img src="/storage/${p.image}" alt="${p.name}" class="w-full h-full object-cover">` : `<span class="text-2xl">📦</span>`}
+                    </div>
+                    <div class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${p.name}</div>
+                    <div class="text-xs text-gray-500 mb-2">Stok: ${p.stock}</div>
+                    <div class="text-sm font-bold text-teal-600">${formatRupiah(p.selling_price)}</div>
+                </div>`;
+            }
+        }).join('');
     }
 
     function updatePagination(data) {
@@ -470,9 +518,38 @@
         });
     }
 
-    // function focusSearchInput() {
-    //     document.getElementById('product-search').focus();
-    // }
+    // === VARIANT MODAL LOGIC ===
+    function openVariantModal(index) {
+        const group = currentProductsList[index];
+        if (!group || !group.variants) return;
+
+        const modalBody = document.getElementById('variant-modal-body');
+        const modalTitle = document.getElementById('variant-modal-title');
+        
+        modalTitle.textContent = group.name;
+        
+        modalBody.innerHTML = group.variants.map(v => `
+            <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer ${v.stock <= 0 ? 'opacity-50 pointer-events-none' : ''}" 
+                 onclick="${v.stock > 0 ? `addToCart(${v.id}, '${v.full_name.replace(/'/g, "\\'")}', ${v.price}, ${v.stock}, '${v.image || group.image || ''}'); closeVariantModal();` : ''}">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-gray-200 rounded flex-shrink-0 mr-3 overflow-hidden">
+                         ${v.image || group.image ? `<img src="/storage/${v.image || group.image}" class="w-full h-full object-cover">` : ''}
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900">${v.name}</div>
+                        <div class="text-sm text-gray-500">Stok: ${v.stock}</div>
+                    </div>
+                </div>
+                <div class="font-bold text-teal-600">${formatRupiah(v.price)}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('variant-modal').classList.remove('hidden');
+    }
+
+    function closeVariantModal() {
+        document.getElementById('variant-modal').classList.add('hidden');
+    }
 
     // Variabel global untuk instance scanner
     let codeReader = null;
@@ -544,7 +621,7 @@
             if (stock > 0) {
                 cart.push({ id, name, price, stock, image, quantity: 1 });
             } else {
-                alert('Stok produk habis!');
+                alert('Stok produk habis!', stock);
             }
         }
         updateCartDisplay();

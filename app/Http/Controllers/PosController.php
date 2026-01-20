@@ -76,32 +76,78 @@ class PosController extends Controller
         $category = $request->get('category');
         $perPage = $request->get('per_page', 10);
 
-        // Membangun query dasar
-        $productsQuery = Product::with('category')
-            ->where('stock', '>', 0);
+        // Membangun query dasar ke ProductGroup
+        $groupsQuery = \App\Models\ProductGroup::with('products');
 
-        // Filter berdasarkan kategori jika ada
+        // Filter berdasarkan kategori
         if ($category && $category !== 'all') {
-            $productsQuery->where('category_id', $category);
+            $groupsQuery->where('category_id', $category);
         }
 
-        // Filter berdasarkan query pencarian jika ada
+        // Filter berdasarkan query pencarian
         if (!empty($query)) {
-            $productsQuery->where(function ($q) use ($query) {
+            $groupsQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                ->orWhere('barcode', 'like', "%{$query}%");
+                  ->orWhereHas('products', function($pq) use ($query) {
+                      $pq->where('barcode', 'like', "%{$query}%")
+                         ->orWhere('name', 'like', "%{$query}%");
+                  });
             });
         }
 
-        // [BAGIAN TERPENTING]
-        // Gunakan ->paginate() untuk menghasilkan objek paginator yang lengkap.
-        // latest() digunakan untuk mengurutkan dari yang terbaru, ini opsional.
-        $products = $productsQuery->latest()->paginate($perPage);
+        // Paginate results
+        $groups = $groupsQuery->latest()->paginate($perPage);
 
-        // [SOLUSI]
-        // Cukup kembalikan objek $products. Laravel akan secara otomatis mengubahnya
-        // menjadi response JSON yang terstruktur dengan benar.
-        return response()->json($products);
+        // Transform collection untuk format yang sesuai dengan Frontend POS
+        $groups->getCollection()->transform(function ($group) {
+            if ($group->has_variants) {
+                // Logic untuk Produk Varian
+                $minPrice = $group->products->min('selling_price');
+                $maxPrice = $group->products->max('selling_price');
+                $totalStock = $group->products->sum('stock');
+                $firstProduct = $group->products->first(); // Ambil satu untuk gambar
+
+                return [
+                    'id' => $group->id, // Group ID
+                    'name' => $group->name,
+                    'is_group' => true,
+                    'image' => $firstProduct ? $firstProduct->image : null,
+                    'price_display' => ($minPrice == $maxPrice) ? $minPrice : "$minPrice - $maxPrice", // Raw numbers for formatter later or pre-format? Let's use raw for consistency if possible, or pre-formatted string. 
+                    // Frontend 'formatRupiah' expects number. Let's send min price as 'selling_price' for sorting/display base.
+                    'selling_price' => $minPrice, 
+                    'stock' => $totalStock,
+                    'variants' => $group->products->map(function($v) {
+                        return [
+                            'id' => $v->id,
+                            'name' => $v->variant_name, // Just variant name "XL"
+                            'full_name' => $v->name, // "Kaos (XL)"
+                            'price' => $v->selling_price,
+                            'stock' => $v->stock,
+                            'image' => $v->image
+                        ];
+                    })
+                ];
+            } else {
+                // Logic untuk Produk Satuan (Single)
+                $product = $group->products->first();
+                if (!$product) return null; // Should not happen
+
+                return [
+                    'id' => $product->id, // Product ID (Direct Add)
+                    'name' => $product->name,
+                    'is_group' => false,
+                    'image' => $product->image,
+                    'selling_price' => $product->selling_price,
+                    'stock' => $product->stock,
+                    'variants' => []
+                ];
+            }
+        });
+
+        // Filter out nulls (if any empty groups)
+        // $groups->setCollection($groups->getCollection()->filter());
+
+        return response()->json($groups);
     }
 
     public function getCategories()

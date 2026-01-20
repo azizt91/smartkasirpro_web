@@ -57,8 +57,10 @@ class Product extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'product_group_id',
         'barcode',
         'name',
+        'variant_name',
         'description',
         'category_id',
         'purchase_price',
@@ -67,6 +69,12 @@ class Product extends Model
         'minimum_stock',
         'image',
     ];
+
+    public function productGroup()
+    {
+        return $this->belongsTo(ProductGroup::class);
+    }
+
 
     /**
      * The attributes that should be cast.

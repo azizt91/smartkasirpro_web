@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('barcode')->unique()->comment('Product barcode for scanning');
             $table->string('name');
+            $table->foreignId('product_group_id')->nullable()->constrained('product_groups')->onDelete('cascade');
+            $table->string('variant_name')->nullable()->comment('e.g. "Merah - XL"');
             $table->text('description')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->decimal('purchase_price', 10, 2)->comment('Buying price from supplier');

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductGroup;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\Transaction;
@@ -60,19 +61,21 @@ class DatabaseSeeder extends Seeder
         // Create suppliers
         Supplier::factory(10)->create();
 
-        // Create products with specific categories
+        // Create products with specific categories (Wrapped in ProductGroup)
         Category::all()->each(function ($category) {
-            Product::factory(10)->create([
-                'category_id' => $category->id,
-            ]);
+            Product::factory(5)->make(['category_id' => $category->id])->each(function($product) use ($category) {
+                 $group = ProductGroup::create([
+                    'name' => $product->name,
+                    'category_id' => $category->id,
+                    'has_variants' => false
+                 ]);
+                 $product->product_group_id = $group->id;
+                 $product->save();
+            });
         });
 
-        // Create some products with low stock assigned to existing categories
-        Product::factory(5)->lowStock()->create([
-            'category_id' => function () {
-                return Category::inRandomOrder()->first()->id;
-            }
-        ]);
+        // Seed Variant Products
+        $this->seedVariantProducts();
 
         // Create sample transactions
         $users = User::whereIn('role', ['admin', 'kasir'])->get();
@@ -80,7 +83,6 @@ class DatabaseSeeder extends Seeder
         // Create transactions for the last 30 days
         for ($i = 0; $i < 50; $i++) {
             $transaction = Transaction::create([
-                // 'transaction_code' => Transaction::generateTransactionCode(),
                 'transaction_code' => 'TRX' . now()->format('Ymd') . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
                 'user_id' => $users->random()->id,
                 'subtotal' => 0,
@@ -155,17 +157,6 @@ class DatabaseSeeder extends Seeder
                     'created_at' => fake()->dateTimeBetween('-60 days', '-30 days'),
                 ]);
             }
-
-            // Random stock additions
-            for ($i = 0; $i < random_int(1, 3); $i++) {
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'type' => 'in',
-                    'quantity' => random_int(10, 100),
-                    'notes' => 'Restok dari supplier',
-                    'created_at' => fake()->dateTimeBetween('-30 days', 'now'),
-                ]);
-            }
         });
 
         // Create expenses and purchases
@@ -177,5 +168,61 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Database seeded successfully!');
         $this->command->info('Admin credentials: admin@minimarket.com / password');
         $this->command->info('Kasir credentials: kasir1@minimarket.com / password');
+    }
+
+    private function seedVariantProducts()
+    {
+        $fashionCategory = Category::where('name', 'Pakaian & Aksesoris')->first();
+        if ($fashionCategory) {
+            // Product Group 1: T-Shirt
+            $tshirtGroup = ProductGroup::create([
+                'name' => 'Kaos Polos Premium',
+                'category_id' => $fashionCategory->id,
+                'description' => 'Kaos polos bahan cotton combed 30s',
+                'has_variants' => true,
+            ]);
+
+            $colors = ['Hitam', 'Putih', 'Navy'];
+            $sizes = ['M', 'L', 'XL'];
+            
+            foreach ($colors as $color) {
+                foreach ($sizes as $size) {
+                    Product::create([
+                        'product_group_id' => $tshirtGroup->id,
+                        'name' => $tshirtGroup->name . " - $color ($size)",
+                        'variant_name' => "$color - $size",
+                        'category_id' => $fashionCategory->id,
+                        'barcode' => 'TS-' . strtoupper(substr($color, 0, 3)) . "-$size-" . fake()->unique()->numerify('###'),
+                        'purchase_price' => 45000,
+                        'selling_price' => 85000,
+                        'stock' => random_int(5, 15),
+                        'minimum_stock' => 3,
+                    ]);
+                }
+            }
+
+            // Product Group 2: Pants
+            $pantsGroup = ProductGroup::create([
+                'name' => 'Celana Chino Panjang',
+                'category_id' => $fashionCategory->id,
+                'description' => 'Celana chino bahan stretch',
+                'has_variants' => true,
+            ]);
+
+            $pantsSizes = ['28', '30', '32', '34'];
+            foreach ($pantsSizes as $size) {
+                Product::create([
+                    'product_group_id' => $pantsGroup->id,
+                    'name' => $pantsGroup->name . " (Size $size)",
+                    'variant_name' => "Size $size",
+                    'category_id' => $fashionCategory->id,
+                    'barcode' => 'CHINO-' . $size . '-' . fake()->unique()->numerify('###'),
+                    'purchase_price' => 110000,
+                    'selling_price' => 185000,
+                    'stock' => random_int(3, 10),
+                    'minimum_stock' => 2,
+                ]);
+            }
+        }
     }
 }
