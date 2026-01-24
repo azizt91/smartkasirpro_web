@@ -11,17 +11,22 @@
             
             {{-- Filter Form --}}
             <form action="{{ route('transactions.index') }}" method="GET" class="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-2">
-                <input type="date" name="start_date" value="{{ request('start_date') }}" class="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                <label class="text-xs font-medium text-gray-700 sm:hidden">Mulai Tanggal</label>
+                <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full sm:w-auto rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                
                 <span class="hidden sm:inline-flex items-center text-gray-500">-</span>
-                <input type="date" name="end_date" value="{{ request('end_date') }}" class="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                <select name="status" class="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                
+                <label class="text-xs font-medium text-gray-700 sm:hidden">Sampai Tanggal</label>
+                <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full sm:w-auto rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                
+                <select name="status" class="w-full sm:w-auto rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Semua Status</option>
                     <option value="completed" @selected(request('status') == 'completed')>Sukses</option>
                     <option value="cancelled" @selected(request('status') == 'cancelled')>Dibatalkan</option>
                 </select>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Filter</button>
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Filter</button>
                 @if(request()->anyFilled(['start_date', 'end_date', 'status']))
-                    <a href="{{ route('transactions.index') }}" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium">Reset</a>
+                    <a href="{{ route('transactions.index') }}" class="w-full sm:w-auto px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-center text-sm font-medium">Reset</a>
                 @endif
             </form>
         </div>
