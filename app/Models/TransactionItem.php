@@ -50,6 +50,8 @@ class TransactionItem extends Model
         'quantity',
         'price',
         'subtotal',
+        'created_at',
+        'updated_at',
     ];
 
     /**

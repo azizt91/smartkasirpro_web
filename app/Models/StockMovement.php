@@ -52,6 +52,8 @@ class StockMovement extends Model
         'reference_type',
         'reference_id',
         'notes',
+        'created_at',
+        'updated_at',
     ];
 
     /**

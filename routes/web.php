@@ -32,31 +32,41 @@ Route::middleware('auth')->group(function () {
 
 
 
+    // Protected Routes (Admin or Permission based)
+    Route::resource('products', ProductController::class)->middleware('permission:view_products');
+    Route::get('/products/barcodes/print', [App\Http\Controllers\ProductController::class, 'printBarcodes'])
+        ->name('products.print_barcodes')
+        ->middleware('permission:view_products');
+        
+    Route::resource('categories', CategoryController::class)->middleware('permission:view_categories');
+    
+    Route::resource('purchases', \App\Http\Controllers\PurchaseController::class)->middleware('permission:view_purchases');
+    Route::resource('expenses', \App\Http\Controllers\ExpenseController::class)->middleware('permission:view_expenses');
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->middleware('permission:view_suppliers');
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->middleware('permission:view_customers');
+    Route::resource('transactions', \App\Http\Controllers\TransactionController::class)->only(['index', 'show', 'destroy'])->middleware('permission:view_transactions');
+    
+    // Reports
+    Route::middleware('permission:view_reports')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
+        Route::get('/products', [ReportController::class, 'products'])->name('products');
+        Route::get('/stock', [ReportController::class, 'stock'])->name('stock');
+        Route::get('/sales/export-pdf', [ReportController::class, 'exportSalesPdf'])->name('sales.pdf');
+        Route::get('/sales/export-excel', [ReportController::class, 'exportSalesExcel'])->name('sales.excel');
+        Route::get('/products/export-pdf', [ReportController::class, 'exportProductsPdf'])->name('products.pdf');
+        Route::get('/products/export-excel', [ReportController::class, 'exportProductsExcel'])->name('products.excel');
+        Route::get('/stock/export-pdf', [ReportController::class, 'exportStockPdf'])->name('stock.pdf');
+        Route::get('/stock/export-excel', [ReportController::class, 'exportStockExcel'])->name('stock.excel');
+        Route::get('/receivables', [ReportController::class, 'receivables'])->name('receivables');
+        Route::post('/receivables/{transaction}/paid', [ReportController::class, 'markAsPaid'])->name('receivables.paid');
+    });
+
     // Admin only routes
     Route::middleware('admin')->group(function () {
-        Route::resource('products', ProductController::class);
-        Route::get('/products/barcodes/print', [App\Http\Controllers\ProductController::class, 'printBarcodes'])->name('products.print_barcodes');
-        Route::resource('categories', CategoryController::class);
         Route::resource('users', UserController::class);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
-        Route::resource('purchases', \App\Http\Controllers\PurchaseController::class);
-        Route::resource('expenses', \App\Http\Controllers\ExpenseController::class);
-        Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
-        Route::resource('customers', \App\Http\Controllers\CustomerController::class);
-        Route::resource('transactions', \App\Http\Controllers\TransactionController::class)->only(['index', 'show', 'destroy']);
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
-        Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
-        Route::get('/reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
-        Route::get('/reports/sales/export-pdf', [ReportController::class, 'exportSalesPdf'])->name('reports.sales.pdf');
-        Route::get('/reports/sales/export-excel', [ReportController::class, 'exportSalesExcel'])->name('reports.sales.excel');
-        Route::get('/reports/products/export-pdf', [ReportController::class, 'exportProductsPdf'])->name('reports.products.pdf');
-        Route::get('/reports/products/export-excel', [ReportController::class, 'exportProductsExcel'])->name('reports.products.excel');
-        Route::get('/reports/stock/export-pdf', [ReportController::class, 'exportStockPdf'])->name('reports.stock.pdf');
-        Route::get('/reports/stock/export-excel', [ReportController::class, 'exportStockExcel'])->name('reports.stock.excel');
-        Route::get('/reports/receivables', [ReportController::class, 'receivables'])->name('reports.receivables');
-        Route::post('/reports/receivables/{transaction}/paid', [ReportController::class, 'markAsPaid'])->name('reports.receivables.paid');
     });
 });
 

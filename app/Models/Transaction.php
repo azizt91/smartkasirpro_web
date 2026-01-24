@@ -69,6 +69,8 @@ class Transaction extends Model
         'status',
         'customer_name',
         'note',
+        'created_at',
+        'updated_at',
     ];
 
     /**

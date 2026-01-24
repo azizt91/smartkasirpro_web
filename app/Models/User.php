@@ -58,6 +58,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'permissions',
     ];
 
     /**
@@ -80,7 +81,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
+    }
+
+    /**
+     * Check if user has specific permission
+     */
+    public function hasPermission($permission): bool
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+        return !empty($this->permissions) && !empty($this->permissions[$permission]);
     }
 
     /**

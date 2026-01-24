@@ -257,6 +257,18 @@ class PosController extends Controller
                  }
             }
 
+            // Backdate Logic
+            $transactionDate = now();
+            if ($request->filled('transaction_date') && auth()->user()->hasPermission('can_backdate_sales')) {
+                try {
+                    $inputDate = \Carbon\Carbon::parse($request->transaction_date);
+                    // Keep the current time, just change the date
+                    $transactionDate = $inputDate->setTimeFrom(now());
+                } catch (\Exception $e) {
+                    // Ignore invalid date, use now()
+                }
+            }
+
             // Create transaction
             $transaction = Transaction::create([
                 'transaction_code' => Transaction::generateTransactionCode(),
@@ -271,6 +283,8 @@ class PosController extends Controller
                 'status' => 'completed',
                 'customer_name' => $request->customer_name ?? 'Umum',
                 'note' => $request->note, // Simpan catatan
+                'created_at' => $transactionDate,
+                'updated_at' => $transactionDate,
             ]);
 
             // Create transaction items and update stock
@@ -281,6 +295,8 @@ class PosController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['subtotal'],
+                    'created_at' => $transactionDate,
+                    'updated_at' => $transactionDate,
                 ]);
 
                 // Update product stock
@@ -294,6 +310,8 @@ class PosController extends Controller
                     'reference_type' => 'App\Models\Transaction',
                     'reference_id' => $transaction->id,
                     'notes' => "Penjualan - {$transaction->transaction_code}",
+                    'created_at' => $transactionDate,
+                    'updated_at' => $transactionDate,
                 ]);
             }
 

@@ -49,12 +49,14 @@ use Illuminate\Support\Facades\Storage;
                 <span>Point of Sale</span>
             </a>
 
-            @if(auth()->user()->role === 'admin')
-                <!-- Admin Section Divider -->
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_products') || auth()->user()->hasPermission('view_suppliers') || auth()->user()->hasPermission('view_customers') || auth()->user()->hasPermission('view_categories') || auth()->user()->hasPermission('view_expenses') || auth()->user()->hasPermission('view_purchases') || auth()->user()->hasPermission('view_transactions') || auth()->user()->hasPermission('view_reports') || auth()->user()->hasPermission('view_receivables'))
+                <!-- Management Section Divider -->
                 <div class="border-t border-gray-200 pt-6 mt-6">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Manajemen</p>
                 </div>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_products'))
                 <!-- Products -->
                 <a href="{{ route('products.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -64,7 +66,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Produk</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_suppliers'))
                 <!-- Suppliers -->
                 <a href="{{ route('suppliers.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('suppliers.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -74,7 +78,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Suppliers</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_customers'))
                 <!-- Customers -->
                 <a href="{{ route('customers.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('customers.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -84,7 +90,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pelanggan</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_categories'))
                 <!-- Categories -->
                 <a href="{{ route('categories.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('categories.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -94,7 +102,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Kategori</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_expenses'))
                 <!-- Expenses -->
                 <a href="{{ route('expenses.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('expenses.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -104,7 +114,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pengeluaran</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_purchases'))
                 <!-- Purchases -->
                 <a href="{{ route('purchases.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('purchases.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -114,7 +126,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pembelian</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_transactions'))
                 <!-- Transaction History -->
                 <a href="{{ route('transactions.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('transactions.*') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -124,7 +138,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Riwayat Transaksi</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_reports'))
                 <!-- Reports -->
                 <a href="{{ route('reports.index') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('reports.*') && !request()->routeIs('reports.receivables') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -134,7 +150,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Laporan</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_receivables'))
                 <!-- Piutang -->
                 <a href="{{ route('reports.receivables') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('reports.receivables') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
@@ -144,7 +162,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Piutang</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin')
                 <!-- System Section -->
                 <div class="border-t border-gray-200 pt-6 mt-6">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Sistem</p>
@@ -284,12 +304,14 @@ use Illuminate\Support\Facades\Storage;
                 <span>Point of Sale</span>
             </a>
 
-            @if(auth()->user()->role === 'admin')
-                <!-- Admin Section -->
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_products') || auth()->user()->hasPermission('view_suppliers') || auth()->user()->hasPermission('view_customers') || auth()->user()->hasPermission('view_categories') || auth()->user()->hasPermission('view_expenses') || auth()->user()->hasPermission('view_purchases') || auth()->user()->hasPermission('view_transactions') || auth()->user()->hasPermission('view_reports') || auth()->user()->hasPermission('view_receivables'))
+                <!-- Management Section Divider -->
                 <div class="border-t border-gray-200 pt-4 mt-4">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Manajemen</p>
                 </div>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_products'))
                 <a href="{{ route('products.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('products.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -298,7 +320,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Produk</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_categories'))
                 <a href="{{ route('categories.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('categories.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -307,7 +331,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Kategori</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_suppliers'))
                 <a href="{{ route('suppliers.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -316,7 +342,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Suppliers</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_customers'))
                 <a href="{{ route('customers.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('customers.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -325,7 +353,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pelanggan</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_expenses'))
                 <a href="{{ route('expenses.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('expenses.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -334,7 +364,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pengeluaran</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_purchases'))
                 <a href="{{ route('purchases.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('purchases.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -343,7 +375,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Pembelian</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_transactions'))
                 <a href="{{ route('transactions.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('transactions.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -352,7 +386,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Riwayat Transaksi</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_reports'))
                 <a href="{{ route('reports.index') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('reports.index') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -361,7 +397,9 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Laporan</span>
                 </a>
+            @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_receivables'))
                 <a href="{{ route('reports.receivables') }}"
                    class="flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('reports.receivables') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                    @click="sidebarOpen = false">
@@ -370,9 +408,11 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     <span>Piutang</span>
                 </a>
+            @endif
 
 
 
+            @if(auth()->user()->role === 'admin')
                 <!-- System Section -->
                 <div class="border-t border-gray-200 pt-4 mt-4">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Sistem</p>

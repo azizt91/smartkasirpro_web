@@ -250,6 +250,14 @@
                     </select>
                 </div>
             </div>
+            
+            @if(auth()->user()->hasPermission('can_backdate_sales'))
+            <div>
+                <label for="transaction-date" class="block text-xs font-medium text-gray-500 mb-1">Tanggal Transaksi (Backdate)</label>
+                <input type="datetime-local" id="transaction-date" 
+                       class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-sm">
+            </div>
+            @endif
 
             <div>
                 <label for="amount-paid" class="block text-xs font-medium text-gray-500 mb-1">Nominal Bayar</label>
@@ -335,6 +343,24 @@
             width: 100%;
             display: block; /* <-- [TAMBAHKAN BARIS INI] Paksa elemen untuk tampil kembali */
         }
+        /* Posisikan area cetak di sudut kiri atas halaman cetak agar rapi */
+        #print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: block; /* <-- [TAMBAHKAN BARIS INI] Paksa elemen untuk tampil kembali */
+        }
+    }
+    
+    /* Hide spin buttons for number inputs */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
     }
 </style>
 
@@ -366,7 +392,26 @@
         loadProducts();
         setupSearch();
         updateCartDisplay();
+        updateCartDisplay();
         document.getElementById('product-search')?.focus();
+    }
+    
+    // Add this function to handle direct quantity updates
+    function updateItemQuantity(id, value) {
+        const item = cart.find(item => item.id === id);
+        if (item) {
+            let newQty = parseInt(value);
+            if (isNaN(newQty) || newQty < 1) newQty = 1;
+            
+            if (newQty <= item.stock) {
+                item.quantity = newQty;
+                updateCartDisplay();
+            } else {
+                alert(`Stok tidak mencukupi! Stok tersedia: ${item.stock}`);
+                // Reset input value
+                updateCartDisplay();
+            }
+        }
     }
 
     // === API & DATA FETCHING ===
@@ -645,10 +690,15 @@
                         <div class="text-sm font-medium text-gray-900 truncate">${item.name}</div>
                         <div class="text-xs text-gray-500 mb-2">${formatRupiah(item.price)}</div>
                         <div class="flex items-center justify-between mt-2">
-                             <div class="flex items-center space-x-1">
-                                <button onclick="decreaseQuantity(${item.id})" class="w-6 h-6 bg-gray-200 rounded text-xs hover:bg-gray-300">-</button>
-                                <span class="w-8 text-center text-sm">${item.quantity}</span>
-                                <button onclick="increaseQuantity(${item.id})" class="w-6 h-6 bg-teal-600 text-white rounded text-xs hover:bg-teal-700">+</button>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="decreaseQuantity(${item.id})" class="w-8 h-8 bg-gray-200 rounded text-lg font-bold hover:bg-gray-300 flex items-center justify-center text-gray-600">-</button>
+                                <input type="number" 
+                                       value="${item.quantity}" 
+                                       min="1" 
+                                       max="${item.stock}"
+                                       onchange="updateItemQuantity(${item.id}, this.value)"
+                                       class="w-12 text-center text-sm border-gray-200 rounded focus:ring-indigo-500 focus:border-indigo-500 p-1 mx-1">
+                                <button onclick="increaseQuantity(${item.id})" class="w-8 h-8 bg-teal-600 text-white rounded text-lg font-bold hover:bg-teal-700 flex items-center justify-center">+</button>
                             </div>
                             <button onclick="removeFromCart(${item.id})" class="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600">×</button>
                         </div>
@@ -816,7 +866,8 @@
             discount: discount,
             tax: tax,
             subtotal: subtotal,
-            note: document.getElementById('transaction-note').value
+            note: document.getElementById('transaction-note').value,
+            transaction_date: document.getElementById('transaction-date') ? document.getElementById('transaction-date').value : null,
         };
 
         try {

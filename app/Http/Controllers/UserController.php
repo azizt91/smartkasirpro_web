@@ -68,6 +68,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'permissions' => $request->role === 'kasir' ? $request->input('permissions', []) : null,
             'email_verified_at' => now(),
         ]);
 
@@ -119,6 +120,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'permissions' => $request->role === 'kasir' ? $request->input('permissions', []) : null,
         ];
 
         if ($request->filled('password')) {

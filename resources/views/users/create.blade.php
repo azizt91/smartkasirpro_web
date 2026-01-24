@@ -14,7 +14,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200">
-            <div class="p-8">
+            <div class="p-8" x-data="{ role: '{{ old('role') }}' }">
                 <form action="{{ route('users.store') }}" method="POST" class="space-y-6">
                     @csrf
                     <div>
@@ -33,12 +33,46 @@
 
                     <div>
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
-                        <select name="role" id="role" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 @error('role') border-red-500 @enderror">
+                        <select name="role" id="role" x-model="role" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 @error('role') border-red-500 @enderror">
                             <option value="">Pilih Role</option>
                             <option value="admin" @selected(old('role') == 'admin')>Admin</option>
                             <option value="kasir" @selected(old('role') == 'kasir')>Kasir</option>
                         </select>
                         @error('role')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div x-show="role === 'kasir'" class="space-y-4 border-t pt-4 border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Hak Akses Kasir</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_products]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Produk</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_categories]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Kategori</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_suppliers]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Supplier</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_customers]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Pelanggan</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_transactions]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Riwayat Transaksi</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[view_reports]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700">Lihat Laporan</span>
+                            </label>
+                             <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="permissions[can_backdate_sales]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="text-gray-700 font-semibold text-red-600">Backdate Sales (Input Tanggal)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
