@@ -92,13 +92,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Barcode / SKU</label>
-                                <div class="flex">
-                                    <input type="text" name="barcode" id="barcode" value="{{ old('barcode') }}" class="flex-grow border-gray-300 rounded-l-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 rounded-r-none" placeholder="Scan atau ketik manual (Biarkan kosong untuk auto-generate)">
-                                    <button type="button" onclick="openScannerModal()" class="flex-shrink-0 inline-flex items-center px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg hover:bg-gray-200 transition-colors duration-200">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        <span class="ml-2 text-sm font-medium text-gray-700">Scan</span>
-                                    </button>
-                                </div>
+                                    <div class="flex w-full min-w-0">
+                                        <input type="text" name="barcode" id="barcode" value="{{ old('barcode') }}" class="flex-grow min-w-0 border-gray-300 rounded-l-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 rounded-r-none text-sm" placeholder="Scan/Ketik Manual...">
+                                        <button type="button" onclick="openScannerModal()" class="flex-shrink-0 inline-flex items-center px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg hover:bg-gray-200 transition-colors duration-200">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <span class="ml-2 text-sm font-medium text-gray-700 hidden sm:inline">Scan</span>
+                                        </button>
+                                    </div>
                                 @error('barcode')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
 
@@ -204,7 +204,7 @@
             <h3 class="text-lg font-semibold text-center">Arahkan Kamera ke Barcode</h3>
         </div>
         <div class="p-4 bg-gray-900">
-            <video id="video-scanner" class="w-full h-64 rounded-lg"></video>
+            <div id="reader" style="width: 100%; border-radius: 0.5rem; overflow: hidden;"></div>
         </div>
         <div class="p-4 bg-gray-50 border-t">
             <button onclick="closeScannerModal()" class="w-full py-3 text-center font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg transition">
@@ -299,57 +299,118 @@ function previewImage(input) {
 }
 
 // Logic Barcode Scanner
-let codeReader = null;
+let html5QrcodeScanner = null;
 
 function openScannerModal() {
-    if (typeof ZXing === 'undefined') {
-        alert('Library scanner sedang dimuat...');
-        return;
-    }
-
-    if (!codeReader) {
-        codeReader = new ZXing.BrowserMultiFormatReader();
-    }
-
     document.getElementById('scanner-modal').classList.remove('hidden');
 
-    codeReader.listVideoInputDevices()
-        .then((videoInputDevices) => {
-            const firstDeviceId = videoInputDevices[0].deviceId;
-            let selectedDeviceId = firstDeviceId;
-            
-            // Try to find back camera
-            const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('belakang'));
-            if (rearCamera) {
-                selectedDeviceId = rearCamera.deviceId;
-            }
+    // Cek HTTPS
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Koneksi Tidak Aman',
+            text: 'Fitur kamera mungkin tidak berfungsi jika tidak menggunakan HTTPS.',
+            timer: 3000
+        });
+    }
 
-            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-scanner', (result, err) => {
-                if (result) {
-                    document.getElementById('barcode').value = result.text;
-                    closeScannerModal();
-                    
-                    // Swal hint
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                    Toast.fire({ icon: 'success', title: 'Barcode Scanned' });
-                }
+    if (html5QrcodeScanner) return;
+
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.QR_CODE
+        ]
+    };
+    
+    // Attempt Back Camera
+    html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText, decodedResult) => {
+            // Success
+             playBeep();
+             html5QrcodeScanner.pause();
+             
+             document.getElementById('barcode').value = decodedText;
+             closeScannerModal();
+             
+             Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Barcode Berhasil Discanned',
+                timer: 1500,
+                showConfirmButton: false
             });
-        })
-        .catch((err) => {
-            console.error(err);
-            alert('Gagal mengakses kamera: ' + err);
+        },
+        (error) => {
+            // Ignore ongoing errors
+        }
+    ).catch(err => {
+        console.warn("Back camera failed, trying front...", err);
+        html5QrcodeScanner.start(
+            { facingMode: "user" },
+            config,
+            (decodedText) => {
+                 playBeep();
+                 html5QrcodeScanner.pause();
+                 document.getElementById('barcode').value = decodedText;
+                 closeScannerModal();
+                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Barcode Berhasil Discanned', timer: 1500, showConfirmButton: false });
+            },
+            () => {}
+        ).catch(err2 => {
+            console.error(err2);
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Membuka Scanner',
+                text: 'Pastikan izin kamera diberikan.'
+            });
             closeScannerModal();
         });
+    });
 }
 
 function closeScannerModal() {
-    if (codeReader) codeReader.reset();
-    document.getElementById('scanner-modal').classList.add('hidden');
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner = null;
+            document.getElementById('scanner-modal').classList.add('hidden');
+        }).catch(err => {
+            html5QrcodeScanner = null;
+            document.getElementById('scanner-modal').classList.add('hidden');
+        });
+    } else {
+        document.getElementById('scanner-modal').classList.add('hidden');
+    }
+}
+
+function playBeep() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 1000;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        oscillator.start();
+        setTimeout(() => oscillator.stop(), 100);
+    } catch (e) {
+        console.log('Audio not supported');
+    }
 }
 </script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 @endpush

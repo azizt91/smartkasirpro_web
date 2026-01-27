@@ -180,7 +180,7 @@
             <h3 class="text-lg font-semibold text-center">Arahkan Kamera ke Barcode</h3>
         </div>
         <div class="p-4 bg-gray-900">
-            <video id="video-scanner" class="w-full h-64 rounded-lg"></video>
+            <div id="reader" style="width: 100%; border-radius: 0.5rem; overflow: hidden;"></div>
         </div>
         <div class="p-4 bg-gray-50 border-t">
             <button onclick="closeScannerModal()" class="w-full py-3 text-center font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg transition">
@@ -597,60 +597,135 @@
     }
 
     // Variabel global untuk instance scanner
-    let codeReader = null;
+    let html5QrcodeScanner = null;
 
     // Fungsi untuk membuka modal dan memulai scanner
     function openScannerModal() {
-        // Inisialisasi library scanner jika belum ada
-        if (!codeReader) {
-            codeReader = new ZXing.BrowserMultiFormatReader();
+        document.getElementById('scanner-modal').classList.remove('hidden');
+        
+        // Cek HTTPS atau Localhost
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+             Swal.fire({
+                icon: 'warning',
+                title: 'Koneksi Tidak Aman',
+                text: 'Fitur kamera mungkin tidak berfungsi jika tidak menggunakan HTTPS.',
+                timer: 3000
+            });
         }
 
-        document.getElementById('scanner-modal').classList.remove('hidden');
+        startScanner();
+    }
 
-        // Minta izin kamera dan mulai memindai
-        codeReader.listVideoInputDevices()
-            .then((videoInputDevices) => {
-                // Preferensi kamera belakang (environment) untuk mobile
-                const firstDeviceId = videoInputDevices[0].deviceId;
-                let selectedDeviceId = firstDeviceId;
-                const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('belakang'));
-                if (rearCamera) {
-                    selectedDeviceId = rearCamera.deviceId;
-                }
+    function startScanner() {
+        if (html5QrcodeScanner) {
+            // Already running
+            return;
+        }
 
-                console.log(`Menggunakan kamera: ${selectedDeviceId}`);
-
-                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-scanner', (result, err) => {
-                    if (result) {
-                        console.log('Barcode ditemukan:', result.text);
-
-                        // Masukkan hasil scan ke input pencarian
-                        const searchInput = document.getElementById('product-search');
-                        searchInput.value = result.text;
-
-                        // Tutup scanner dan jalankan pencarian
-                        closeScannerModal();
-                        loadProducts(); // Panggil fungsi pencarian produk
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Error saat scanning:', err);
-                    }
+        html5QrcodeScanner = new Html5Qrcode("reader");
+        
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.QR_CODE
+            ]
+        };
+        
+        // Attempt 1: Back Camera
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess,
+            onScanError
+        ).catch(err => {
+            console.warn("Back camera failed, trying front...", err);
+            // Attempt 2: Front/User Camera
+            html5QrcodeScanner.start(
+                { facingMode: "user" },
+                config,
+                onScanSuccess,
+                onScanError
+            ).catch(err2 => {
+                console.error("Scanner failed:", err2);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Membuka Kamera',
+                    text: 'Pastikan izin kamera diberikan dan menggunakan HTTPS.'
                 });
-            })
-            .catch((err) => {
-                console.error('Error akses kamera:', err);
-                alert('Gagal mengakses kamera. Pastikan Anda memberikan izin dan menggunakan koneksi HTTPS.');
                 closeScannerModal();
             });
+        });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Play beep sound
+        playBeep();
+        
+        // Stop scanner temporarily for UX
+        html5QrcodeScanner.pause();
+
+        // Process Scan
+        console.log('Barcode ditemukan:', decodedText);
+        
+        const searchInput = document.getElementById('product-search');
+        searchInput.value = decodedText;
+        
+        closeScannerModal();
+        
+        Swal.fire({
+             toast: true,
+             position: 'top-end',
+             icon: 'success',
+             title: 'Barcode Berhasil Discanned',
+             timer: 1500,
+             showConfirmButton: false
+         });
+         
+        loadProducts(); 
+    }
+
+    function onScanError(error) {
+        // Ignore scan errors during continuous scanning
+    }
+
+    function playBeep() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.3;
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 100);
+        } catch (e) {
+            console.log('Audio not supported', e);
+        }
     }
 
     // Fungsi untuk menutup modal dan menghentikan scanner
     function closeScannerModal() {
-        if (codeReader) {
-            codeReader.reset(); // Hentikan pemindaian dan lepaskan kamera
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner = null;
+                document.getElementById('scanner-modal').classList.add('hidden');
+            }).catch(err => {
+                console.error('Error stopping scanner:', err);
+                html5QrcodeScanner = null;
+                document.getElementById('scanner-modal').classList.add('hidden');
+            });
+        } else {
+             document.getElementById('scanner-modal').classList.add('hidden');
         }
-        document.getElementById('scanner-modal').classList.add('hidden');
     }
 
     // === CART LOGIC ===
@@ -1127,4 +1202,5 @@
         window.print();
     }
 </script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 @endsection
