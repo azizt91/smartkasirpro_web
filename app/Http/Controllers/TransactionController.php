@@ -48,6 +48,16 @@ class TransactionController extends Controller
     }
 
     /**
+     * Print the transaction receipt.
+     */
+    public function print(Transaction $transaction)
+    {
+        $transaction->load(['items.product', 'user']);
+        $storeSettings = \App\Models\Setting::getStoreSettings();
+        return view('transactions.print', compact('transaction', 'storeSettings'));
+    }
+
+    /**
      * Void (Cancel) the transaction.
      */
     public function destroy(Transaction $transaction)

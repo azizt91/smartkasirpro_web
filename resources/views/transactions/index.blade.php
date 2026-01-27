@@ -89,6 +89,9 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="{{ route('transactions.print', $transaction) }}" target="_blank" onclick="window.open(this.href, 'PrintReceipt', 'width=400,height=600'); return false;" class="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md mr-2" title="Cetak Struk">
+                                            🖨️
+                                        </a>
                                         <a href="{{ route('transactions.show', $transaction) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md">Detail</a>
                                     </td>
                                 </tr>

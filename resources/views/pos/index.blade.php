@@ -1025,7 +1025,16 @@
             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
             const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); // Generic write characteristic
             const receiptData = generateThermalReceiptData();
-            await characteristic.writeValue(receiptData);
+            
+            // [FIX] Chunking data to avoid MTU limit (512 bytes)
+            const chunkSize = 100; // Safe chunk size
+            for (let i = 0; i < receiptData.byteLength; i += chunkSize) {
+                const chunk = receiptData.slice(i, i + chunkSize);
+                await characteristic.writeValue(chunk);
+                // Add small delay to ensure device processes chunk
+                await new Promise(resolve => setTimeout(resolve, 50)); 
+            }
+
             alert('Struk berhasil dikirim ke printer!');
         } catch (error) {
             console.error('Bluetooth print error:', error);
@@ -1092,7 +1101,11 @@
             receipt += ESC + '!' + '\x00'; // Normal
         }
         receipt += '================================\n';
-        receipt += 'Terima kasih!\n\n\n';
+        if (STORE_SETTINGS.store_description) {
+            receipt += STORE_SETTINGS.store_description + '\n\n\n';
+        } else {
+            receipt += 'Terima kasih!\n\n\n';
+        }
         receipt += GS + 'V' + '\x41' + '\x03'; // Cut paper
         return new TextEncoder().encode(receipt);
     }
@@ -1188,7 +1201,7 @@
                 <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
 
                 <div style="text-align: center; margin-top: 10px;">
-                    <div>Terima kasih!</div>
+                    <div>${STORE_SETTINGS.store_description ? STORE_SETTINGS.store_description.replace(/\n/g, '<br>') : 'Terima kasih!'}</div>
                 </div>
             </div>
         `;
