@@ -27,7 +27,11 @@ class TransactionController extends Controller
 
         // Filter by Status
         if ($request->status) {
-            $query->where('status', $request->status);
+            if ($request->status == 'utang') {
+                $query->where('payment_method', 'utang');
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $transactions = $query->latest()->paginate(10);
@@ -62,7 +66,7 @@ class TransactionController extends Controller
      */
     public function destroy(Transaction $transaction)
     {
-        if ($transaction->status === 'cancelled') {
+        if ($transaction->status === 'void') {
             return back()->with('error', 'Transaksi sudah dibatalkan sebelumnya.');
         }
 
@@ -84,14 +88,15 @@ class TransactionController extends Controller
                         'reference_id' => $transaction->id,
                         'notes' => "Void Transaksi #{$transaction->transaction_code}",
                         'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
                 }
 
                 // 2. Update Transaction Status
-                $transaction->update(['status' => 'cancelled']);
+                $transaction->update(['status' => 'void']);
             });
 
-            return back()->with('success', 'Transaksi berhasil dibatalkan. Stok telah dikembalikan.');
+            return back()->with('success', 'Transaksi berhasil dibatalkan. Stok telah dikembalikan sesuai permintaan pengguna.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
         }

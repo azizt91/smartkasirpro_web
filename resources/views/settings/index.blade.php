@@ -105,6 +105,90 @@ use Illuminate\Support\Facades\Storage;
                             </div>
                         </div>
                     </div>
+
+                    
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">Printer Struk</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            {{-- USB Printer Info Card --}}
+                            <div class="md:col-span-2 bg-indigo-50 border border-indigo-100 rounded-xl p-5 flex flex-col sm:flex-row items-start gap-4">
+                                <div class="p-3 bg-white rounded-lg shadow-sm text-2xl flex-shrink-0">
+                                    🖨️
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-indigo-900 text-lg">Printer Thermal USB</h3>
+                                    <p class="text-sm text-indigo-700 mt-1 leading-relaxed">
+                                        Fitur ini membutuhkan browser <strong>Google Chrome</strong> atau <strong>Microsoft Edge</strong> di PC/Laptop. 
+                                        Pastikan kabel USB printer thermal sudah terhubung dan printer dalam keadaan menyala.
+                                    </p>
+                                    <div class="mt-4 flex items-center gap-3 bg-white/50 px-3 py-2 rounded-lg w-fit border border-indigo-100">
+                                        <div id="usb-status-indicator" class="w-3 h-3 rounded-full bg-gray-300 shadow-sm transition-all duration-300"></div>
+                                        <span id="usb-status-text" class="text-sm font-semibold text-gray-600 transition-all duration-300">Menunggu status...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- USB Actions --}}
+                            <div class="md:col-span-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="text-xl">🔌</span>
+                                    <h3 class="font-semibold text-gray-900">Koneksi USB</h3>
+                                </div>
+                                <div class="space-y-3">
+                                    <button type="button" onclick="testPrintUSB()" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all flex items-center justify-center gap-2 group">
+                                        <span class="group-hover:scale-110 transition-transform">📄</span> Test Print USB
+                                    </button>
+                                    <button type="button" onclick="ThermalPrinter.disconnectUSB(); checkUSBStatus();" class="w-full px-4 py-2.5 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-all flex items-center justify-center gap-2 group">
+                                        <span class="group-hover:scale-110 transition-transform">🚫</span> Putuskan Koneksi
+                                    </button>
+                                </div>
+                                <p class="mt-3 text-xs text-gray-500 text-center">
+                                    Klik "Test Print" untuk memicu permintaan izin akses USB.
+                                </p>
+                            </div>
+
+                            {{-- Bluetooth Actions --}}
+                            <div class="md:col-span-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="text-xl">📶</span>
+                                    <h3 class="font-semibold text-gray-900">Koneksi Bluetooth</h3>
+                                </div>
+                                <div class="space-y-3">
+                                    <button type="button" onclick="testPrintBluetooth()" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all flex items-center justify-center gap-2 group">
+                                        <span class="group-hover:scale-110 transition-transform">📄</span> Test Print Bluetooth
+                                    </button>
+                                </div>
+                                <p class="mt-3 text-xs text-gray-500 text-center leading-relaxed">
+                                    Hanya didukung di Android (Chrome/Edge) atau perangkat dengan Web Bluetooth API aktif.
+                                </p>
+                            </div>
+
+                            {{-- Preferences --}}
+                            <div class="md:col-span-2 mt-2">
+                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="p-2 bg-white rounded-lg border border-gray-200 text-gray-500">
+                                            ⚙️
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900">Reset Preferensi Cetak</h4>
+                                            <p class="text-xs text-gray-500 mt-0.5">
+                                                Dialog "Pilih Metode Cetak" akan muncul kembali saat mencetak struk jika Anda mereset ini.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="resetPrinterPref()" class="px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 hover:shadow-sm transition-all whitespace-nowrap">
+                                        Reset Default
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    </div>
                 </div>
 
                 <div class="px-6 sm:px-8 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
@@ -137,6 +221,77 @@ use Illuminate\Support\Facades\Storage;
 
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script src="{{ asset('js/thermal-printer.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        checkUSBStatus();
+        
+        // Check WebUSB support
+        if (!ThermalPrinter.isUSBSupported()) {
+            document.getElementById('usb-status-text').textContent = 'Browser ini tidak mendukung WebUSB';
+            document.getElementById('usb-status-text').className = 'text-sm font-medium text-red-500';
+            document.getElementById('usb-status-indicator').className = 'w-3 h-3 rounded-full bg-red-500';
+        }
+
+        // Monitor USB connection changes (if supported)
+        if (navigator.usb) {
+            navigator.usb.addEventListener('connect', checkUSBStatus);
+            navigator.usb.addEventListener('disconnect', checkUSBStatus);
+        }
+    });
+
+    async function checkUSBStatus() {
+        if (!ThermalPrinter.isUSBSupported()) return;
+
+        const devices = await navigator.usb.getDevices();
+        const printer = devices.find(d => d.productName && d.productName.toLowerCase().includes('print') || d.classCode === 7); // Simple heuristic
+        
+        const indicator = document.getElementById('usb-status-indicator');
+        const text = document.getElementById('usb-status-text');
+
+        if (devices.length > 0) {
+            // Kita asumsikan ada device yang pernah dipair
+            indicator.className = 'w-3 h-3 rounded-full bg-green-500 animate-pulse';
+            text.textContent = 'Perangkat Terdeteksi (' + devices.length + ')';
+            text.className = 'text-sm font-medium text-green-700';
+        } else {
+            indicator.className = 'w-3 h-3 rounded-full bg-gray-300';
+            text.textContent = 'Belum ada perangkat terhubung';
+            text.className = 'text-sm font-medium text-gray-600';
+        }
+    }
+
+    async function testPrintUSB() {
+        try {
+            await ThermalPrinter.testPrintUSB();
+            checkUSBStatus();
+            alert('✅ Test Print USB Berhasil!');
+        } catch (error) {
+            console.error(error);
+            alert('❌ Gagal: ' + error.message);
+        }
+    }
+
+    async function testPrintBluetooth() {
+        try {
+            const ESC = '\x1B', GS = '\x1D';
+            let data = ESC + '@' + 'TEST PRINT BLUETOOTH\n' + '================\n\n\n' + GS + 'V' + '\x41' + '\x03';
+            await ThermalPrinter.printBluetooth(new TextEncoder().encode(data));
+            alert('✅ Test Print Bluetooth Berhasil!');
+        } catch (error) {
+            console.error(error);
+            alert('❌ Gagal: ' + error.message);
+        }
+    }
+
+    function resetPrinterPref() {
+        localStorage.removeItem('pos_printer_preference');
+        alert('✅ Preferensi printer di-reset. Dialog pilih printer akan muncul lagi.');
+    }
+</script>
 @endsection
 
 

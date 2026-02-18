@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pelanggan - POS Minimarket</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0dab47",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102217",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --ios-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            min-height: max(884px, 100dvh);
+        }
+        .ios-shadow {
+            box-shadow: var(--ios-card-shadow);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 min-h-screen">
+<header class="sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 pt-12 pb-4">
+<div class="flex items-center">
+<h2 class="text-2xl font-semibold tracking-tight">Pelanggan</h2>
+</div>
+</header>
+<main class="px-4 pb-32">
+<div class="mt-4 mb-6 relative">
+<span class="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-white dark:bg-slate-800 border-none rounded-[14px] py-4 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/50 shadow-sm placeholder:text-slate-400 transition-all" placeholder="Cari pelanggan..." type="text"/>
+</div>
+<div class="space-y-4">
+<div class="bg-white dark:bg-slate-800 p-4 rounded-[16px] ios-shadow flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">
+                        AD
+                    </div>
+<div>
+<h3 class="text-base font-semibold leading-tight">Andi Darmawan</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">0812-3456-7890</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons-round text-[14px] text-primary/60">receipt_long</span>
+<span class="text-xs font-medium text-slate-400">12 Transaksi</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all">
+<span class="material-icons-round text-lg">edit</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+<span class="material-icons-round text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-[16px] ios-shadow flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg flex-shrink-0">
+                        SR
+                    </div>
+<div>
+<h3 class="text-base font-semibold leading-tight">Siti Rahma</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">0821-9988-7766</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons-round text-[14px] text-primary/60">receipt_long</span>
+<span class="text-xs font-medium text-slate-400">5 Transaksi</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-icons-round text-lg">edit</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500">
+<span class="material-icons-round text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-[16px] ios-shadow flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg flex-shrink-0">
+                        BP
+                    </div>
+<div>
+<h3 class="text-base font-semibold leading-tight">Budi Prasetyo</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">0856-4433-2211</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons-round text-[14px] text-primary/60">receipt_long</span>
+<span class="text-xs font-medium text-slate-400">28 Transaksi</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-icons-round text-lg">edit</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500">
+<span class="material-icons-round text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-[16px] ios-shadow flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg flex-shrink-0">
+                        ML
+                    </div>
+<div>
+<h3 class="text-base font-semibold leading-tight">Maya Lestari</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">0899-7766-5544</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons-round text-[14px] text-primary/60">receipt_long</span>
+<span class="text-xs font-medium text-slate-400">0 Transaksi</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-icons-round text-lg">edit</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500">
+<span class="material-icons-round text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-[16px] ios-shadow flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-lg flex-shrink-0">
+                        RY
+                    </div>
+<div>
+<h3 class="text-base font-semibold leading-tight">Raka Yudha</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">0813-1122-3344</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons-round text-[14px] text-primary/60">receipt_long</span>
+<span class="text-xs font-medium text-slate-400">42 Transaksi</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-icons-round text-lg">edit</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-500">
+<span class="material-icons-round text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-[#16A34A] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform z-50">
+<span class="material-icons-round text-3xl">add</span>
+</button>
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">dashboard</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">point_of_sale</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">POS</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">inventory_2</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Stok</span>
+</button>
+<button class="flex flex-col items-center gap-1">
+<span class="material-icons-round text-primary">groups</span>
+<span class="text-[10px] font-bold text-primary">Pelanggan</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">payments</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Piutang</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons-round text-slate-400 group-hover:text-primary">more_horiz</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Lainnya</span>
+</button>
+</nav>
+
+</body></html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POS Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#16a249",
+                        "primary-hover": "#15803d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2e22",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>/* Custom checkbox style */
+.custom-checkbox:checked {
+    background-color: #16a249;
+    border-color: #16a249;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuB3S24AlvXb9CRh3Wo-SuIzauhvTcjWH8lWgXN27VZ4yTjCy5xuqss1Bn0Zhx5RTTJS0fQoZp6dCSGnvapWXW6O9AP8Hk7BOwFURJhBhKHPAKWQ7dJwEH9nnoMFDwGRn_4hpy0hrzG5DFDUecXfSZXT-D8u7wpV60lwUCcpek_cDrdz5_Ek7K2kH7hIfyNKIRCg9uzhxukyYqNLH5o1hRdLo17YfHwVeDeZ9k4cSXTRaaDkMMZNSDvZN3XSR_AxysddrLo_4ZiPjsXq)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display min-h-screen flex items-center justify-center p-4 antialiased">
+<!-- Mobile Container -->
+<div class="w-full max-w-[480px] bg-background-light dark:bg-background-dark flex flex-col min-h-[800px] h-full relative overflow-hidden">
+<!-- Header / Logo Section -->
+<div class="flex flex-col items-center justify-center pt-16 pb-8 px-6">
+<div class="w-24 h-24 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm flex items-center justify-center mb-6 border border-primary/10">
+<span class="material-symbols-outlined text-primary text-5xl">storefront</span>
+</div>
+<h1 class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight text-center">Welcome Back</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal pt-2 text-center max-w-[280px]">Sign in to access your POS terminal</p>
+</div>
+<!-- Form Section -->
+<form class="flex flex-col gap-5 px-6 w-full" onsubmit="event.preventDefault();">
+<!-- Username Input -->
+<label class="flex flex-col w-full group">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2 ml-1">Username or ID</p>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">person</span>
+</div>
+<input class="form-input flex w-full rounded-xl text-slate-900 dark:text-white border-none bg-surface-light dark:bg-surface-dark h-14 pl-12 pr-4 text-base font-medium shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-primary placeholder:text-slate-400 transition-all" placeholder="Enter your ID" type="text" value=""/>
+</div>
+</label>
+<!-- Password Input -->
+<label class="flex flex-col w-full group">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2 ml-1">Password</p>
+<div class="relative flex w-full items-stretch">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">lock</span>
+</div>
+<input class="form-input flex w-full rounded-xl text-slate-900 dark:text-white border-none bg-surface-light dark:bg-surface-dark h-14 pl-12 pr-12 text-base font-medium shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-primary placeholder:text-slate-400 transition-all" placeholder="••••••" type="password" value=""/>
+<button class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</label>
+<!-- Remember Me & Forgot Password -->
+<div class="flex items-center justify-between py-1">
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input class="custom-checkbox h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary/50 transition duration-150 ease-in-out cursor-pointer bg-surface-light dark:bg-surface-dark dark:border-slate-600" type="checkbox"/>
+<span class="text-slate-600 dark:text-slate-300 text-sm font-medium">Remember me</span>
+</label>
+<a class="text-primary hover:text-primary-hover text-sm font-semibold transition-colors" href="#">Forgot Password?</a>
+</div>
+<!-- Login Button -->
+<button class="w-full bg-primary hover:bg-primary-hover text-white h-14 rounded-xl text-lg font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2">
+<span>Log In</span>
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_forward</span>
+</button>
+</form>
+<!-- Footer Links -->
+<div class="mt-auto pb-8 pt-6 flex flex-col items-center gap-4">
+<button class="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium w-full py-2">
+<span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+<span>Register New Terminal</span>
+</button>
+<div class="text-xs text-slate-400 dark:text-slate-600 text-center px-6">
+                Need help? <a class="text-slate-600 dark:text-slate-400 font-semibold underline decoration-slate-300" href="#">Contact Support</a>
+</div>
+</div>
+<!-- Decorative background elements -->
+<div class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
+<div class="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
+<div class="absolute top-1/2 -left-32 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
+</div>
+</div>
+</body></html>

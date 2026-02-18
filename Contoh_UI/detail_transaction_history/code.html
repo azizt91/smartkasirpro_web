@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction History - POS App</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec37",
+              "primary-dark": "#0eb52a",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102213",
+              "neutral-dark": "#1a3320", // Dark green-based neutral for text
+              "neutral-mid": "#8aa390", // Muted green-gray
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+            boxShadow: {
+                "soft": "0 4px 20px -2px rgba(19, 236, 55, 0.1)",
+                "card": "0 2px 8px rgba(0, 0, 0, 0.04)"
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Hide scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .modal-enter {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-neutral-dark dark:text-gray-100 antialiased h-screen overflow-hidden flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="px-5 pt-12 pb-4 bg-white dark:bg-neutral-dark shadow-sm z-20 flex items-center justify-between sticky top-0">
+<h1 class="text-xl font-bold tracking-tight">Riwayat Transaksi</h1>
+<div class="flex gap-3">
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-colors">
+<span class="material-icons-round">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-colors relative">
+<span class="material-icons-round">tune</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-neutral-dark"></span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-24 px-5">
+<!-- Summary Header -->
+<section class="mt-4 mb-6">
+<div class="bg-gradient-to-br from-neutral-dark to-background-dark dark:from-gray-800 dark:to-black rounded-2xl p-5 text-white shadow-soft relative overflow-hidden">
+<!-- Abstract Pattern -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+<div class="relative z-10 flex justify-between items-end">
+<div>
+<p class="text-sm text-gray-300 mb-1">Total Penjualan Hari Ini</p>
+<h2 class="text-3xl font-extrabold tracking-tight">Rp 3.450.000</h2>
+</div>
+<div class="text-right">
+<div class="bg-primary/20 backdrop-blur-sm px-3 py-1 rounded-lg inline-flex items-center gap-1">
+<span class="material-icons-round text-primary text-sm">trending_up</span>
+<span class="text-xs font-semibold text-primary">+12%</span>
+</div>
+<p class="text-xs text-gray-400 mt-2">24 Transaksi</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Filter Tabs -->
+<div class="flex gap-3 mb-6 overflow-x-auto no-scrollbar">
+<button class="px-4 py-2 bg-primary text-neutral-900 font-semibold rounded-full text-sm whitespace-nowrap shadow-sm shadow-primary/30">Semua</button>
+<button class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium rounded-full text-sm whitespace-nowrap">Berhasil</button>
+<button class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium rounded-full text-sm whitespace-nowrap">Menunggu</button>
+<button class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium rounded-full text-sm whitespace-nowrap">Dibatalkan</button>
+</div>
+<!-- Transaction List -->
+<div class="space-y-4">
+<!-- Date Separator -->
+<div class="flex items-center gap-4">
+<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Hari Ini, 24 Okt</h3>
+<div class="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+</div>
+<!-- Card 1: Success QRIS -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-card flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-background-light dark:bg-gray-700 rounded-lg text-center">
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400">14:30</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h4 class="font-bold text-neutral-dark dark:text-white">#INV-2023089</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">QRIS</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">2 Item • Kopi Susu Gula Aren...</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg text-primary">Rp 150.000</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Berhasil</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Pending Cash -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-card flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-orange-400"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-background-light dark:bg-gray-700 rounded-lg text-center">
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400">14:15</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h4 class="font-bold text-neutral-dark dark:text-white">#INV-2023088</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-100 dark:border-orange-800">TUNAI</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">1 Item • Croissant Almond</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg text-neutral-dark dark:text-gray-200">Rp 45.000</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-orange-400"></span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Menunggu</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Void -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-card flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden opacity-75">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-background-light dark:bg-gray-700 rounded-lg text-center">
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400">13:45</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h4 class="font-bold text-neutral-dark dark:text-white line-through decoration-red-500 decoration-2">#INV-2023087</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">DEBIT</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">Voided by Staff: Budi</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg text-gray-400 line-through">Rp 210.000</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-red-500"></span>
+<span class="text-xs font-medium text-red-500">Dibatalkan</span>
+</div>
+</div>
+</div>
+<!-- Date Separator -->
+<div class="flex items-center gap-4 pt-4">
+<h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Kemarin, 23 Okt</h3>
+<div class="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+</div>
+<!-- Card 4: Success QRIS -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-card flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-background-light dark:bg-gray-700 rounded-lg text-center">
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400">19:20</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h4 class="font-bold text-neutral-dark dark:text-white">#INV-2023086</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">QRIS</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">4 Item • Paket Hemat Berdua...</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg text-primary">Rp 225.000</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Berhasil</span>
+</div>
+</div>
+</div>
+<!-- Card 5: Success Cash -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-card flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-background-light dark:bg-gray-700 rounded-lg text-center">
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400">18:05</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h4 class="font-bold text-neutral-dark dark:text-white">#INV-2023085</h4>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-100 dark:border-orange-800">TUNAI</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400">1 Item • Mineral Water</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg text-primary">Rp 10.000</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Berhasil</span>
+</div>
+</div>
+</div>
+<div class="text-center py-6 text-gray-400 text-sm">
+                Tidak ada transaksi lain
+            </div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-white dark:bg-neutral-dark border-t border-gray-100 dark:border-gray-800 pb-safe z-30">
+<div class="flex justify-around items-center h-16 px-2">
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" href="#">
+<span class="material-icons-round text-2xl mb-1">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" href="#">
+<span class="material-icons-round text-2xl mb-1">point_of_sale</span>
+<span class="text-[10px] font-medium">POS</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" href="#">
+<span class="material-icons-round text-2xl mb-1">inventory_2</span>
+<span class="text-[10px] font-medium">Stok</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" href="#">
+<span class="material-icons-round text-2xl mb-1">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Piutang</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-primary dark:text-primary" href="#">
+<span class="material-icons-round text-2xl mb-1">more_horiz</span>
+<span class="text-[10px] font-bold">Lainnya</span>
+</a>
+</div>
+</nav>
+<!-- Detail Modal (Hidden by default, simulated visible for design purposes) -->
+<!-- In a real app, this would be toggled via JS. Here it is overlaid as if a card was clicked. -->
+<div class="absolute inset-0 z-50 flex items-end justify-center pointer-events-none">
+<!-- Backdrop -->
+<div class="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"></div>
+<!-- Modal Content -->
+<div class="bg-white dark:bg-gray-800 w-full rounded-t-3xl p-6 shadow-2xl transform transition-transform duration-300 pointer-events-auto flex flex-col max-h-[90vh]">
+<!-- Handle -->
+<div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-6"></div>
+<!-- Header -->
+<div class="flex justify-between items-start mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+<div>
+<h2 class="text-2xl font-bold text-neutral-dark dark:text-white">#INV-2023089</h2>
+<p class="text-sm text-gray-500 mt-1">24 Okt 2023 • 14:30</p>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded-lg text-xs font-bold uppercase tracking-wide">
+                    Berhasil
+                </div>
+</div>
+<!-- Items -->
+<div class="space-y-4 mb-6 overflow-y-auto max-h-60 no-scrollbar">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">1x</div>
+<div>
+<p class="font-bold text-sm text-neutral-dark dark:text-gray-200">Kopi Susu Gula Aren</p>
+<p class="text-xs text-gray-500">Regular, Less Sugar</p>
+</div>
+</div>
+<p class="font-bold text-sm text-neutral-dark dark:text-gray-200">Rp 25.000</p>
+</div>
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">1x</div>
+<div>
+<p class="font-bold text-sm text-neutral-dark dark:text-gray-200">Beef Burger Special</p>
+<p class="text-xs text-gray-500">Extra Cheese</p>
+</div>
+</div>
+<p class="font-bold text-sm text-neutral-dark dark:text-gray-200">Rp 125.000</p>
+</div>
+</div>
+<!-- Summary -->
+<div class="bg-background-light dark:bg-gray-700/50 rounded-xl p-4 space-y-2 mb-6">
+<div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+<span>Subtotal</span>
+<span>Rp 150.000</span>
+</div>
+<div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+<span>Pajak (10%)</span>
+<span>Rp 15.000</span>
+</div>
+<div class="h-px bg-gray-200 dark:bg-gray-600 my-2"></div>
+<div class="flex justify-between items-center">
+<span class="font-bold text-neutral-dark dark:text-white">Total</span>
+<span class="font-extrabold text-xl text-primary">Rp 165.000</span>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-xs text-gray-500">Metode Pembayaran</span>
+<div class="flex items-center gap-1">
+<span class="material-icons-round text-sm text-blue-600">qr_code</span>
+<span class="text-sm font-bold text-neutral-dark dark:text-white">QRIS</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-3.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl font-bold active:bg-red-100 transition-colors">
+<span class="material-icons-round text-lg">cancel</span>
+                    Void Transaksi
+                </button>
+<button class="flex items-center justify-center gap-2 py-3.5 bg-primary text-neutral-dark font-bold rounded-xl shadow-lg shadow-primary/30 active:bg-primary-dark transition-colors">
+<span class="material-icons-round text-lg">print</span>
+                    Cetak Struk
+                </button>
+</div>
+</div>
+</div>
+</body></html>

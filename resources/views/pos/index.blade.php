@@ -227,15 +227,95 @@
 
         <div class="p-6 space-y-5">
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="customer-name" class="block text-xs font-medium text-gray-500 mb-1">Nama Customer</label>
-                    <select id="customer-name" 
-                            class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                        <option value="Umum">Umum</option>
-                        @foreach($customers as $customer)
-                            <option value="{{ $customer->name }}">{{ $customer->name }}</option>
-                        @endforeach
-                    </select>
+                <div x-data="{
+                    open: false,
+                    search: '',
+                    selected: 'Umum',
+                    customers: {{ $customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-'])->toJson() }},
+                    get filteredCustomers() {
+                        if (this.search === '') return this.customers;
+                        return this.customers.filter(c => 
+                            c.name.toLowerCase().includes(this.search.toLowerCase()) || 
+                            (c.phone && c.phone.includes(this.search))
+                        );
+                    },
+                    selectCustomer(name) {
+                        this.selected = name;
+                        this.open = false;
+                        this.search = '';
+                    },
+                    openAddCustomerModal() {
+                        this.open = false;
+                        document.getElementById('add-customer-modal').classList.remove('hidden');
+                        setTimeout(() => document.getElementById('new-customer-name').focus(), 100);
+                    }
+                }" 
+                x-init="window.addEventListener('customer-added', (e) => {
+                    customers.unshift(e.detail); // Add to top of list
+                    selectCustomer(e.detail.name); // Auto select
+                })"
+                class="relative z-50">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Nama Customer</label>
+                    
+                    <!-- Hidden Input for Form Submission/JS Reading -->
+                    <input type="hidden" id="customer-name" :value="selected">
+
+                    <!-- Dropdown Trigger -->
+                    <button type="button" 
+                            @click="open = !open; if(open) $nextTick(() => $refs.searchInput.focus())"
+                            class="w-full px-4 py-2 bg-gray-100 border border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-left flex justify-between items-center">
+                        <span x-text="selected"></span>
+                        <svg class="w-4 h-4 text-gray-500 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <!-- Dropdown Content -->
+                    <div x-show="open" 
+                         @click.away="open = false" 
+                         style="display: none;"
+                         class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col">
+                        
+                        <!-- Search Input -->
+                        <div class="p-2 border-b border-gray-100">
+                            <input x-ref="searchInput" 
+                                   x-model="search" 
+                                   type="text" 
+                                   placeholder="Cari nama / No. HP..." 
+                                   class="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+
+                        <!-- List Items -->
+                        <ul class="overflow-y-auto flex-1">
+                            <!-- Button: Tambah Pelanggan -->
+                            <li @click="openAddCustomerModal()" 
+                                class="px-4 py-3 hover:bg-green-50 cursor-pointer text-sm border-b border-gray-100 flex items-center text-green-600 font-semibold transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Tambah Pelanggan Baru
+                            </li>
+
+                            <!-- Option: Umum -->
+                            <li @click="selectCustomer('Umum')" 
+                                class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between items-center"
+                                :class="{'bg-blue-50 text-blue-700': selected === 'Umum'}">
+                                <span class="font-medium">Umum</span>
+                            </li>
+
+                            <template x-for="customer in filteredCustomers" :key="customer.name">
+                                <li @click="selectCustomer(customer.name)" 
+                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50"
+                                    :class="{'bg-blue-50 text-blue-700': selected === customer.name}">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium" x-text="customer.name"></span>
+                                        <span class="text-xs text-gray-400" x-text="customer.phone"></span>
+                                    </div>
+                                </li>
+                            </template>
+                            
+                            <!-- No Results -->
+                            <div x-show="filteredCustomers.length === 0 && search !== ''" class="px-4 py-3 text-sm text-gray-500 text-center">
+                                Tidak ditemukan
+                            </div>
+                        </ul>
+                    </div>
                 </div>
                  <div>
                     <label for="payment-method" class="block text-xs font-medium text-gray-500 mb-1">Metode Pembayaran</label>
@@ -247,6 +327,7 @@
                         <option value="card">💳 Kartu</option>
                         <option value="ewallet">📱 E-Wallet</option>
                         <option value="transfer">🏦 Transfer</option>
+                        <option value="qris">📲 QRIS</option>
                     </select>
                 </div>
             </div>
@@ -297,6 +378,38 @@
     </div>
 </div>
 
+{{-- Modal Tambah Pelanggan --}}
+<div id="add-customer-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+        <div class="p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Tambah Pelanggan Baru</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="new-customer-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor HP (Opsional)</label>
+                    <input type="text" id="new-customer-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="closeAddCustomerModal()" class="py-2 text-center font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                    Batal
+                </button>
+                <button onclick="saveNewCustomer()" class="py-2 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center justify-center">
+                    <span id="btn-save-customer-text">Simpan</span>
+                    <svg id="btn-save-customer-loading" class="animate-spin ml-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Sukses --}}
 <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
@@ -312,12 +425,20 @@
                 </div>
             </div>
             <div class="space-y-3">
-                <div class="text-sm text-gray-600 mb-4">Cetak Struk?</div>
-                <div class="flex space-x-3">
-                    <button onclick="printReceipt()" class="flex-1 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 font-medium">📄 Cetak Struk</button>
-                    <button onclick="closeSuccessModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-md hover:bg-gray-600 font-medium">✕ Lewati</button>
+                <div class="text-sm text-gray-600 mb-3">Cetak Struk?</div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="doPrintUSB()" class="flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 hover:border-indigo-400 transition-all text-indigo-700 font-medium text-sm" title="Printer USB">
+                        <span class="text-xl">🔌</span> USB
+                    </button>
+                    <button onclick="doPrintBluetooth()" class="flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 hover:border-blue-400 transition-all text-blue-700 font-medium text-sm" title="Printer Bluetooth">
+                        <span class="text-xl">📶</span> Bluetooth
+                    </button>
+                    <button onclick="doPrintBrowser()" class="flex flex-col items-center gap-1 py-3 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-200 hover:border-emerald-400 transition-all text-emerald-700 font-medium text-sm" title="Print Browser">
+                        <span class="text-xl">📄</span> Browser
+                    </button>
                 </div>
-                <div class="text-xs text-gray-500">Modal akan tertutup dalam <span id="countdown-timer" class="font-medium text-blue-600">10</span> detik</div>
+                <button onclick="closeSuccessModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-2.5 rounded-lg font-medium text-sm transition-colors">✕ Lewati</button>
+                <div class="text-xs text-gray-500 text-center">Modal akan tertutup dalam <span id="countdown-timer" class="font-medium text-blue-600">10</span> detik</div>
             </div>
         </div>
     </div>
@@ -712,7 +833,6 @@
         }
     }
 
-    // Fungsi untuk menutup modal dan menghentikan scanner
     function closeScannerModal() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop().then(() => {
@@ -725,6 +845,83 @@
             });
         } else {
              document.getElementById('scanner-modal').classList.add('hidden');
+        }
+    }
+
+    // === QUICK ADD CUSTOMER ===
+    function closeAddCustomerModal() {
+        document.getElementById('add-customer-modal').classList.add('hidden');
+        document.getElementById('new-customer-name').value = '';
+        document.getElementById('new-customer-phone').value = '';
+    }
+
+    async function saveNewCustomer() {
+        const nameInput = document.getElementById('new-customer-name');
+        const phoneInput = document.getElementById('new-customer-phone');
+        const btnText = document.getElementById('btn-save-customer-text');
+        const btnLoading = document.getElementById('btn-save-customer-loading');
+
+        const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
+
+        if (!name) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Nama pelanggan wajib diisi!' });
+            return;
+        }
+
+        // Show loading
+        btnText.classList.add('hidden');
+        btnLoading.classList.remove('hidden');
+
+        try {
+            const response = await fetch("{{ route('customers.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ name, phone })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Success
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Pelanggan berhasil ditambahkan!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                closeAddCustomerModal();
+
+                // Add to Alpine.js data in the payment modal
+                // We need access to the Alpine component scope. 
+                // Since it's inside x-data, retrieving it externally is tricky.
+                // Workaround: We dispatch a custom event or reload the page. 
+                // BUT user wants NO RELOAD.
+                // Let's try to push to the window global if we expose it, or dispatch event.
+                
+                // Better approach: Since Alpine creates a component scope, let's dispatch an event 
+                // and listen for it inside the x-data.
+                
+                // Dispatch event with new customer data
+                window.dispatchEvent(new CustomEvent('customer-added', { 
+                    detail: { name: result.customer.name, phone: result.customer.phone || '-' } 
+                }));
+
+            } else {
+                throw new Error(result.message || 'Gagal menyimpan data');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', title: 'Gagal', text: error.message || 'Terjadi kesalahan saat menyimpan.' });
+        } finally {
+            btnText.classList.remove('hidden');
+            btnLoading.classList.add('hidden');
         }
     }
 
@@ -1000,220 +1197,46 @@
         }, 1000);
     }
 
-    // === PRINTING LOGIC ===
-    async function printReceipt() {
-        if (!window.currentTransaction) return alert('Data transaksi tidak ditemukan!');
-        try {
-            if (!navigator.bluetooth) throw new Error('Web Bluetooth tidak didukung di browser ini.');
-            await printReceiptToBluetooth();
-        } catch (error) {
-            console.error('Print error:', error);
-            if (confirm('Gagal terhubung ke printer Bluetooth. Cetak menggunakan printer browser?')) {
-                printReceiptToBrowser();
-            }
-        }
-    }
-
-    async function printReceiptToBluetooth() {
-        try {
-            // [FIX] Menggunakan acceptAllDevices: true untuk mempermudah menemukan printer.
-            const device = await navigator.bluetooth.requestDevice({
-                acceptAllDevices: true,
-                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // Generic printer service UUID
-            });
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); // Generic write characteristic
-            const receiptData = generateThermalReceiptData();
-            
-            // [FIX] Chunking data to avoid MTU limit (512 bytes)
-            const chunkSize = 100; // Safe chunk size
-            for (let i = 0; i < receiptData.byteLength; i += chunkSize) {
-                const chunk = receiptData.slice(i, i + chunkSize);
-                await characteristic.writeValue(chunk);
-                // Add small delay to ensure device processes chunk
-                await new Promise(resolve => setTimeout(resolve, 50)); 
-            }
-
-            alert('Struk berhasil dikirim ke printer!');
-        } catch (error) {
-            console.error('Bluetooth print error:', error);
-            throw error;
-        }
-    }
-
-    function generateThermalReceiptData() {
+    // === PRINTING LOGIC (via ThermalPrinter module) ===
+    function _getReceiptData() {
         const tx = window.currentTransaction;
-        const now = new Date();
-        const ESC = '\x1B', GS = '\x1D';
-        const isUtang = tx.payment_method === 'utang';
-        const paymentMethodLabels = {
-            'cash': 'Tunai',
-            'utang': 'UTANG',
-            'card': 'Kartu',
-            'ewallet': 'E-Wallet',
-            'transfer': 'Transfer'
-        };
-        let receipt = '';
-        receipt += ESC + '@'; // Initialize
-        receipt += ESC + 'a' + '\x01'; // Center align
-        receipt += ESC + '!' + '\x18'; // Double height & width
-        receipt += `${STORE_SETTINGS.store_name}\n`;
-        receipt += ESC + '!' + '\x00'; // Normal size
-        receipt += `${STORE_SETTINGS.store_address}\n`;
-        receipt += `Telp: ${STORE_SETTINGS.store_phone}\n`;
-        receipt += '================================\n';
-        receipt += ESC + 'a' + '\x00'; // Left align
-        receipt += `No: ${tx.transaction_code}\n`;
-        receipt += `Tgl: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}\n`;
-        receipt += `Kasir: ${AUTH_USER.name}\n`;
-        if (tx.customer_name && tx.customer_name !== 'Umum') {
-            receipt += `Customer: ${tx.customer_name}\n`;
-        }
-        receipt += '================================\n';
-        tx.items.forEach(item => {
-            receipt += `${item.product.name}\n`;
-            receipt += `  ${item.quantity} x ${formatRupiah(item.price)} = ${formatRupiah(item.quantity * item.price)}\n`;
-        });
-        receipt += '================================\n';
-        receipt += ESC + 'a' + '\x02'; // Right align
-        
-        // Tambahkan detail Subtotal, Diskon, Pajak
-        receipt += `Subtotal: ${formatRupiah(tx.subtotal)}\n`;
-        if (parseFloat(tx.discount) > 0) {
-            receipt += `Diskon: -${formatRupiah(tx.discount)}\n`;
-        }
-        if (parseFloat(tx.tax) > 0) {
-            receipt += `Pajak: ${formatRupiah(tx.tax)}\n`;
-        }
-        
-        receipt += `Total: ${formatRupiah(tx.total_amount)}\n`;
-        receipt += `Metode: ${paymentMethodLabels[tx.payment_method] || tx.payment_method}\n`;
-        if (!isUtang) {
-            receipt += `Bayar: ${formatRupiah(tx.amount_paid)}\n`;
-            receipt += `Kembali: ${formatRupiah(tx.change_amount)}\n`;
-        }
-        receipt += ESC + 'a' + '\x01'; // Center align
-        if (isUtang) {
-            receipt += '--------------------------------\n';
-            receipt += ESC + '!' + '\x08'; // Bold
-            receipt += '** BELUM DIBAYAR - PIUTANG **\n';
-            receipt += ESC + '!' + '\x00'; // Normal
-        }
-        receipt += '================================\n';
-        if (STORE_SETTINGS.store_description) {
-            receipt += STORE_SETTINGS.store_description + '\n\n\n';
-        } else {
-            receipt += 'Terima kasih!\n\n\n';
-        }
-        receipt += GS + 'V' + '\x41' + '\x03'; // Cut paper
-        return new TextEncoder().encode(receipt);
+        if (!tx) { alert('Data transaksi tidak ditemukan!'); return null; }
+        const receiptBytes = ThermalPrinter.generateReceipt(tx, STORE_SETTINGS, AUTH_USER.name);
+        const receiptHTML = ThermalPrinter.generateReceiptHTML(tx, STORE_SETTINGS, AUTH_USER.name);
+        return { receiptBytes, receiptHTML };
     }
 
-    function printReceiptToBrowser() {
-        const transaction = window.currentTransaction;
-        const printArea = document.getElementById('print-area');
-        if (!transaction || !printArea) return;
-        const now = new Date();
-        const isUtang = transaction.payment_method === 'utang';
-        const paymentMethodLabels = {
-            'cash': '💵 Tunai',
-            'utang': '📝 UTANG',
-            'card': '💳 Kartu',
-            'ewallet': '📱 E-Wallet',
-            'transfer': '🏦 Transfer'
-        };
-        const receiptHTML = `
-           <div style="font-family: 'Courier New', monospace; font-size: 11px; width: 280px; padding: 10px; color: black;">
-                <div style="text-align: center;">
-                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${STORE_SETTINGS.store_name}</div>
-                    <div>${STORE_SETTINGS.store_address}</div>
-                    <div>Telp: ${STORE_SETTINGS.store_phone}</div>
-                </div>
+    async function doPrintUSB() {
+        const data = _getReceiptData();
+        if (!data) return;
+        try {
+            await ThermalPrinter.printUSB(data.receiptBytes);
+            ThermalPrinter.savePreference('usb');
+        } catch (e) {
+            console.error('USB print error:', e);
+            Swal.fire({ icon: 'error', title: 'Gagal Print USB', text: e.message });
+        }
+    }
 
-                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
+    async function doPrintBluetooth() {
+        const data = _getReceiptData();
+        if (!data) return;
+        try {
+            await ThermalPrinter.printBluetooth(data.receiptBytes);
+            ThermalPrinter.savePreference('bluetooth');
+        } catch (e) {
+            console.error('Bluetooth print error:', e);
+            Swal.fire({ icon: 'error', title: 'Gagal Print Bluetooth', text: e.message });
+        }
+    }
 
-                <table style="width: 100%; font-size: 11px;">
-                    <tr>
-                        <td>No</td>
-                        <td>: ${transaction.transaction_code}</td>
-                    </tr>
-                    <tr>
-                        <td>Tgl</td>
-                        <td>: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}</td>
-                    </tr>
-                    <tr>
-                        <td>Kasir</td>
-                        <td>: ${AUTH_USER.name}</td>
-                    </tr>
-                    ${transaction.customer_name && transaction.customer_name !== 'Umum' ? `
-                    <tr>
-                        <td>Customer</td>
-                        <td>: ${transaction.customer_name}</td>
-                    </tr>
-                    ` : ''}
-                </table>
-
-                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
-
-                <div>
-                    ${transaction.items.map(item => `
-                        <div style="margin-bottom: 5px;">
-                            <div>${item.product.name}</div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>&nbsp;&nbsp;${item.quantity} x ${formatRupiah(item.price)}</span>
-                                <span>${formatRupiah(item.quantity * item.price)}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
-
-                <div style="text-align: right;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-weight: bold;">Total:</span>
-                        <span style="font-weight: bold;">${formatRupiah(transaction.total_amount)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Metode:</span>
-                        <span>${paymentMethodLabels[transaction.payment_method] || transaction.payment_method}</span>
-                    </div>
-                    ${!isUtang ? `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Bayar:</span>
-                        <span>${formatRupiah(transaction.amount_paid)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Kembali:</span>
-                        <span>${formatRupiah(transaction.change_amount)}</span>
-                    </div>
-                    ` : ''}
-                </div>
-
-                ${isUtang ? `
-                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
-                <div style="text-align: center; font-weight: bold; padding: 8px; background: #f0f0f0; border: 1px dashed black;">
-                    ⚠️ BELUM DIBAYAR - PIUTANG
-                </div>
-                ` : ''}
-
-                <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
-
-                <div style="text-align: center; margin-top: 10px;">
-                    <div>${STORE_SETTINGS.store_description ? STORE_SETTINGS.store_description.replace(/\n/g, '<br>') : 'Terima kasih!'}</div>
-                </div>
-            </div>
-        `;
-        printArea.innerHTML = receiptHTML;
-        const cleanup = () => {
-            printArea.innerHTML = '';
-            window.removeEventListener('afterprint', cleanup);
-            closeSuccessModal();
-        };
-        window.addEventListener('afterprint', cleanup);
-        window.print();
+    function doPrintBrowser() {
+        const data = _getReceiptData();
+        if (!data) return;
+        ThermalPrinter.printBrowser(data.receiptHTML);
+        ThermalPrinter.savePreference('browser');
     }
 </script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="{{ asset('js/thermal-printer.js') }}"></script>
 @endsection

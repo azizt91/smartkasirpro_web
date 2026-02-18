@@ -22,7 +22,8 @@
                 <select name="status" class="w-full sm:w-auto rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Semua Status</option>
                     <option value="completed" @selected(request('status') == 'completed')>Sukses</option>
-                    <option value="cancelled" @selected(request('status') == 'cancelled')>Dibatalkan</option>
+                    <option value="utang" @selected(request('status') == 'utang')>Menunggu (Utang)</option>
+                    <option value="void" @selected(request('status') == 'void')>Dibatalkan</option>
                 </select>
                 <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Filter</button>
                 @if(request()->anyFilled(['start_date', 'end_date', 'status']))
@@ -78,13 +79,17 @@
                                         {{ $transaction->payment_method }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($transaction->status == 'completed')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Sukses
-                                            </span>
-                                        @else
+                                        @if($transaction->status == 'void')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 Dibatalkan
+                                            </span>
+                                        @elseif($transaction->payment_method == 'utang')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                Menunggu
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Sukses
                                             </span>
                                         @endif
                                     </td>

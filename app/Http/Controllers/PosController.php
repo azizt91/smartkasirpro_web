@@ -199,7 +199,7 @@ class PosController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:cash,utang,card,ewallet,transfer',
+            'payment_method' => 'required|in:cash,utang,card,ewallet,transfer,qris',
             'amount_paid' => 'required|numeric|min:0',
             'customer_name' => 'nullable|string',
             'discount' => 'nullable|numeric|min:0',

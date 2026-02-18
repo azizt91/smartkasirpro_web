@@ -79,7 +79,7 @@
                 <div class="p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Daftar Piutang</h3>
                     <p class="text-sm text-gray-600 mb-4">
-                        Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
+                        Periode: {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d M Y') : 'Semua Waktu' }} {{ $endDate ? ' - ' . \Carbon\Carbon::parse($endDate)->format('d M Y') : '' }}
                     </p>
                     
                     <!-- Desktop Table -->

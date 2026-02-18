@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lainnya - POS Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#16a249",
+                        "background-light": "#f5f5f5",
+                        "background-dark": "#112117",
+                        "danger": "#DC2626",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="fixed top-0 w-full h-11 bg-background-light dark:bg-background-dark z-50 flex justify-between items-center px-6">
+<span class="text-sm font-semibold">9:41</span>
+<div class="flex items-center space-x-1.5">
+<span class="material-icons-round text-lg">signal_cellular_alt</span>
+<span class="material-icons-round text-lg">wifi</span>
+<span class="material-icons-round text-lg rotate-90">battery_full</span>
+</div>
+</div>
+<header class="fixed top-11 w-full bg-background-light dark:bg-background-dark z-40 px-5 pt-4 pb-2">
+<h1 class="text-[20px] font-bold">Lainnya</h1>
+</header>
+<main class="pt-28 pb-20 px-5 space-y-6 overflow-y-auto h-screen hide-scrollbar">
+<div class="flex items-center space-x-4 mb-2">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-primary/20" data-alt="Profil manajer toko laki-laki profesional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_jOD6W_iScvpTf_E-gwTzIfbvznNkUWIQ9jKAD00fAlaaH2qeon2IdhqZ4e8hJd3EmnibcwGLDLUibVYAaTRB_tjOG4pWrlHHIac_fasXEL6apoYeE62Q1CoulrvM-l6daPHSN3v2BPqS3r1dFzP7cn_gt68dbXbYpXPdvS1zfSrqYlCUcbwqg59M9bN3SCNsXFac6LL47o21jsaZAQd3Cxp3yC2Oh1HI-bNFvORTiABitN6UJYf_CkZi70QsOxbPLeyqpe6Ass8"/>
+<div>
+<p class="font-bold text-lg leading-tight">Toko Berkah Jaya</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Admin - Kasir 01</p>
+</div>
+</div>
+<section>
+<h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">Transaksi</h2>
+<div class="bg-white dark:bg-slate-900 rounded-[16px] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-icons-round text-[24px]">history</span>
+</div>
+<span class="text-[16px] font-medium">Riwayat Transaksi</span>
+</div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-icons-round text-[24px]">people_alt</span>
+</div>
+<span class="text-[16px] font-medium">Pelanggan</span>
+</div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800 transition-colors">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-icons-round text-[24px]">account_balance_wallet</span>
+</div>
+<span class="text-[16px] font-medium">Pengeluaran Operasional</span>
+</div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</button>
+</div>
+</section>
+<section>
+<h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">Pengaturan</h2>
+<div class="bg-white dark:bg-slate-900 rounded-[16px] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800 transition-colors">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-icons-round text-[24px]">print</span>
+</div>
+<span class="text-[16px] font-medium">Pengaturan Printer</span>
+</div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</button>
+</div>
+</section>
+<section>
+<h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">Akun</h2>
+<div class="bg-white dark:bg-slate-900 rounded-[16px] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<button class="w-full flex items-center justify-between p-4 active:bg-red-50 dark:active:bg-red-900/20 transition-colors">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-danger">
+<span class="material-icons-round text-[24px]">logout</span>
+</div>
+<span class="text-[16px] font-medium text-danger">Keluar</span>
+</div>
+<span class="material-icons-round text-danger opacity-50">chevron_right</span>
+</button>
+</div>
+</section>
+<div class="text-center py-4">
+<p class="text-xs text-slate-400 font-medium">POS Enterprise v2.4.0 (1024)</p>
+</div>
+</main>
+<nav class="fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 safe-area-bottom z-50">
+<div class="flex justify-around items-center h-16">
+<button class="flex flex-col items-center space-y-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round text-[24px]">home</span>
+<span class="text-[10px] font-semibold">Beranda</span>
+</button>
+<button class="flex flex-col items-center space-y-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round text-[24px]">receipt_long</span>
+<span class="text-[10px] font-semibold">Transaksi</span>
+</button>
+<button class="flex flex-col items-center space-y-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round text-[24px]">inventory_2</span>
+<span class="text-[10px] font-semibold">Produk</span>
+</button>
+<button class="flex flex-col items-center space-y-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round text-[24px]">analytics</span>
+<span class="text-[10px] font-semibold">Laporan</span>
+</button>
+<button class="flex flex-col items-center space-y-1 text-primary">
+<span class="material-icons-round text-[24px]">more_horiz</span>
+<span class="text-[10px] font-semibold">Lainnya</span>
+</button>
+</div>
+<div class="h-5"></div>
+</nav>
+
+</body></html>

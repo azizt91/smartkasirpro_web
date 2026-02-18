@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pengeluaran</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#16A34A",
+                        "primary-content": "#ffffff",
+                        "background-light": "#F5F5F5",
+                        "background-dark": "#101622",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2234",
+                        "text-main": "#1e293b",
+                        "text-muted": "#64748b",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "16px": "16px",
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-main antialiased selection:bg-primary selection:text-white h-screen flex flex-col overflow-hidden">
+<div class="w-full h-12 flex items-center justify-between px-6 pt-2 bg-surface-light dark:bg-surface-dark/50 backdrop-blur-md sticky top-0 z-20">
+<div class="text-sm font-semibold dark:text-white">9:41</div>
+<div class="flex items-center space-x-2 text-text-main dark:text-white">
+<span class="material-icons-round text-sm">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-icons-round text-sm">battery_full</span>
+</div>
+</div>
+<header class="bg-surface-light dark:bg-surface-dark z-10 border-b border-slate-100 dark:border-slate-800">
+<div class="px-6 pt-4 pb-6">
+<div class="flex items-center justify-between mb-5">
+<h1 class="text-[28px] font-bold tracking-tight text-slate-900 dark:text-white">Pengeluaran</h1>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">tune</span>
+</button>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-16px p-5 border border-slate-100 dark:border-slate-800 ios-shadow">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[13px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Total Pengeluaran (Okt)</p>
+<p class="text-[28px] font-extrabold text-primary leading-tight tracking-tight">Rp 24.250.000</p>
+</div>
+<div class="bg-red-50 dark:bg-red-900/10 text-red-500 dark:text-red-400 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center border border-red-100 dark:border-red-900/20">
+<span class="material-symbols-outlined text-[14px] mr-0.5 font-bold">trending_up</span> +12%
+                </div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pt-8 pb-32 no-scrollbar">
+<div class="mb-8">
+<h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-[0.15em] mb-4 ml-1">Hari Ini</h3>
+<div class="space-y-4">
+<div class="bg-white dark:bg-surface-dark rounded-16px p-4 ios-shadow border border-slate-50 dark:border-slate-800 flex items-center justify-between active:scale-[0.98] transition-transform duration-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400 shrink-0">
+<span class="material-symbols-outlined text-[24px]">store</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white text-base leading-snug">Sewa Ruko</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Operasional Bulanan</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">- Rp 15.000.000</p>
+<p class="text-[11px] text-slate-400 mt-0.5 font-medium">14:00</p>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-16px p-4 ios-shadow border border-slate-50 dark:border-slate-800 flex items-center justify-between active:scale-[0.98] transition-transform duration-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+<span class="material-symbols-outlined text-[24px]">local_shipping</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white text-base leading-snug">Bahan Baku Kopi</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Restock Supplier A</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">- Rp 2.500.000</p>
+<p class="text-[11px] text-slate-400 mt-0.5 font-medium">10:30</p>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-[0.15em] mb-4 ml-1">Kemarin</h3>
+<div class="space-y-4">
+<div class="bg-white dark:bg-surface-dark rounded-16px p-4 ios-shadow border border-slate-50 dark:border-slate-800 flex items-center justify-between active:scale-[0.98] transition-transform duration-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center text-yellow-600 dark:text-yellow-400 shrink-0">
+<span class="material-symbols-outlined text-[24px]">bolt</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white text-base leading-snug">Listrik &amp; Air</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tagihan PLN</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">- Rp 1.250.000</p>
+<p class="text-[11px] text-slate-400 mt-0.5 font-medium">09:15</p>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-16px p-4 ios-shadow border border-slate-50 dark:border-slate-800 flex items-center justify-between active:scale-[0.98] transition-transform duration-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+<span class="material-symbols-outlined text-[24px]">cleaning_services</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white text-base leading-snug">Alat Kebersihan</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toko Bersih</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">- Rp 150.000</p>
+<p class="text-[11px] text-slate-400 mt-0.5 font-medium">16:45</p>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-16px p-4 ios-shadow border border-slate-50 dark:border-slate-800 flex items-center justify-between active:scale-[0.98] transition-transform duration-100">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+<span class="material-symbols-outlined text-[24px]">wifi</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white text-base leading-snug">Internet</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tagihan Bulanan</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">- Rp 350.000</p>
+<p class="text-[11px] text-slate-400 mt-0.5 font-medium">11:20</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-28 right-6 z-30">
+<button class="w-16 h-16 bg-primary rounded-full shadow-lg shadow-primary/25 hover:bg-green-700 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center text-white ring-4 ring-white dark:ring-surface-dark">
+<span class="material-symbols-outlined text-[32px] font-bold">add</span>
+</button>
+</div>
+<nav class="bg-surface-light dark:bg-surface-dark border-t border-slate-100 dark:border-slate-800 pb-8 pt-2 px-2 fixed bottom-0 w-full z-20">
+<div class="grid grid-cols-5 gap-1">
+<button class="flex flex-col items-center justify-center py-2 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">grid_view</span>
+<span class="text-[10px] font-semibold text-slate-400 mt-1 group-hover:text-primary transition-colors">Dashboard</span>
+</button>
+<button class="flex flex-col items-center justify-center py-2 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">point_of_sale</span>
+<span class="text-[10px] font-semibold text-slate-400 mt-1 group-hover:text-primary transition-colors">POS</span>
+</button>
+<button class="flex flex-col items-center justify-center py-2 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">inventory_2</span>
+<span class="text-[10px] font-semibold text-slate-400 mt-1 group-hover:text-primary transition-colors">Stok</span>
+</button>
+<button class="flex flex-col items-center justify-center py-2 group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">account_balance_wallet</span>
+<span class="text-[10px] font-semibold text-slate-400 mt-1 group-hover:text-primary transition-colors">Piutang</span>
+</button>
+<button class="flex flex-col items-center justify-center py-2 group relative">
+<div class="relative">
+<span class="material-symbols-outlined text-primary font-bold">more_horiz</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-white dark:border-surface-dark"></span>
+</div>
+<span class="text-[10px] font-extrabold text-primary mt-1">Lainnya</span>
+</button>
+</div>
+</nav>
+
+</body></html>

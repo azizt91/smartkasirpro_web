@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pengaturan Printer (Sederhana)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#17a14e",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                        "neutral-soft": "#e8eeeb",
+                        "danger-soft": "#fee2e2",
+                        "danger": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }.pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+<header class="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-10">
+<div class="px-4 py-4 flex items-center">
+<button class="mr-4 text-slate-600 dark:text-slate-400">
+<span class="material-icons">arrow_back_ios</span>
+</button>
+<h2 class="text-lg font-semibold flex-1">Pengaturan Printer</h2>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+<section class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Status Printer</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger-soft text-danger dark:bg-red-900/30 dark:text-red-400">
+<span class="w-1.5 h-1.5 rounded-full bg-danger mr-1.5"></span>
+                    Belum Terhubung
+                </span>
+</div>
+<div class="bg-primary/10 p-2 rounded-lg">
+<span class="material-icons text-primary">print_disabled</span>
+</div>
+</div>
+<button class="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-icons text-xl">bluetooth_searching</span>
+            Cari Printer Bluetooth
+        </button>
+</section>
+<section class="space-y-3">
+<h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Daftar Printer Tersedia</h3>
+<div class="space-y-2">
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-background-light dark:bg-slate-700 flex items-center justify-center">
+<span class="material-icons text-slate-400">print</span>
+</div>
+<div>
+<p class="font-medium text-slate-900 dark:text-white">RPP02N - 58mm</p>
+<p class="text-xs text-slate-400">00:11:22:33:FF:EE</p>
+</div>
+</div>
+<button class="text-primary font-semibold text-sm px-3 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">Hubungkan</button>
+</div>
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-background-light dark:bg-slate-700 flex items-center justify-center">
+<span class="material-icons text-slate-400">print</span>
+</div>
+<div>
+<p class="font-medium text-slate-900 dark:text-white">MP-58 Mobile Printer</p>
+<p class="text-xs text-slate-400">AA:BB:CC:DD:11:22</p>
+</div>
+</div>
+<button class="text-primary font-semibold text-sm px-3 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">Hubungkan</button>
+</div>
+</div>
+</section>
+<div class="flex flex-col items-center justify-center py-12 opacity-60">
+<div class="bg-primary/5 p-6 rounded-full mb-4">
+<span class="material-icons text-5xl text-primary/40">settings_bluetooth</span>
+</div>
+<p class="text-center text-sm text-slate-500 max-w-[200px]">Pastikan printer Bluetooth Anda dalam mode pairing.</p>
+</div>
+</main>
+<nav class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe">
+<div class="grid grid-cols-4 h-16">
+<button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+<span class="material-icons text-2xl">receipt_long</span>
+<span class="text-[10px] font-medium">Transaksi</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+<span class="material-icons text-2xl">inventory_2</span>
+<span class="text-[10px] font-medium">Produk</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+<span class="material-icons text-2xl">analytics</span>
+<span class="text-[10px] font-medium">Laporan</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 text-primary">
+<span class="material-icons text-2xl">more_horiz</span>
+<span class="text-[10px] font-medium">Lainnya</span>
+<div class="w-1 h-1 bg-primary rounded-full"></div>
+</button>
+</div>
+<div class="h-1.5 w-32 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto my-2 shrink-0"></div>
+</nav>
+
+</body></html>

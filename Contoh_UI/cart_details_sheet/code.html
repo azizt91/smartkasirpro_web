@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POS Cart Details Sheet</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#19e169",
+                "primary-dark": "#13a54d", // Darker shade for better contrast or text
+                "background-light": "#f6f8f7",
+                "background-dark": "#112117",
+                },
+                fontFamily: {
+                "display": ["Manrope", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Blur background simulation */
+        .backdrop-blur-md {
+            backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-800 font-display antialiased h-screen w-full overflow-hidden relative">
+<!-- Simulated Underlying Product Grid (Background Context) -->
+<div aria-hidden="true" class="absolute inset-0 grid grid-cols-2 gap-4 p-4 opacity-30 pointer-events-none">
+<!-- Mock Cards to simulate the screen behind the sheet -->
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+<div class="bg-white rounded-xl h-48 w-full animate-pulse"></div>
+</div>
+<!-- Dark Overlay -->
+<div class="absolute inset-0 bg-black/60 z-10"></div>
+<!-- Bottom Sheet Container -->
+<div class="absolute bottom-0 left-0 right-0 z-20 flex flex-col justify-end h-[92vh]">
+<!-- Sheet Content -->
+<div class="bg-background-light dark:bg-background-dark w-full h-full rounded-t-[2rem] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] flex flex-col relative overflow-hidden ring-1 ring-white/10">
+<!-- Drag Handle -->
+<div class="w-full flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
+<div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+</div>
+<!-- Header -->
+<div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 shrink-0">
+<div>
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Order #1024</h2>
+<p class="text-sm text-gray-500 dark:text-gray-400">Table 4 • Dine In</p>
+</div>
+<button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 transition-colors">
+<span class="material-icons-round">close</span>
+</button>
+</div>
+<!-- Scrollable List Area -->
+<div class="flex-1 overflow-y-auto no-scrollbar px-6 pt-4 pb-4 space-y-4">
+<!-- Item 1 -->
+<div class="group relative flex items-center bg-white dark:bg-gray-800/50 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<!-- Image -->
+<div class="h-16 w-16 shrink-0 rounded-lg bg-gray-100 overflow-hidden relative mr-4">
+<img alt="Iced Latte with milk swirl" class="h-full w-full object-cover" data-alt="Iced Latte with milk swirl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIDqPnTrVJWlkUb6MUv7zV-sLQSiL4SCdWq0aCTHOgss5Yw7o2Zyo8YkJN33DNmvuuaJamVDqnq_M97IKUj-6PK6L9hyWELeWYvZ2XreBZ9wZyw-p5zYb4qVHR2YBHjeOHdRm2QaoYG9B1Faa9r4dDj60ATMJBST6tY4NWbVL7r4iDSaHct1VdQB2IyouTbWUQZLE-fr8KaApVwsg1AV6YYdJna7LPEouHbjJe9jCeBCZ1XUILwjpLhQekLS_Ed48Bnuzacgd1n34"/>
+</div>
+<!-- Details -->
+<div class="flex-1 min-w-0 pr-2">
+<h3 class="font-bold text-gray-900 dark:text-white truncate">Iced Latte</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Oat Milk, Less Ice</p>
+<div class="mt-1 font-semibold text-gray-900 dark:text-white">Rp 35.000</div>
+</div>
+<!-- Qty Control -->
+<div class="flex flex-col items-center justify-center space-y-1 shrink-0">
+<div class="flex items-center bg-background-light dark:bg-gray-900 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+<button class="w-8 h-8 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-base">remove</span>
+</button>
+<span class="w-8 text-center font-bold text-gray-900 dark:text-white">1</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white shadow-sm hover:brightness-105 active:scale-95 transition-all">
+<span class="material-icons-round text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group relative flex items-center bg-white dark:bg-gray-800/50 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<!-- Image -->
+<div class="h-16 w-16 shrink-0 rounded-lg bg-gray-100 overflow-hidden relative mr-4">
+<img alt="Golden brown croissant close up" class="h-full w-full object-cover" data-alt="Golden brown croissant close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0DA7G7nId2O0kv0DeGBP9xYN13vgujwlaGbdYUFVTHZHb1cUYICCBVNKk7sFBhWF5DoqgUVz6VpviBxFxNYF-UphAz8Rt0emn6lUdCMCCUVtBDujNEK7tzdA8TEEYNPZy8S_Xg18kmtIZxomi7dDAldyRV9njpmBEmbJCdLe-D2GOf5nQbYNehXz1RoFLowy6LssDisrg6pnNt45121l4x7KWUPwV3fSdOAfWnKiV1gX6VxP8IfIsqxYpOTOaDyM479OkggA-wbE"/>
+</div>
+<!-- Details -->
+<div class="flex-1 min-w-0 pr-2">
+<h3 class="font-bold text-gray-900 dark:text-white truncate">Butter Croissant</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Warmed up</p>
+<div class="mt-1 font-semibold text-gray-900 dark:text-white">Rp 20.000</div>
+</div>
+<!-- Qty Control -->
+<div class="flex flex-col items-center justify-center space-y-1 shrink-0">
+<div class="flex items-center bg-background-light dark:bg-gray-900 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+<button class="w-8 h-8 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-base">remove</span>
+</button>
+<span class="w-8 text-center font-bold text-gray-900 dark:text-white">2</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white shadow-sm hover:brightness-105 active:scale-95 transition-all">
+<span class="material-icons-round text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 3 (Simulated swipe reveal) -->
+<div class="relative overflow-hidden rounded-xl">
+<!-- Background Action (Delete) -->
+<div class="absolute inset-0 bg-red-100 dark:bg-red-900/30 flex items-center justify-end pr-6 rounded-xl">
+<div class="flex flex-col items-center text-red-600 dark:text-red-400">
+<span class="material-icons-round">delete</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-1">Remove</span>
+</div>
+</div>
+<!-- Foreground Content -->
+<div class="relative flex items-center bg-white dark:bg-gray-800/50 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 translate-x-[-40px] transition-transform">
+<!-- Image -->
+<div class="h-16 w-16 shrink-0 rounded-lg bg-gray-100 overflow-hidden relative mr-4">
+<img alt="Stack of chocolate pancakes" class="h-full w-full object-cover" data-alt="Stack of chocolate pancakes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHSxPONYXC00FL24trVs05jcix-VZhrP9U0VOiTXgF459qnJMnCdGcfjVLGX4WJikYH3IUdvXE_vCQxg3YW1IDCSYTq3t7OloSd8H6m7Egoc2p9zxoOy2pezsNY20IdNXTuYyT-mFqUjAHfCWF7tzO48EAAzizy9RuCaCtMCgXJd56cdStbghw-IyOHUfIRRf3NylIIBw2CeidVprFsegMC6ctjy_ATRtKjBLLQj-ASo72IkFz-pu2K6YhtGqeQn12rIYhycC_FI0"/>
+</div>
+<!-- Details -->
+<div class="flex-1 min-w-0 pr-2">
+<h3 class="font-bold text-gray-900 dark:text-white truncate">Choco Pancakes</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Extra Syrup</p>
+<div class="mt-1 font-semibold text-gray-900 dark:text-white">Rp 45.000</div>
+</div>
+<!-- Qty Control -->
+<div class="flex flex-col items-center justify-center space-y-1 shrink-0">
+<div class="flex items-center bg-background-light dark:bg-gray-900 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+<button class="w-8 h-8 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-base">remove</span>
+</button>
+<span class="w-8 text-center font-bold text-gray-900 dark:text-white">1</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white shadow-sm hover:brightness-105 active:scale-95 transition-all">
+<span class="material-icons-round text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Calculation Area -->
+<div class="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-6 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 shrink-0">
+<!-- Calculation Rows -->
+<div class="space-y-3 mb-6">
+<div class="flex justify-between text-gray-500 dark:text-gray-400">
+<span class="font-medium">Subtotal</span>
+<span class="font-semibold text-gray-900 dark:text-white">Rp 120.000</span>
+</div>
+<div class="flex justify-between text-primary font-medium">
+<span class="flex items-center gap-1">
+<span class="material-icons-round text-sm">local_offer</span>
+                            Discount (10%)
+                        </span>
+<span>- Rp 12.000</span>
+</div>
+<div class="flex justify-between text-gray-500 dark:text-gray-400">
+<span class="font-medium">Tax (11%)</span>
+<span class="font-semibold text-gray-900 dark:text-white">Rp 11.880</span>
+</div>
+<!-- Dotted Separator -->
+<div class="border-b border-dashed border-gray-200 dark:border-gray-700 pt-2"></div>
+</div>
+<!-- Grand Total & Action -->
+<div class="flex flex-col gap-4">
+<div class="flex items-end justify-between mb-2">
+<span class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Grand Total</span>
+<span class="text-3xl font-extrabold text-gray-900 dark:text-white">Rp 119.880</span>
+</div>
+<button class="w-full bg-primary hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-green-500/30 flex items-center justify-between px-6 transition-all active:scale-[0.98]">
+<span class="flex items-center gap-2">
+<span>BAYAR</span>
+<span class="material-icons-round text-white/70">arrow_forward</span>
+</span>
+<span class="bg-white/20 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                            3 Items
+                        </span>
+</button>
+<!-- Safe Area Spacer for iOS Home Indicator -->
+<div class="h-1 w-full"></div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

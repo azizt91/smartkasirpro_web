@@ -132,4 +132,28 @@ class Product extends Model
     {
         return $query->whereColumn('stock', '<=', 'minimum_stock');
     }
+
+    /**
+     * Get the product image URL.
+     *
+     * @return string|null
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            // Check if it's already a full URL
+            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+                return $this->image;
+            }
+            return asset('storage/' . $this->image);
+        }
+        return null;
+    }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['image_url'];
 }

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('total_amount', 12, 2);
-            $table->enum('payment_method', ['cash', 'utang', 'card', 'ewallet', 'transfer'])->default('cash');
+            $table->enum('payment_method', ['cash', 'utang', 'card', 'ewallet', 'transfer', 'qris'])->default('cash');
             $table->decimal('amount_paid', 12, 2);
             $table->decimal('change_amount', 10, 2)->default(0);
             $table->enum('status', ['completed', 'cancelled'])->default('completed');

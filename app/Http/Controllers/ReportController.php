@@ -262,13 +262,16 @@ class ReportController extends BaseController
     {
         $this->checkAdminAccess();
         
-        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
 
         $query = Transaction::with(['user', 'items.product'])
             ->where('payment_method', 'utang')
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->orderBy('created_at', 'desc');
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        }
 
         $summary = [
             'total_receivables' => $query->sum('total_amount'),

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile POS Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#16A34A",
+                        "primary-dark": "#15803d",
+                        "secondary": "#f97316",
+                        "background-light": "#F5F5F5",
+                        "background-dark": "#112114",
+                        "neutral-surface": "#ffffff",
+                        "neutral-surface-dark": "#1a3320",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(22, 163, 74, 0.1)',
+                        'card': '0 2px 10px rgba(0, 0, 0, 0.03)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 antialiased selection:bg-primary selection:text-white pb-28">
+<header class="fixed top-0 w-full z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm pt-safe-top border-b border-gray-100 dark:border-gray-800">
+<div class="px-5 py-3 flex items-center justify-between">
+<div class="flex flex-col">
+<h1 class="text-[20px] font-semibold text-slate-900 dark:text-white leading-tight">Dashboard</h1>
+<p class="text-[14px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Selasa, 14 Nov 2023</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-icons-round text-slate-600 dark:text-slate-300">notifications</span>
+<span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background-light dark:border-background-dark"></span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+<img alt="Avatar of the store owner" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7ZOnpt6Pb0BX5nHVpKSAj-h7YspWc957vfbZGZI2PNvwWIdOXQ6vSZUeDwoTgU48Juumyu8bTFUo5VmZ56Wum4WR7qmLL7IeCvZMriMyvQKHJ1MwtY_I4OeT3nKnmw6TkubaKXKzUNGHgOf2FCzePFaP0LN-g5UTPs0jm1Qj-_H7yDOod9P9g58kKAkMDQM04fsrscOOXbSJM6bMqOje1vGSgDVLESR42ueQKJ8y5_o-h7qOZU3urSSl2OIN5OrfurLarBaN355M"/>
+</div>
+</div>
+</div>
+</header>
+<main class="mt-24 px-0 space-y-6">
+<section class="pl-5">
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-4 pr-5">
+<div class="min-w-[280px] bg-white dark:bg-neutral-surface-dark p-4 rounded-[16px] shadow-card border border-slate-100 dark:border-slate-800 relative">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">calendar_today</span>
+<span class="text-xs font-medium">Penjualan Hari Ini</span>
+</div>
+<div class="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
+<span class="material-icons-round text-[10px]">trending_up</span> 12%
+                        </div>
+</div>
+<h3 class="text-[24px] font-bold tracking-tight text-[#16A34A] dark:text-green-400">Rp 2.450.000</h3>
+<p class="text-[10px] text-slate-400 mt-1">Total 45 transaksi berhasil</p>
+</div>
+<div class="min-w-[180px] bg-white dark:bg-neutral-surface-dark p-4 rounded-[16px] shadow-card border border-slate-100 dark:border-slate-800">
+<div class="flex items-start justify-between mb-3">
+<div class="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-icons-round text-lg">receipt_long</span>
+</div>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">+5</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mb-0.5">Transaksi</p>
+<h3 class="text-xl font-bold text-slate-800 dark:text-white">45</h3>
+</div>
+<div class="min-w-[180px] bg-white dark:bg-neutral-surface-dark p-4 rounded-[16px] shadow-card border border-slate-100 dark:border-slate-800">
+<div class="flex items-start justify-between mb-3">
+<div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500">
+<span class="material-icons-round text-lg">inventory_2</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mb-0.5">Stok Kritis</p>
+<h3 class="text-xl font-bold text-slate-800 dark:text-white">3 <span class="text-xs font-normal text-slate-400">Item</span></h3>
+</div>
+<div class="min-w-[180px] bg-white dark:bg-neutral-surface-dark p-4 rounded-[16px] shadow-card border border-slate-100 dark:border-slate-800">
+<div class="flex items-start justify-between mb-3">
+<div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+<span class="material-icons-round text-lg">account_balance_wallet</span>
+</div>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mb-0.5">Piutang Aktif</p>
+<h3 class="text-lg font-bold text-slate-800 dark:text-white">Rp 350.000</h3>
+</div>
+</div>
+</section>
+<section class="px-5">
+<div class="bg-white dark:bg-neutral-surface-dark rounded-[16px] shadow-card p-5 border border-slate-100 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="font-bold text-base text-slate-800 dark:text-white">Statistik Penjualan</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Minggu Ini</p>
+</div>
+<button class="p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 transition-colors">
+<span class="material-icons-round text-xl">more_horiz</span>
+</button>
+</div>
+<div class="h-42 flex items-end justify-between gap-3 pb-2">
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 40%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Sen</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 65%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Sel</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 50%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Rab</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 85%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Kam</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-[#16A34A] rounded-t-sm shadow-md shadow-green-200 dark:shadow-green-900/20" style="height: 70%"></div>
+</div>
+<span class="text-[10px] font-bold text-[#16A34A]">Jum</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 20%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Sab</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm relative h-32">
+<div class="absolute bottom-0 w-full bg-slate-300 dark:bg-slate-600 rounded-t-sm" style="height: 45%"></div>
+</div>
+<span class="text-[10px] font-medium text-slate-400">Min</span>
+</div>
+</div>
+</div>
+</section>
+<section class="px-5 pb-6">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-bold text-base text-slate-800 dark:text-white flex items-center gap-2">
+                    Peringatan Stok
+                </h3>
+<button class="text-xs font-semibold text-[#16A34A] hover:text-green-700 transition-colors">Lihat Semua</button>
+</div>
+<div class="space-y-3">
+<div class="bg-white dark:bg-neutral-surface-dark p-3 rounded-[12px] shadow-card border-l-2 border-l-red-500 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-100 dark:border-slate-700">
+<img alt="Indomie goreng noodle packet" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDbq8e5AOTTOHjzu-Ruiub03NTxDJ2uF2Qi8PbmpfEwQOuRh1rOI7hETWmYNX-BEF5G6a3AADWTrRnztJQV08XOWudSsX8L3efuSx8x1K0wudn-5TnhSEUerGvYXHZPW8JfmADGcGX-NOAo-yYPqRmVeGM5jIS2inkv_3d5D3AaB9cr3_Kr6C5o3wiDjdP8ZPez699cIBSvoDlhkMXDQ_QFNlzJ5PHV9O6ZD_kYTBn28-IdT4kiJJzIcMGj7E81g34oGFcaKXJWZM"/>
+</div>
+<div>
+<h4 class="font-semibold text-slate-800 dark:text-white text-sm">Indomie Goreng</h4>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Sisa: <span class="text-red-500 font-bold">2 pcs</span></p>
+</div>
+</div>
+<span class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        CRITICAL
+                    </span>
+</div>
+<div class="bg-white dark:bg-neutral-surface-dark p-3 rounded-[12px] shadow-card border-l-2 border-l-orange-400 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-100 dark:border-slate-700">
+<img alt="Bottle of mineral water" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3MRKETtsDoumQMBO6hRBTEkyb41CWBuDaGAQXN4FFc6z00sQ_rwv9fw3sg7YQ47Xg2dSUbWV8FBpBG6LxTEAGhnaD7rBjP-F8I4vyvDegYqDWn7FfKLrFdmk8CMT4nHT0vDCNbwHKzxQah7Tpn0htBG1OQmOjmtrTlRliN6XvY74Brw0oWUbwoW4Njy_Q2LRatU0DBB1XgKqEkmAtEJymWYVegDODokVl6LDavquN7REbzjclfMHLGaqBIpJSj1yl8GP7x0o16zY"/>
+</div>
+<div>
+<h4 class="font-semibold text-slate-800 dark:text-white text-sm">Aqua 600ml</h4>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Sisa: <span class="text-orange-500 font-bold">5 pcs</span></p>
+</div>
+</div>
+<span class="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        LOW
+                    </span>
+</div>
+<div class="bg-white dark:bg-neutral-surface-dark p-3 rounded-[12px] shadow-card border-l-2 border-l-orange-400 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-100 dark:border-slate-700">
+<img alt="Soy sauce bottle" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEq6txjS-e9PeKY1HX2UmsurkjodTdFQbOBPW-OP9ynqaOxluJsTZmLYNMnh4tNu2Uwn3Yb10bBW9B562rcRQFfgT0Fd0M0L2DOqjVV771wKfYDCC2ra_m0zrPB56xwQSnU4nr6goTgi7-mIOW5TuB2eNEfhTic8SIgmaVgaqr61rDe8TUbKFvZTUJAHbcZKbCGpShQkjlLwLG5hMcLYgsyOCOtYyGqxv6Uz6zrcvz-UF7g9KBzsDcLw88dl_lwpjWPgqcg2pBNU0"/>
+</div>
+<div>
+<h4 class="font-semibold text-slate-800 dark:text-white text-sm">Kecap Bango 135ml</h4>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Sisa: <span class="text-orange-500 font-bold">4 pcs</span></p>
+</div>
+</div>
+<span class="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        LOW
+                    </span>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 w-full bg-white dark:bg-neutral-surface-dark border-t border-slate-100 dark:border-slate-800 z-50">
+<div class="flex justify-around items-end h-[60px] pb-2 px-2 relative">
+<a class="flex flex-col items-center justify-center w-full h-full group" href="#">
+<span class="material-icons-round text-[#16A34A] text-2xl mb-1">dashboard</span>
+<span class="text-[10px] font-medium text-[#16A34A]">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full group text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-icons-round text-2xl mb-1">inventory</span>
+<span class="text-[10px] font-medium">Stok</span>
+</a>
+<div class="relative w-full flex justify-center h-full items-end">
+<div class="absolute -top-5">
+<button class="w-[52px] h-[52px] rounded-full bg-[#16A34A] text-white shadow-md shadow-green-600/30 flex items-center justify-center hover:bg-green-700 transition-all">
+<span class="material-icons-round text-[26px]">point_of_sale</span>
+</button>
+</div>
+<span class="text-[10px] font-medium text-slate-400 mb-2">POS</span>
+</div>
+<a class="flex flex-col items-center justify-center w-full h-full group text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-icons-round text-2xl mb-1">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Piutang</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full group text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-icons-round text-2xl mb-1">menu</span>
+<span class="text-[10px] font-medium">Lainnya</span>
+</a>
+</div>
+<div class="h-6 w-full bg-white dark:bg-neutral-surface-dark"></div>
+</nav>
+
+</body></html>

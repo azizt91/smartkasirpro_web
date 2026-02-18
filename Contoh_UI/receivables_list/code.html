@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Receivables List - Minimarket POS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec6d",
+              "primary-dark": "#0ebf57",
+              "background-light": "#f6f8f7",
+              "background-dark": "#102218",
+              "surface-light": "#ffffff",
+              "surface-dark": "#183024",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem", 
+              "lg": "0.5rem", 
+              "xl": "0.75rem", 
+              "2xl": "1rem",
+              "full": "9999px"
+            },
+            boxShadow: {
+              "soft": "0 4px 20px -2px rgba(19, 236, 109, 0.1)",
+              "card": "0 2px 10px rgba(0, 0, 0, 0.03)"
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom scrollbar hiding for clean mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* iOS Safe Area */
+        .safe-pb {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-primary selection:text-black overflow-hidden">
+<!-- Top Status Bar Area (Mock) -->
+<div class="h-12 w-full bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 sticky top-0 z-50 border-b border-slate-100 dark:border-white/5">
+<div class="text-sm font-semibold w-1/3">9:41</div>
+<div class="flex justify-center w-1/3">
+<div class="h-6 w-24 bg-black rounded-full absolute -top-2 hidden sm:block"></div>
+</div>
+<div class="flex gap-2 justify-end w-1/3 text-xs">
+<span class="material-icons-round text-sm">signal_cellular_alt</span>
+<span class="material-icons-round text-sm">wifi</span>
+<span class="material-icons-round text-sm">battery_full</span>
+</div>
+</div>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-24 relative">
+<!-- Header Section -->
+<header class="bg-surface-light dark:bg-surface-dark px-5 pt-4 pb-6 sticky top-0 z-40 shadow-sm transition-colors duration-300">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-2xl font-bold tracking-tight">Piutang</h1>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-colors">
+<span class="material-icons-round">filter_list</span>
+</button>
+</div>
+<!-- Total Summary Card -->
+<div class="bg-gradient-to-br from-primary/90 to-primary-dark rounded-xl p-5 text-black shadow-soft mb-6 relative overflow-hidden group cursor-pointer transform transition active:scale-[0.98]">
+<!-- Abstract Pattern Overlay -->
+<div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+<div class="absolute -left-6 -bottom-6 w-24 h-24 bg-black/5 rounded-full blur-xl"></div>
+<div class="relative z-10 flex justify-between items-end">
+<div>
+<p class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Total Piutang Belum Lunas</p>
+<h2 class="text-3xl font-extrabold tracking-tight">Rp 8.450.000</h2>
+</div>
+<div class="bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+<span class="material-icons-round text-2xl">account_balance_wallet</span>
+</div>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons-round text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-slate-100 dark:bg-white/5 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all shadow-inner" placeholder="Cari nama pelanggan atau no. faktur..." type="text"/>
+</div>
+</header>
+<!-- Receivables List -->
+<div class="px-5 py-4 space-y-4">
+<!-- Section Title -->
+<div class="flex justify-between items-end px-1">
+<h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Daftar Tagihan</h3>
+<span class="text-xs text-primary font-medium cursor-pointer">Lihat Semua</span>
+</div>
+<!-- Card 1: Overdue -->
+<div class="group bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-card border border-transparent hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+<!-- Left Accent Bar -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-l-xl"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded">INV-2023-002</span>
+<span class="text-xs text-slate-400">10 Okt</span>
+</div>
+<span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-300 border border-red-100 dark:border-red-500/30">
+                            JATUH TEMPO
+                        </span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h4 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Warung Bu Siti</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-icons-round text-[14px]">storefront</span> Pelanggan Tetap
+                            </p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 mb-0.5">Sisa Tagihan</p>
+<p class="text-lg font-bold text-red-600 dark:text-red-400">Rp 1.250.000</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Active -->
+<div class="group bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-card border border-transparent hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded">INV-2023-001</span>
+<span class="text-xs text-slate-400">12 Okt</span>
+</div>
+<span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-primary/10 text-emerald-700 dark:text-primary dark:bg-primary/20 border border-primary/20">
+                            BELUM LUNAS
+                        </span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h4 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Budi Santoso</h4>
+<div class="flex items-center gap-2 mt-1">
+<img alt="Avatar Budi" class="w-5 h-5 rounded-full" data-alt="Small user avatar circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbq_LVYaYnZyqUQfogg2g6Oo4JtuPGQeILcmNxmGUoGTxhKtILHr-lfz_QUR0AKmbUZUjnong-Gr9rWRq8z6kVXFE5B2Q7_sX0AYvvRDFnYkE9myqcX9fyF0sNrHObhuKZrA3K42_NJxIIvXohz1G34l6XBtAruMbUL_HpNd3usAKLq2qXYisdoxAxU9czDB036ZcWHUOxW_k_wT8K_9v9q3xqtj1fa0AyHOvJqBGYh2UddXP5sXIS-LUAlbs-8H3Cynvnm_g-KRo"/>
+<p class="text-xs text-slate-500 dark:text-slate-400">Personal</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 mb-0.5">Sisa Tagihan</p>
+<p class="text-lg font-bold text-slate-800 dark:text-primary">Rp 500.000</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Active -->
+<div class="group bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-card border border-transparent hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded">INV-2023-005</span>
+<span class="text-xs text-slate-400">14 Okt</span>
+</div>
+<span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-primary/10 text-emerald-700 dark:text-primary dark:bg-primary/20 border border-primary/20">
+                            BELUM LUNAS
+                        </span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h4 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Toko Makmur Jaya</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-icons-round text-[14px]">storefront</span> Distributor
+                            </p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 mb-0.5">Sisa Tagihan</p>
+<p class="text-lg font-bold text-slate-800 dark:text-primary">Rp 4.500.000</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Partial Payment -->
+<div class="group bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-card border border-transparent hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-400 rounded-l-xl"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2">
+<span class="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded">INV-2023-008</span>
+<span class="text-xs text-slate-400">15 Okt</span>
+</div>
+<span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-100 dark:border-amber-500/30">
+                            CICILAN
+                        </span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h4 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Pak Ahmad</h4>
+<div class="flex items-center gap-2 mt-1">
+<img alt="Avatar Ahmad" class="w-5 h-5 rounded-full" data-alt="Small user avatar circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA74DOjyAu_sLU5flkVUMqAO8g5AW9gBQ8LY_xmzVqufdN90m4CbkItZw0quM9zACggkiUo2rqyvRF5XfKugbkurC4MWwWRaPQB1spCqsLsFA0TTrddUS9vAHfJoIWh3mkqLKa-BcB5DWbw9pgDIEwQMtSp36FVEqJzZA4DZI7tUmMcU8BCF5xk2oUe0IGXhFUEQL90ltSewJunlD6csC3bmRLGUicVS_hM9hnAEWiNttq3PHdt0pAIv7CSI2hRbbJytW3OU6LQsC0"/>
+<p class="text-xs text-slate-500 dark:text-slate-400">Personal</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 mb-0.5">Sisa Tagihan</p>
+<p class="text-lg font-bold text-slate-800 dark:text-primary">Rp 2.200.000</p>
+</div>
+</div>
+<!-- Progress Bar for Installment -->
+<div class="mt-3 w-full bg-slate-100 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between mt-1">
+<span class="text-[10px] text-slate-400">Terbayar: 45%</span>
+<span class="text-[10px] text-slate-400">Total: Rp 4.000.000</span>
+</div>
+</div>
+</div>
+<!-- Spacer for bottom nav visibility -->
+<div class="h-8"></div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-slate-200 dark:border-white/5 pb-6 pt-3 px-6 z-50 safe-pb shadow-[0_-5px_10px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-center">
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors group" href="#">
+<span class="material-icons-round text-2xl group-hover:scale-110 transition-transform">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors group" href="#">
+<span class="material-icons-round text-2xl group-hover:scale-110 transition-transform">point_of_sale</span>
+<span class="text-[10px] font-medium">POS</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors group" href="#">
+<span class="material-icons-round text-2xl group-hover:scale-110 transition-transform">inventory_2</span>
+<span class="text-[10px] font-medium">Stok</span>
+</a>
+<!-- Active Tab -->
+<a class="flex flex-col items-center gap-1 text-primary relative" href="#">
+<div class="absolute -top-3 w-8 h-1 bg-primary rounded-b-full shadow-[0_0_10px_rgba(19,236,109,0.5)]"></div>
+<span class="material-icons-round text-2xl drop-shadow-sm">receipt_long</span>
+<span class="text-[10px] font-bold">Piutang</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors group" href="#">
+<span class="material-icons-round text-2xl group-hover:scale-110 transition-transform">more_horiz</span>
+<span class="text-[10px] font-medium">Lainnya</span>
+</a>
+</div>
+</nav>
+</body></html>

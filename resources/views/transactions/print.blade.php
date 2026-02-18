@@ -40,24 +40,31 @@
         .actions {
             margin-bottom: 20px;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             background: #f3f4f6;
             border-radius: 8px;
         }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
         .btn {
-            background-color: #4f46e5;
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
             text-decoration: none;
             font-family: sans-serif;
             font-weight: bold;
+            font-size: 13px;
             border: none;
             cursor: pointer;
-            margin: 0 5px;
             display: inline-flex;
             align-items: center;
+            gap: 6px;
         }
+        .btn-usb { background-color: #6366f1; }
         .btn-bluetooth { background-color: #2563eb; }
         .btn-print { background-color: #4b5563; }
         .btn:hover { opacity: 0.9; }
@@ -65,12 +72,17 @@
 </head>
 <body>
     <div class="actions no-print">
-        <button onclick="printBluetooth()" class="btn btn-bluetooth">
-            🖨️ Print Bluetooth
-        </button>
-        <button onclick="window.print()" class="btn btn-print">
-            📄 Print Browser
-        </button>
+        <div class="btn-group">
+            <button onclick="doPrintUSB()" class="btn btn-usb">
+                🔌 USB
+            </button>
+            <button onclick="doPrintBluetooth()" class="btn btn-bluetooth">
+                📶 Bluetooth
+            </button>
+            <button onclick="window.print()" class="btn btn-print">
+                📄 Browser
+            </button>
+        </div>
     </div>
 
     <div class="text-center">
@@ -166,138 +178,35 @@
         {!! nl2br(e($storeSettings->store_description)) !!}
     </div>
 
+    <script src="{{ asset('js/thermal-printer.js') }}"></script>
     <script>
         // Data Transaksi & Settings untuk JS
         const transaction = @json($transaction);
         const storeSettings = @json($storeSettings);
-        const authUser = { name: "{{ $transaction->user->name ?? '-' }}" }; // Use transaction user as cashier
+        const authUser = { name: "{{ $transaction->user->name ?? '-' }}" };
 
-        // [FIX] Use simpler formatting to avoid encoding issues (ta characters)
-        function formatRupiah(number) {
-            return 'Rp ' + new Intl.NumberFormat('id-ID').format(number);
+        async function doPrintUSB() {
+            try {
+                const receiptData = ThermalPrinter.generateReceipt(transaction, storeSettings, authUser.name);
+                await ThermalPrinter.printUSB(receiptData);
+                ThermalPrinter.savePreference('usb');
+                alert('✅ Struk berhasil dikirim ke printer USB!');
+            } catch (error) {
+                console.error('USB print error:', error);
+                alert('Gagal mencetak via USB: ' + error.message);
+            }
         }
 
-        async function printBluetooth() {
+        async function doPrintBluetooth() {
             try {
-                if (!navigator.bluetooth) {
-                     alert('Web Bluetooth tidak didukung di browser ini. Gunakan Chrome di Android/Desktop.');
-                     return;
-                }
-                
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-                });
-
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-                
-                const receiptData = generateThermalReceiptData();
-                
-                // [FIX] Chunking data to avoid MTU limit (512 bytes)
-                const chunkSize = 100; // Safe chunk size
-                for (let i = 0; i < receiptData.byteLength; i += chunkSize) {
-                    const chunk = receiptData.slice(i, i + chunkSize);
-                    await characteristic.writeValue(chunk);
-                    // Add small delay to ensure device processes chunk
-                    await new Promise(resolve => setTimeout(resolve, 50)); 
-                }
-                
-                alert('Struk berhasil dikirim ke printer!');
+                const receiptData = ThermalPrinter.generateReceipt(transaction, storeSettings, authUser.name);
+                await ThermalPrinter.printBluetooth(receiptData);
+                ThermalPrinter.savePreference('bluetooth');
+                alert('✅ Struk berhasil dikirim ke printer Bluetooth!');
             } catch (error) {
-                console.error('Bluetooth error:', error);
+                console.error('Bluetooth print error:', error);
                 alert('Gagal mencetak via Bluetooth: ' + error.message);
             }
-        }
-
-        function generateThermalReceiptData() {
-            const tx = transaction;
-            const now = new Date(tx.created_at); // Use transaction date
-            const ESC = '\x1B', GS = '\x1D';
-            const isUtang = tx.payment_method === 'utang';
-            const paymentMethodLabels = {
-                'cash': 'Tunai',
-                'utang': 'UTANG',
-                'card': 'Kartu',
-                'ewallet': 'E-Wallet',
-                'transfer': 'Transfer'
-            };
-            
-            let receipt = '';
-            receipt += ESC + '@'; // Initialize
-            receipt += ESC + 'a' + '\x01'; // Center
-            receipt += ESC + '!' + '\x18'; // Double height & width
-            receipt += `${storeSettings.store_name}\n`;
-            receipt += ESC + '!' + '\x00'; // Normal
-            receipt += `${storeSettings.store_address}\n`;
-            receipt += `Telp: ${storeSettings.store_phone}\n`;
-            receipt += '================================\n';
-            
-            receipt += ESC + 'a' + '\x00'; // Left align
-            receipt += `No: ${tx.transaction_code}\n`;
-            // Format Date manually or use toLocaleString logic ensuring consistency
-            const dateStr = new Date(tx.created_at).toLocaleDateString('id-ID');
-            const timeStr = new Date(tx.created_at).toLocaleTimeString('id-ID');
-
-            receipt += `Tgl: ${dateStr} ${timeStr}\n`;
-            receipt += `Kasir: ${authUser.name}\n`;
-            
-            if (tx.customer_name && tx.customer_name !== 'Umum') {
-                receipt += `Customer: ${tx.customer_name}\n`;
-            }
-            
-            receipt += '================================\n';
-            
-            tx.items.forEach(item => {
-                const productName = item.product ? item.product.name : 'Item Terhapus';
-                const price = parseFloat(item.price);
-                const qty = parseInt(item.quantity);
-                const sub = parseFloat(item.price) * qty; // Calculate purely based on item data first
-                 // OR use stored subtotal if available in pivot
-                
-                receipt += `${productName}\n`;
-                receipt += `  ${qty} x ${formatRupiah(price)} = ${formatRupiah(sub)}\n`;
-            });
-            
-            receipt += '================================\n';
-            receipt += ESC + 'a' + '\x02'; // Right align
-            
-            receipt += `Subtotal: ${formatRupiah(tx.subtotal)}\n`;
-            if (parseFloat(tx.discount) > 0) {
-                receipt += `Diskon: -${formatRupiah(tx.discount)}\n`;
-            }
-            if (parseFloat(tx.tax) > 0) {
-                receipt += `Pajak: ${formatRupiah(tx.tax)}\n`;
-            }
-            
-            receipt += `Total: ${formatRupiah(tx.total_amount)}\n`;
-            receipt += `Metode: ${paymentMethodLabels[tx.payment_method] || tx.payment_method}\n`;
-            
-            if (!isUtang) {
-                receipt += `Bayar: ${formatRupiah(tx.amount_paid)}\n`;
-                receipt += `Kembali: ${formatRupiah(tx.change_amount)}\n`;
-            }
-            
-            receipt += ESC + 'a' + '\x01'; // Center
-            if (isUtang) {
-                receipt += '--------------------------------\n';
-                receipt += ESC + '!' + '\x08'; // Bold
-                receipt += '** BELUM DIBAYAR - PIUTANG **\n';
-                receipt += ESC + '!' + '\x00'; // Normal
-            }
-            receipt += '================================\n';
-            
-            // Use store description from settings
-            if (storeSettings.store_description) {
-                receipt += storeSettings.store_description + '\n\n\n';
-            } else {
-                receipt += 'Terima kasih!\n\n\n';
-            }
-            
-            receipt += GS + 'V' + '\x41' + '\x03'; // Cut
-            
-            return new TextEncoder().encode(receipt);
         }
     </script>
 </body>

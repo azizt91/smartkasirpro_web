@@ -17,7 +17,25 @@ Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah
 - **Pembelian Stok (Restok):** Catat pembelian barang masuk dan update stok otomatis
 - **Biaya Operasional:** Catat pengeluaran toko (listrik, gaji, dll)
 - **Riwayat Transaksi:** Lihat dan kelola histori penjualan (termasuk fitur Void/Batal)
+- **Support Printer:** Cetak struk via USB (WebUSB), Bluetooth, dan Browser Dialog
 - **Pengaturan Toko:** Nama toko, alamat, logo, dan lainnya
+
+## Panduan Printer USB
+
+Aplikasi ini mendukung pencetakan struk menggunakan Printer Thermal USB (ESC/POS) secara langsung dari browser menggunakan teknologi **WebUSB**.
+
+**Persyaratan:**
+1.  **Browser:** Gunakan Google Chrome, Microsoft Edge, atau Opera (Chromium-based).
+2.  **Koneksi:** Pastikan printer USB terhubung dan menyala.
+3.  **HTTPS:** Fitur WebUSB *hanya* berfungsi pada protokol **https://** atau **http://localhost**. Jika di-hosting di server publik (non-localhost), wajib menggunakan SSL/HTTPS.
+
+**Cara Menggunakan:**
+1.  Masuk ke menu **Pengaturan (Settings)**.
+2.  Gulir ke bagian **Printer Struk**.
+3.  Klik tombol **Connect USB Printer**.
+4.  Pilih printer thermal Anda dari daftar popup browser, lalu klik **Connect**.
+5.  Status akan berubah menjadi "Terhubung".
+6.  Gunakan tombol **Test Print USB** untuk mencoba mencetak.
 
 ## Teknologi
 
@@ -105,6 +123,7 @@ Buka browser dan akses: `http://127.0.0.1:8000`
 |-------|--------------------------|----------|
 | Admin | admin@minimarket.com     | password |
 | Kasir | kasir1@minimarket.com    | password |
+| Kasir | kasir2@minimarket.com    | password |
 
 ## Catatan Penting
 

@@ -18,12 +18,12 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         
-        // Get basic statistics
+        // Get basic statistics (only completed transactions)
         $stats = [
             'total_products' => Product::count(),
             'low_stock_products' => Product::lowStock()->count(),
-            'total_transactions' => Transaction::whereDate('created_at', today())->count(),
-            'daily_sales' => Transaction::whereDate('created_at', today())->sum('total_amount'),
+            'total_transactions' => Transaction::where('status', 'completed')->whereDate('created_at', today())->count(),
+            'daily_sales' => Transaction::where('status', 'completed')->whereDate('created_at', today())->sum('total_amount'),
         ];
 
         // Get recent transactions (last 10)
@@ -38,25 +38,27 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        // Get top selling products (this week)
+        // Get top selling products (this week) — only from completed transactions
         $top_products = Product::withSum(['transactionItems as total_sold' => function ($query) {
             $query->whereHas('transaction', function ($q) {
-                $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                $q->where('status', 'completed')
+                  ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
             });
         }], 'quantity')
         ->whereHas('transactionItems.transaction', function ($q) {
-            $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+            $q->where('status', 'completed')
+              ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
         })
         ->orderByDesc('total_sold')
         ->take(5)
         ->get();
 
-        // Sales chart data (last 7 days)
+        // Sales chart data (last 7 days) — only completed
         $sales_chart = [];
         $daily_sales = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $total = Transaction::whereDate('created_at', $date)->sum('total_amount');
+            $total = Transaction::where('status', 'completed')->whereDate('created_at', $date)->sum('total_amount');
             $sales_chart[] = [
                 'date' => $date->format('Y-m-d'),
                 'total' => $total,
