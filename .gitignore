@@ -27,3 +27,4 @@ yarn-error.log
 *.zip
 
 /mobile_app
+service-account-file.json

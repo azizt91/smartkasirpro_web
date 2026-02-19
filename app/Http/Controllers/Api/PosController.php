@@ -136,6 +136,18 @@ class PosController extends Controller
 
             DB::commit();
 
+            // 5. Send Notification (Async/After Commit)
+            try {
+                // Get users to notify (e.g. Owner/Admin)
+                $usersToNotify = \App\Models\User::whereNotNull('fcm_token')->get(); // Or filter by role
+                
+                if ($usersToNotify->isNotEmpty()) {
+                    \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\OrderCreated($transaction));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Notification Error: " . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Transaksi berhasil disinkronisasi.',
