@@ -3,53 +3,61 @@
 namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FcmNotification;
+use App\Services\FirebaseNotificationService;
+use Illuminate\Support\Facades\Log;
 
 class FcmChannel
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseNotificationService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     /**
      * Send the given notification.
      */
     public function send($notifiable, Notification $notification): void
     {
+        Log::info('FcmChannel: send() called for user ID: ' . ($notifiable->id ?? 'unknown'));
+
         if (!method_exists($notification, 'toFcm')) {
+            Log::warning('FcmChannel: Notification does not have toFcm method');
             return;
         }
 
-        $message = $notification->toFcm($notifiable);
-        $token = $notifiable->fcm_token;
+        $token = $notifiable->routeNotificationForFcm();
+        if (!$token) {
+            $token = $notifiable->fcm_token;
+        }
 
-        if (!$token || !$message) {
+        if (!$token) {
+            Log::warning('FcmChannel: No FCM token found for user ' . $notifiable->id);
             return;
         }
 
-        // If message is array, convert to CloudMessage? 
-        // Or assume toFcm returns CloudMessage.
-        // Let's assume toFcm returns array for title/body and data.
+        Log::info('FcmChannel: Token found for user ' . $notifiable->id . ': ' . substr($token, 0, 15) . '...');
 
         try {
-             $messaging = app('firebase.messaging');
-             
-             // If $message is already a CloudMessage instance
-             if ($message instanceof CloudMessage) {
-                 // Set target if not set
-                 if (!$message->hasTarget()) {
-                     $message = $message->withChangedTarget('token', $token);
-                 }
-                 $messaging->send($message);
-             } 
-             // If simple array
-             else if (is_array($message)) {
-                 $fcmMsg = CloudMessage::withTarget('token', $token)
-                    ->withNotification(FcmNotification::create($message['title'], $message['body']))
-                    ->withData($message['data'] ?? []);
-                 
-                 $messaging->send($fcmMsg);
-             }
+            $message = $notification->toFcm($notifiable);
+            if (!$message || !is_array($message)) {
+                Log::warning('FcmChannel: toFcm returned invalid message');
+                return;
+            }
 
+            Log::info('FcmChannel: Sending message', ['title' => $message['title'] ?? 'N/A', 'body' => $message['body'] ?? 'N/A']);
+
+            $result = $this->firebaseService->sendToDevice(
+                $token,
+                $message['title'] ?? 'Notification',
+                $message['body'] ?? '',
+                $message['data'] ?? []
+            );
+
+            Log::info('FcmChannel: sendToDevice result: ' . ($result ? 'SUCCESS' : 'FAILED'));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('FCM Send Error: ' . $e->getMessage());
+            Log::error('FcmChannel: Exception during send: ' . $e->getMessage());
         }
     }
 }

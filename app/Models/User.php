@@ -61,6 +61,7 @@ class User extends Authenticatable
         'password',
         'role',
         'permissions',
+        'fcm_token', // Added
     ];
 
     /**
@@ -146,5 +147,14 @@ class User extends Authenticatable
     public function scopeKasir($query)
     {
         return $query->where('role', 'kasir');
+    }
+    /**
+     * Route notifications for the FCM channel.
+     *
+     * @return string|null
+     */
+    public function routeNotificationForFcm()
+    {
+        return $this->fcm_token;
     }
 }

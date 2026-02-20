@@ -317,6 +317,16 @@ class PosController extends Controller
 
             DB::commit();
 
+            // Kirim Notifikasi
+            try {
+                $user = auth()->user();
+                if ($user) {
+                    $user->notify(new \App\Notifications\OrderCreated($transaction));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi: ' . $e->getMessage());
+            }
+
             // Load transaction with items for receipt
             $transaction->load(['items.product', 'user']);
 

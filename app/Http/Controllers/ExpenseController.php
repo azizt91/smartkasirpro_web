@@ -27,6 +27,7 @@ class ExpenseController extends Controller
         ]);
 
         Expense::create([
+            'name' => $validated['description'],
             'description' => $validated['description'],
             'amount' => $validated['amount'],
             'date' => $validated['date'],

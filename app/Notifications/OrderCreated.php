@@ -2,14 +2,10 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class OrderCreated extends Notification
 {
-    use Queueable;
 
     /**
      * Create a new notification instance.
@@ -41,10 +37,19 @@ class OrderCreated extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        // Data stored in `data` column
+        $total = number_format($this->transaction->total_amount, 0, ',', '.');
+        $itemCount = $this->transaction->items->count();
+        $itemsStr = $this->transaction->items->take(2)->map(function ($item) {
+            return $item->product->name . " (x{$item->quantity})";
+        })->implode(', ');
+        
+        if ($itemCount > 2) {
+            $itemsStr .= ", +".($itemCount - 2)." lainnya";
+        }
+
         return [
-            'title' => 'Pesanan Sukses Dibuat',
-            'body' => "Pesanan {$this->transaction->transaction_code} berhasil dibuat.",
+            'title' => 'Pesanan Baru Masuk 💰',
+            'body' => "Rp {$total} - {$itemsStr}",
             'transaction_id' => $this->transaction->id,
             'type' => 'order_created',
         ];
@@ -55,9 +60,20 @@ class OrderCreated extends Notification
      */
     public function toFcm(object $notifiable)
     {
+        $total = number_format($this->transaction->total_amount, 0, ',', '.');
+        $itemCount = $this->transaction->items->count();
+        // Summary items: "Kopi (x2), Roti (x1)..."
+        $itemsStr = $this->transaction->items->take(2)->map(function ($item) {
+            return $item->product->name . " (x{$item->quantity})";
+        })->implode(', ');
+        
+        if ($itemCount > 2) {
+            $itemsStr .= ", +".($itemCount - 2)." lainnya";
+        }
+
         return [
-            'title' => 'Pesanan Sukses Dibuat',
-            'body' => "Pesanan {$this->transaction->transaction_code} berhasil dibuat.",
+            'title' => 'Pesanan Baru: Rp ' . $total,
+            'body' => $itemsStr,
             'data' => [
                 'transaction_id' => (string) $this->transaction->id,
                 'type' => 'order_created',

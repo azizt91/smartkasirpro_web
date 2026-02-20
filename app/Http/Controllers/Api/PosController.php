@@ -136,16 +136,28 @@ class PosController extends Controller
 
             DB::commit();
 
-            // 5. Send Notification (Async/After Commit)
+            // 5. Send Notification (Sync/After Commit)
             try {
                 // Get users to notify (e.g. Owner/Admin)
-                $usersToNotify = \App\Models\User::whereNotNull('fcm_token')->get(); // Or filter by role
+                $usersToNotify = \App\Models\User::whereNotNull('fcm_token')
+                    ->where('fcm_token', '!=', '')
+                    ->get();
+                
+                \Illuminate\Support\Facades\Log::info('POS Notification: Found ' . $usersToNotify->count() . ' users with FCM tokens');
+                
+                foreach ($usersToNotify as $user) {
+                    \Illuminate\Support\Facades\Log::info('POS Notification: User ' . $user->id . ' (' . $user->name . ') token: ' . substr($user->fcm_token, 0, 15) . '...');
+                }
                 
                 if ($usersToNotify->isNotEmpty()) {
+                    \Illuminate\Support\Facades\Log::info('POS Notification: Dispatching OrderCreated notification...');
                     \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\OrderCreated($transaction));
+                    \Illuminate\Support\Facades\Log::info('POS Notification: Dispatch completed successfully');
+                } else {
+                    \Illuminate\Support\Facades\Log::warning('POS Notification: No users with FCM tokens found! Token sync may not be working.');
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Notification Error: " . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("POS Notification Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             }
 
             return response()->json([
