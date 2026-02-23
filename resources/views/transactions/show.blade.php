@@ -58,7 +58,7 @@
                         @foreach($transaction->items as $item)
                         <tr>
                             <td class="py-3 px-2">
-                                <div class="font-medium text-gray-900">{{ $item->product->name ?? 'Produk Dihapus' }}</div>
+                                <div class="font-medium text-gray-900">{{ $item->product_name ?? ($item->product->name ?? 'Produk Dihapus') }}</div>
                                 <div class="text-xs text-gray-500">{{ $item->product->barcode ?? '-' }}</div>
                             </td>
                             <td class="py-3 px-2 text-center font-medium">{{ $item->quantity }}</td>

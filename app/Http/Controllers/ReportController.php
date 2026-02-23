@@ -39,12 +39,12 @@ class ReportController extends BaseController
         $thisYear = Carbon::now()->startOfYear();
 
         $stats = [
-            'today_sales' => Transaction::whereDate('created_at', $today)->sum('total_amount'),
-            'today_transactions' => Transaction::whereDate('created_at', $today)->count(),
-            'month_sales' => Transaction::where('created_at', '>=', $thisMonth)->sum('total_amount'),
-            'month_transactions' => Transaction::where('created_at', '>=', $thisMonth)->count(),
-            'year_sales' => Transaction::where('created_at', '>=', $thisYear)->sum('total_amount'),
-            'year_transactions' => Transaction::where('created_at', '>=', $thisYear)->count(),
+            'today_sales' => Transaction::where('status', 'completed')->where('payment_method', '!=', 'utang')->whereDate('created_at', $today)->sum('total_amount'),
+            'today_transactions' => Transaction::where('status', 'completed')->whereDate('created_at', $today)->count(),
+            'month_sales' => Transaction::where('status', 'completed')->where('payment_method', '!=', 'utang')->where('created_at', '>=', $thisMonth)->sum('total_amount'),
+            'month_transactions' => Transaction::where('status', 'completed')->where('created_at', '>=', $thisMonth)->count(),
+            'year_sales' => Transaction::where('status', 'completed')->where('payment_method', '!=', 'utang')->where('created_at', '>=', $thisYear)->sum('total_amount'),
+            'year_transactions' => Transaction::where('status', 'completed')->where('created_at', '>=', $thisYear)->count(),
             'total_products' => Product::count(),
             'low_stock_products' => Product::whereRaw('stock <= minimum_stock')->count(),
             'total_categories' => Category::count(),
@@ -115,8 +115,8 @@ class ReportController extends BaseController
             ->orderBy('date', 'desc');
 
         // Calculate Totals (Before Pagination)
-        // Use a separate query for totals to exclude cancelled transactions
-        $activeTransactionsQuery = $transactionsQuery->clone()->where('status', '!=', 'cancelled');
+        // Use a separate query for totals to only include completed transactions
+        $activeTransactionsQuery = $transactionsQuery->clone()->where('status', 'completed');
 
         $totalSales = $activeTransactionsQuery->sum('total_amount');
         $totalReceivables = $activeTransactionsQuery->clone()->where('payment_method', 'utang')->sum('total_amount');
@@ -267,6 +267,7 @@ class ReportController extends BaseController
 
         $query = Transaction::with(['user', 'items.product'])
             ->where('payment_method', 'utang')
+            ->where('status', 'completed')
             ->orderBy('created_at', 'desc');
 
         if ($startDate && $endDate) {

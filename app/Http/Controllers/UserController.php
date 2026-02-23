@@ -140,13 +140,23 @@ class UserController extends Controller
     {
         $this->checkAdminAccess();
 
-        // Prevent self-deletion
-        if ($user->id === auth()->id()) {
-            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri!');
+        try {
+            // Prevent self-deletion
+            if ($user->id === auth()->id()) {
+                return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri!');
+            }
+
+            $user->delete();
+
+            return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if the exception is an integrity constraint violation (e.g. foreign key constraint)
+            if ($e->getCode() == 23000) {
+                return redirect()->back()->with('error', 'Tidak dapat menghapus pengguna ini karena masih memiliki riwayat transaksi atau terhubung dengan data lain.');
+            }
+            
+            // Re-throw if it's a different query exception
+            throw $e;
         }
-
-        $user->delete();
-
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
     }
 }

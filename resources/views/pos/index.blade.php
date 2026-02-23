@@ -370,7 +370,7 @@
                     class="py-4 text-center font-bold text-white bg-gradient-to-br from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 transition">
                 Batal
             </button>
-            <button onclick="processTransaction()"
+            <button id="btn-bayar" onclick="processTransaction()"
                     class="py-4 text-center font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition">
                 Bayar
             </button>
@@ -1111,7 +1111,16 @@
         document.getElementById('modal-change').textContent = formatRupiah(change);
     }
 
+    let isProcessing = false; // Guard against double-submit
+
     async function processTransaction() {
+        if (isProcessing) return; // Prevent double-click
+        isProcessing = true;
+
+        const btnBayar = document.getElementById('btn-bayar');
+        btnBayar.disabled = true;
+        btnBayar.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+
         // Recalculate everything for safety
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         let discount = parseFloat(document.getElementById('discount-amount').value) || 0;
@@ -1126,9 +1135,9 @@
         const amountPaid = parseFloat(document.getElementById('amount-paid').value) || 0;
         const paymentMethod = document.getElementById('payment-method').value;
         
-        if (cart.length === 0) return alert('Keranjang kosong!');
-        if (!paymentMethod) return alert('Pilih metode pembayaran!');
-        if (amountPaid < total) return alert('Jumlah bayar kurang!');
+        if (cart.length === 0) { resetProcessing(); return alert('Keranjang kosong!'); }
+        if (!paymentMethod) { resetProcessing(); return alert('Pilih metode pembayaran!'); }
+        if (amountPaid < total) { resetProcessing(); return alert('Jumlah bayar kurang!'); }
 
         const transactionData = {
             items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
@@ -1162,6 +1171,17 @@
         } catch (error) {
             console.error('Transaction error:', error);
             alert('Terjadi kesalahan saat memproses transaksi.');
+        } finally {
+            resetProcessing();
+        }
+    }
+
+    function resetProcessing() {
+        isProcessing = false;
+        const btnBayar = document.getElementById('btn-bayar');
+        if (btnBayar) {
+            btnBayar.disabled = false;
+            btnBayar.innerHTML = 'Bayar';
         }
     }
 

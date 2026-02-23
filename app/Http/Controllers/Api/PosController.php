@@ -111,6 +111,7 @@ class PosController extends Controller
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $item['product']->id,
+                    'product_name' => $item['product']->name,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['subtotal'],
@@ -159,6 +160,9 @@ class PosController extends Controller
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("POS Notification Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             }
+
+            // Load transaction with items for receipt
+            $transaction->load(['items.product', 'user']);
 
             return response()->json([
                 'success' => true,
