@@ -7,19 +7,22 @@ SmartKasir Pro adalah aplikasi Point of Sale (POS) berbasis web yang modern dan 
 - **Sistem Kasir (POS):** Antarmuka kasir yang cepat dan mudah digunakan
 - **Manajemen Produk & Kategori:** Kelola produk dengan mudah
 - **Produk Varian:** Dukungan untuk produk dengan varian (Warna/Ukuran) dengan harga dan stok berbeda
-- **Multi Metode Pembayaran:** Tunai, Utang, Kartu, E-Wallet, Transfer
+- **Multi Metode Pembayaran:** Tunai, Utang, Kartu, E-Wallet, Transfer, QRIS
+- **Payment Gateway (Tripay, Duitku, Midtrans):** Pembayaran digital otomatis via QRIS, Virtual Account, dan E-Wallet dengan verifikasi webhook, QR Code popup, dan auto-polling status
 - **Manajemen Piutang:** Pencatatan nama customer dan tandai lunas
-- **Laporan:** Penjualan, stok, produk, dan piutang
+- **Laporan:** Penjualan, stok, produk, piutang, shift, log aktivitas, dan komisi
 - **Cetak Struk & Barcode:** Cetak struk transaksi dan label barcode
 - **Multi User:** Admin dan Kasir dengan hak akses berbeda
 - **Manajemen Supplier:** Kelola data supplier dan kontak
 - **Manajemen Pelanggan:** Database pelanggan untuk layanan personal
+- **Loyalty Points:** Sistem poin pelanggan — earn & redeem otomatis saat transaksi
 - **Pembelian Stok (Restok):** Catat pembelian barang masuk dan update stok otomatis
 - **Biaya Operasional:** Catat pengeluaran toko (listrik, gaji, dll)
 - **Riwayat Transaksi:** Lihat dan kelola histori penjualan (termasuk fitur Void/Batal)
 - **Support Printer:** Cetak struk via USB (WebUSB), Bluetooth, dan Browser Dialog
 - **Barang & Jasa:** Mendukung penjualan produk fisik maupun layanan non-fisik (Jasa) tanpa memotong stok
 - **Sistem Komisi Pegawai:** Hitung komisi pegawai per layanan secara otomatis (Nominal Tetap / Persentase)
+- **Batch Payment Komisi:** Checkbox per baris, pilih sumber dana (Tunai/Bank), otomatis catat sebagai Pengeluaran
 - **Manajemen Shift Kasir:** Validasi buka/tutup shift kasir, input modal awal, dan pencocokan uang fisik dengan X-Report
 - **Log Aktivitas (Audit):** Pantau penambahan produk, penghapusan transaksi, atau settlement komisi (Data Lama vs Baru)
 - **Import Produk via Excel:** Tambah data produk massal menggunakan template Excel/CSV yang sudah disediakan
