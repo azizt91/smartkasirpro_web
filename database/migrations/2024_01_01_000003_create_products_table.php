@@ -19,8 +19,11 @@ return new class extends Migration
             $table->string('variant_name')->nullable()->comment('e.g. "Merah - XL"');
             $table->text('description')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->enum('type', ['barang', 'jasa'])->default('barang')->comment('Jenis produk: fisik atau jasa');
             $table->decimal('purchase_price', 10, 2)->comment('Buying price from supplier');
             $table->decimal('selling_price', 10, 2)->comment('Selling price to customer');
+            $table->enum('commission_type', ['fixed', 'percentage'])->nullable()->comment('Tipe komisi pegawai: nominal tetap atau persentase');
+            $table->decimal('commission_amount', 15, 2)->nullable()->comment('Jumlah komisi pegawai');
             $table->integer('stock')->default(0)->comment('Current stock quantity');
             $table->integer('minimum_stock')->default(10)->comment('Minimum stock warning level');
             $table->string('image')->nullable()->comment('Product image path');

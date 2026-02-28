@@ -22,7 +22,9 @@
                 <select name="status" class="w-full sm:w-auto rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Semua Status</option>
                     <option value="completed" @selected(request('status') == 'completed')>Sukses</option>
+                    <option value="pending" @selected(request('status') == 'pending')>Pending</option>
                     <option value="utang" @selected(request('status') == 'utang')>Menunggu (Utang)</option>
+                    <option value="cancelled" @selected(request('status') == 'cancelled')>Expired</option>
                     <option value="void" @selected(request('status') == 'void')>Dibatalkan</option>
                 </select>
                 <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Filter</button>
@@ -82,6 +84,14 @@
                                         @if($transaction->status == 'void')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 Dibatalkan
+                                            </span>
+                                        @elseif($transaction->status == 'pending')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                ⏳ Pending
+                                            </span>
+                                        @elseif($transaction->status == 'cancelled')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Expired
                                             </span>
                                         @elseif($transaction->payment_method == 'utang')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">

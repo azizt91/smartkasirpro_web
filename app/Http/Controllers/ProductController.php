@@ -183,6 +183,20 @@ class ProductController extends Controller
                     $validated['barcode'] = 'BRC-' . time() . '-' . rand(100, 999);
                 }
 
+                // Handle Service and Commission
+                $validated['type'] = $validated['type'] ?? 'barang';
+                if ($validated['type'] === 'jasa') {
+                    $validated['stock'] = 0;
+                    $validated['minimum_stock'] = 0;
+                    $validated['commission_type'] = $request->input('commission_type', 'fixed');
+                    $validated['commission_amount'] = $request->input('commission_amount', 0);
+                } else {
+                    $validated['commission_type'] = null;
+                    $validated['commission_amount'] = null;
+                    $validated['stock'] = $validated['stock'] ?? 0;
+                    $validated['minimum_stock'] = $validated['minimum_stock'] ?? 0;
+                }
+
                 // Handle image upload
                 if ($request->hasFile('image')) {
                     $imagePath = $request->file('image')->store('products', 'public');
@@ -375,6 +389,21 @@ class ProductController extends Controller
 
             } else {
                 // Standard Single Update
+                
+                // Handle Service and Commission
+                $data['type'] = $data['type'] ?? 'barang';
+                if ($data['type'] === 'jasa') {
+                    $data['stock'] = 0;
+                    $data['minimum_stock'] = 0;
+                    $data['commission_type'] = $request->input('commission_type', 'fixed');
+                    $data['commission_amount'] = $request->input('commission_amount', 0);
+                } else {
+                    $data['commission_type'] = null;
+                    $data['commission_amount'] = null;
+                    $data['stock'] = $data['stock'] ?? 0;
+                    $data['minimum_stock'] = $data['minimum_stock'] ?? 0;
+                }
+
                 // Handle image upload
                 if ($request->hasFile('image')) {
                     if ($product->image && Storage::disk('public')->exists($product->image)) {
@@ -520,8 +549,47 @@ class ProductController extends Controller
         }
 
         // Kirim data produk ke view khusus untuk cetak barcode
-        return view('products.barcodes', ['products' => $productsToPrint]);
+        return view('products.print-barcodes', compact('productsToPrint'));
     }
 
+    public function exportTemplate()
+    {
+        // Generate a simple CSV or Excel template
+        $filename = 'Template_Import_Produk.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
 
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['nama_produk', 'barcode', 'id_kategori', 'harga_beli', 'harga_jual', 'stok', 'tipe_produk', 'tipe_komisi', 'nominal_komisi']);
+            fputcsv($file, ['Potong Rambut', 'PR-001', '1', '0', '50000', '0', 'jasa', 'fixed', '25000']);
+            fputcsv($file, ['Shampo Clear', 'SC-12345', '2', '15000', '25000', '100', 'barang', '', '']);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv,xls',
+        ]);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductImport, $request->file('file'));
+            return redirect()->route('products.index')->with('success', 'Data produk berhasil diimpor!');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $messages = [];
+            foreach ($failures as $failure) {
+                $messages[] = 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors());
+            }
+            return back()->with('error', 'Validasi gagal: <br>' . implode('<br>', $messages));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengimpor produk: ' . $e->getMessage());
+        }
+    }
 }

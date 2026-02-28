@@ -71,14 +71,43 @@
                                 @error('name')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- Kategori --}}
-                            <div>
-                                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
-                                <select name="category_id" id="category_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                                    <option value="">Pilih kategori</option>
-                                    @foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>@endforeach
-                                </select>
-                                @error('category_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {{-- Kategori --}}
+                                <div>
+                                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
+                                    <select name="category_id" id="category_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                                        <option value="">Pilih kategori</option>
+                                        @foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>@endforeach
+                                    </select>
+                                    @error('category_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                                </div>
+
+                                {{-- Jenis Layanan --}}
+                                <div>
+                                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Layanan <span class="text-red-500">*</span></label>
+                                    <select name="type" id="type" x-model="productType" @change="if(productType === 'jasa') hasVariants = false" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                                        <option value="barang">Barang Fisik</option>
+                                        <option value="jasa">Jasa / Servis</option>
+                                    </select>
+                                    @error('type')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+                            
+                            <div x-show="productType === 'jasa'" x-transition class="border-t border-gray-200 mt-4 pt-4">
+                                <h4 class="text-md font-medium text-gray-900 mb-3">Pengaturan Komisi Pegawai</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="commission_type" class="block text-sm font-medium text-gray-700 mb-1">Tipe Komisi <span class="text-red-500">*</span></label>
+                                        <select name="commission_type" id="commission_type" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" :required="productType === 'jasa'">
+                                            <option value="fixed" @selected(old('commission_type', $product->commission_type) == 'fixed')>Nominal Tetap (Rp)</option>
+                                            <option value="percentage" @selected(old('commission_type', $product->commission_type) == 'percentage')>Persentase (%)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="commission_amount" class="block text-sm font-medium text-gray-700 mb-1">Besaran Komisi <span class="text-red-500">*</span></label>
+                                        <input type="number" name="commission_amount" id="commission_amount" value="{{ old('commission_amount', (float)$product->commission_amount) }}" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" :required="productType === 'jasa'" min="0" step="0.01">
+                                    </div>
+                                </div>
                             </div>
 
                              {{-- Deskripsi --}}
@@ -110,11 +139,11 @@
                                     <label for="selling_price" class="block text-sm font-medium text-gray-700 mb-1">Harga Jual <span class="text-red-500">*</span></label>
                                     <div class="relative"><span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span><input type="number" name="selling_price" id="selling_price" value="{{ old('selling_price', (int)$product->selling_price) }}" class="pl-10 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" :required="!hasVariants"></div>
                                 </div>
-                                <div>
+                                <div x-show="productType === 'barang'">
                                     <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Stok Saat Ini (Edit Manual)</label>
                                     <input type="number" name="stock" id="stock" value="{{ old('stock', $product->stock) }}" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
-                                <div>
+                                <div x-show="productType === 'barang'">
                                     <label for="minimum_stock" class="block text-sm font-medium text-gray-700 mb-1">Minimum Stok</label>
                                     <input type="number" name="minimum_stock" id="minimum_stock" value="{{ old('minimum_stock', $product->minimum_stock) }}" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
@@ -201,6 +230,7 @@
             hasVariants: hasVariantsInit,
             variants: variantsInit || [],
             deletedVariantIds: [],
+            productType: '{{ old('type', $product->type ?? 'barang') }}',
             
              init() {
                  // Ensure variants have necessary properties

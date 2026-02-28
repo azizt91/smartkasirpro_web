@@ -32,9 +32,35 @@ class SettingController extends Controller
             'store_description' => 'nullable|string|max:1000',
             'store_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'tax_rate' => 'required|numeric|min:0|max:100',
+            'point_earning_rate' => 'required|integer|min:1',
+            'point_exchange_rate' => 'required|integer|min:1',
+            'employee_label' => 'nullable|string|max:20',
+            'enable_loyalty_points' => 'nullable|boolean',
+            // Payment Gateway
+            'pg_active' => 'nullable|in:none,tripay,duitku,midtrans',
+            'pg_mode' => 'nullable|in:sandbox,production',
+            'pg_fee_bearer' => 'nullable|in:merchant,customer',
+            'tripay_api_key' => 'nullable|string|max:500',
+            'tripay_private_key' => 'nullable|string|max:500',
+            'tripay_merchant_code' => 'nullable|string|max:100',
+            'duitku_merchant_code' => 'nullable|string|max:100',
+            'duitku_api_key' => 'nullable|string|max:500',
+            'midtrans_client_key' => 'nullable|string|max:500',
+            'midtrans_server_key' => 'nullable|string|max:500',
+            'midtrans_merchant_id' => 'nullable|string|max:100',
         ]);
 
-        $data = $request->only(['store_name', 'store_address', 'store_phone', 'store_description', 'tax_rate']);
+        $data = $request->only([
+            'store_name', 'store_address', 'store_phone', 'store_description',
+            'tax_rate', 'point_earning_rate', 'point_exchange_rate', 'employee_label',
+            // Payment Gateway
+            'pg_active', 'pg_mode', 'pg_fee_bearer',
+            'tripay_api_key', 'tripay_private_key', 'tripay_merchant_code',
+            'duitku_merchant_code', 'duitku_api_key',
+            'midtrans_client_key', 'midtrans_server_key', 'midtrans_merchant_id',
+        ]);
+        $data['enable_loyalty_points'] = $request->has('enable_loyalty_points');
+        $data['pg_active'] = $data['pg_active'] ?? 'none';
 
         // Handle logo upload
         if ($request->hasFile('store_logo')) {

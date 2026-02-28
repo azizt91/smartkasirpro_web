@@ -65,10 +65,21 @@ class Product extends Model
         'category_id',
         'purchase_price',
         'selling_price',
+        'type',
+        'commission_type',
+        'commission_amount',
         'stock',
         'minimum_stock',
         'image',
     ];
+
+    /**
+     * Helper check if product is a service
+     */
+    public function isService(): bool
+    {
+        return $this->type === 'jasa';
+    }
 
     public function productGroup()
     {

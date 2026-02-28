@@ -123,7 +123,7 @@
 <body>
     <div class="header">
         <h1>📦 LAPORAN STOK</h1>
-        <p><strong>Minimarket POS System</strong></p>
+        <p><strong>SmartKasir Pro System</strong></p>
         <p>Dicetak pada: {{ now()->format('d M Y, H:i') }} WIB</p>
     </div>
 
@@ -221,8 +221,8 @@
     @endif
 
     <div class="footer">
-        <p>Laporan ini digenerate secara otomatis oleh sistem POS Minimarket</p>
-        <p>© {{ date('Y') }} Minimarket POS System - All Rights Reserved</p>
+        <p>Laporan ini digenerate secara otomatis oleh sistem SmartKasir Pro</p>
+        <p>© {{ date('Y') }} SmartKasir Pro System - All Rights Reserved</p>
     </div>
 </body>
 </html>

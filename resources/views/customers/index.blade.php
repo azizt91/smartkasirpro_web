@@ -67,6 +67,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pelanggan</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poin</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bergabung</th>
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -105,6 +106,11 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ $customer->address }}">
                                     {{ $customer->address ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        ⭐ {{ number_format($customer->points, 0, ',', '.') }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $customer->created_at->format('d M Y') }}
@@ -154,7 +160,11 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-gray-900">{{ $customer->name }}</h3>
-                                <p class="text-xs text-gray-500">Bergabung: {{ $customer->created_at->format('d M Y') }}</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        ⭐ {{ number_format($customer->points, 0, ',', '.') }} pts
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="flex space-x-2">

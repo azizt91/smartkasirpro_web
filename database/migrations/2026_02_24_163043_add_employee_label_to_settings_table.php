@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->json('permissions')->nullable()->after('role');
+        Schema::table('settings', function (Blueprint $table) {
+            $table->string('employee_label', 20)->default('Pegawai')->after('point_exchange_rate')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('permissions');
+        Schema::table('settings', function (Blueprint $table) {
+            $table->dropColumn('employee_label');
         });
     }
 };

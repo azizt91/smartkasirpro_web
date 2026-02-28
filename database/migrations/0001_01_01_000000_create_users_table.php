@@ -18,7 +18,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'kasir'])->default('kasir')->comment('User role: admin or kasir');
+            $table->json('permissions')->nullable();
             $table->rememberToken();
+            $table->string('fcm_token')->nullable();
             $table->timestamps();
         });
 

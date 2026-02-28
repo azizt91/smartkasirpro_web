@@ -23,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        \App\Models\Transaction::observe(\App\Observers\TransactionObserver::class);
+        \App\Models\CommissionSettlement::observe(\App\Observers\CommissionSettlementObserver::class);
     }
 }

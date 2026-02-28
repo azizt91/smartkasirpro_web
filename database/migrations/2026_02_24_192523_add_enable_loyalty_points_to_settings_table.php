@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('transaction_items', function (Blueprint $table) {
-            $table->string('product_name')->nullable()->after('product_id')->comment('Name of product at time of transaction');
+        Schema::table('settings', function (Blueprint $table) {
+            $table->boolean('enable_loyalty_points')->default(true)->after('point_exchange_rate');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transaction_items', function (Blueprint $table) {
-            $table->dropColumn('product_name');
+        Schema::table('settings', function (Blueprint $table) {
+            $table->dropColumn('enable_loyalty_points');
         });
     }
 };

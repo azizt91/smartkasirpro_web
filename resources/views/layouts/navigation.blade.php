@@ -24,7 +24,7 @@ use IlluminateSupportFacadesStorage;
                             </div>
                         @endif
                         <div>
-                            <h1 class="text-xl font-bold text-gray-800">{{ $storeSettings->store_name ?? 'Minimarket POS' }}</h1>
+                            <h1 class="text-xl font-bold text-gray-800">{{ $storeSettings->store_name ?? 'SmartKasir Pro' }}</h1>
                             <p class="text-xs text-gray-500">Point of Sale System</p>
                         </div>
                     </a>

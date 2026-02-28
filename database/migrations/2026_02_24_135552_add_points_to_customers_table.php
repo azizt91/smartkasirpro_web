@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('fcm_token')->nullable()->after('remember_token');
+        Schema::table('customers', function (Blueprint $table) {
+            $table->integer('points')->default(0)->comment('Total point loyalty pelanggan');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('fcm_token');
+        Schema::table('customers', function (Blueprint $table) {
+            $table->dropColumn('points');
         });
     }
 };

@@ -10,6 +10,7 @@ use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use App\Services\PaymentGatewayService;
 
 class PosController extends Controller
 {
@@ -20,8 +21,9 @@ class PosController extends Controller
     {
         $categories = Category::all();
         $customers = \App\Models\Customer::orderBy('name')->get();
+        $employees = \App\Models\Employee::where('status', 'active')->orderBy('name')->get();
         $storeSettings = \App\Models\Setting::getStoreSettings(); // Tambahkan ini
-        return view('pos.index', compact('categories', 'customers', 'storeSettings'));
+        return view('pos.index', compact('categories', 'customers', 'employees', 'storeSettings'));
     }
 
     /**
@@ -74,6 +76,7 @@ class PosController extends Controller
         // Mengambil parameter dari request
         $query = $request->get('q');
         $category = $request->get('category');
+        $type = $request->get('type');
         $perPage = $request->get('per_page', 10);
 
         // Membangun query dasar ke ProductGroup
@@ -93,6 +96,17 @@ class PosController extends Controller
                          ->orWhere('name', 'like', "%{$query}%");
                   });
             });
+        }
+
+        // Filter berdasarkan tipe produk (Barang / Jasa)
+        if (!empty($type) && in_array($type, ['barang', 'jasa'])) {
+            $groupsQuery->whereHas('products', function($pq) use ($type) {
+                $pq->where('type', $type);
+            });
+            // We also need to filter the relation so only products of this type are loaded
+            $groupsQuery->with(['products' => function($pq) use ($type) {
+                $pq->where('type', $type);
+            }]);
         }
 
         // Paginate results
@@ -116,6 +130,7 @@ class PosController extends Controller
                     // Frontend 'formatRupiah' expects number. Let's send min price as 'selling_price' for sorting/display base.
                     'selling_price' => $minPrice, 
                     'stock' => $totalStock,
+                    'type' => $firstProduct ? $firstProduct->type : 'barang',
                     'variants' => $group->products->map(function($v) {
                         return [
                             'id' => $v->id,
@@ -123,7 +138,8 @@ class PosController extends Controller
                             'full_name' => $v->name, // "Kaos (XL)"
                             'price' => $v->selling_price,
                             'stock' => $v->stock,
-                            'image' => $v->image
+                            'image' => $v->image,
+                            'type' => $v->type
                         ];
                     })
                 ];
@@ -139,6 +155,7 @@ class PosController extends Controller
                     'image' => $product->image,
                     'selling_price' => $product->selling_price,
                     'stock' => $product->stock,
+                    'type' => $product->type,
                     'variants' => []
                 ];
             }
@@ -183,6 +200,7 @@ class PosController extends Controller
                     'category' => $product->category->name,
                     'selling_price' => (float) $product->selling_price,
                     'stock' => $product->stock,
+                    'type' => $product->type,
                     'is_low_stock' => $product->is_low_stock,
                 ];
             });
@@ -217,25 +235,61 @@ class PosController extends Controller
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
 
-                // Check stock availability
-                if ($product->stock < $item['quantity']) {
+                // Check stock availability (Bypass stok untuk Jasa)
+                if ($product->type !== 'jasa' && $product->stock < $item['quantity']) {
                     throw new \Exception("Stok {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
                 }
 
                 $itemSubtotal = (float) $product->selling_price * $item['quantity'];
                 $subtotal += $itemSubtotal;
 
+                // Hitung Komisi jika Jasa
+                $commissionAmount = 0;
+                if ($product->type === 'jasa' && $product->commission_amount > 0) {
+                    if ($product->commission_type === 'percentage') {
+                        $commissionAmount = ($itemSubtotal * $product->commission_amount) / 100;
+                    } else {
+                        $commissionAmount = $product->commission_amount * $item['quantity'];
+                    }
+                }
+
                 $items[] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
                     'price' => $product->selling_price,
                     'subtotal' => $itemSubtotal,
+                    'employee_id' => $item['employee_id'] ?? null,
+                    'commission_amount' => $commissionAmount,
                 ];
             }
 
             // Gunakan nilai diskon dan pajak dari request
             $discount = $request->discount ?? 0;
             $tax = $request->tax ?? 0;
+            
+            // Points Logic
+            $pointsRedeemed = $request->points_redeemed ?? 0;
+            $pointsDiscountAmount = 0;
+            $pointsEarned = 0;
+            
+            $storeSettings = \App\Models\Setting::getStoreSettings();
+            $pointExchangeRate = $storeSettings->point_exchange_rate ?? 100;
+            $pointEarningRate = $storeSettings->point_earning_rate ?? 10000;
+            
+            $customer = null;
+            if ($request->customer_name && $request->customer_name !== 'Umum') {
+                $customer = \App\Models\Customer::where('name', $request->customer_name)->first();
+            }
+            
+            if ($customer && $pointsRedeemed > 0) {
+                if ($pointsRedeemed > $customer->points) {
+                    $pointsRedeemed = $customer->points; // Cap to max points
+                }
+                $pointsDiscountAmount = $pointsRedeemed * $pointExchangeRate;
+                $customer->decrement('points', $pointsRedeemed);
+            } else {
+                $pointsRedeemed = 0;
+            }
             
             // Validasi: Total harus dihitung ulang di backend untuk keamanan
             // Total = (Subtotal - Diskon) + Pajak
@@ -244,11 +298,25 @@ class PosController extends Controller
                 $discount = $subtotal;
             }
             
-            $totalAmount = max(0, $subtotal - $discount + $tax);
+            $totalAmount = max(0, $subtotal - $discount - $pointsDiscountAmount + $tax);
+
+            // === Fee Payment Gateway ===
+            $pgService = new PaymentGatewayService();
+            $pgFee = 0;
+            $isDigitalPayment = $pgService->isActive() && $pgService->isDigitalPayment($request->payment_method);
+            if ($isDigitalPayment) {
+                $pgFee = $pgService->calculateFee($totalAmount, $request->payment_method);
+                $totalAmount += $pgFee;
+            }
+
             $amountPaid = $request->amount_paid;
             $changeAmount = 0;
 
-            if ($request->payment_method === 'utang') {
+            if ($isDigitalPayment) {
+                // Digital: amount = total, tidak ada kembalian
+                $amountPaid = $totalAmount;
+                $changeAmount = 0;
+            } elseif ($request->payment_method === 'utang') {
                 $changeAmount = 0; // Utang tidak ada kembalian di POS standar
             } else {
                  $changeAmount = $amountPaid - $totalAmount;
@@ -269,20 +337,37 @@ class PosController extends Controller
                 }
             }
 
+            // Get open shift
+            $openShift = \App\Models\CashierShift::where('user_id', auth()->id())
+                ->where('status', 'open')
+                ->first();
+
+            // Earn Points (SKIP for digital payment - will be earned on webhook)
+            if (!$isDigitalPayment && $customer && $pointEarningRate > 0) {
+                $pointsEarned = floor($totalAmount / $pointEarningRate);
+                if ($pointsEarned > 0) {
+                    $customer->increment('points', $pointsEarned);
+                }
+            }
+
             // Create transaction
             $transaction = Transaction::create([
                 'transaction_code' => Transaction::generateTransactionCode(),
                 'user_id' => auth()->id(),
+                'shift_id' => $openShift ? $openShift->id : null,
                 'subtotal' => $subtotal,
                 'discount' => $discount,
                 'tax' => $tax,
                 'total_amount' => $totalAmount,
                 'payment_method' => $request->payment_method,
-                'amount_paid' => $amountPaid,
-                'change_amount' => $changeAmount,
-                'status' => 'completed',
+                'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
+                'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
+                'status' => $isDigitalPayment ? 'pending' : 'completed',
                 'customer_name' => $request->customer_name ?? 'Umum',
-                'note' => $request->note, // Simpan catatan
+                'note' => $request->note,
+                'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
+                'points_redeemed' => $pointsRedeemed,
+                'points_discount_amount' => $pointsDiscountAmount,
                 'created_at' => $transactionDate,
                 'updated_at' => $transactionDate,
             ]);
@@ -296,40 +381,70 @@ class PosController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['subtotal'],
+                    'employee_id' => $item['employee_id'],
+                    'commission_amount' => $item['commission_amount'],
                     'created_at' => $transactionDate,
                     'updated_at' => $transactionDate,
                 ]);
 
-                // Update product stock
-                $item['product']->decrement('stock', $item['quantity']);
+                // Update product stock (Bypass Jasa & digital payment pending)
+                if ($item['product']->type !== 'jasa' && !$isDigitalPayment) {
+                    $item['product']->decrement('stock', $item['quantity']);
 
-                // Record stock movement
-                StockMovement::create([
-                    'product_id' => $item['product']->id,
-                    'type' => 'out',
-                    'quantity' => $item['quantity'],
-                    'reference_type' => 'App\Models\Transaction',
-                    'reference_id' => $transaction->id,
-                    'notes' => "Penjualan - {$transaction->transaction_code}",
-                    'created_at' => $transactionDate,
-                    'updated_at' => $transactionDate,
+                    // Record stock movement
+                    StockMovement::create([
+                        'product_id' => $item['product']->id,
+                        'type' => 'out',
+                        'quantity' => $item['quantity'],
+                        'reference_type' => 'App\Models\Transaction',
+                        'reference_id' => $transaction->id,
+                        'notes' => "Penjualan - {$transaction->transaction_code}",
+                        'created_at' => $transactionDate,
+                        'updated_at' => $transactionDate,
+                    ]);
+                }
+            }
+
+            // Kirim Notifikasi (DINOAKTIFKAN SESUAI REQUEST)
+            // try {
+            //     $user = auth()->user();
+            //     if ($user) {
+            //         $user->notify(new \App\Notifications\OrderCreated($transaction));
+            //     }
+            // } catch (\Exception $e) {
+            //     \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi: ' . $e->getMessage());
+            // }
+
+            $transaction->load(['items.product', 'user']);
+
+            // === PAYMENT GATEWAY LOGIC ===
+            if ($isDigitalPayment) {
+                // Panggil payment gateway API untuk mendapatkan URL pembayaran
+                $pgResult = $pgService->createTransaction($transaction, $request->payment_method);
+                $transaction->update([
+                    'pg_provider' => $storeSettings->pg_active,
+                    'pg_reference' => $pgResult['reference'],
+                    'pg_pay_url' => $pgResult['pay_url'] ?? $pgResult['qr_url'],
+                    'pg_expired_at' => $pgResult['expired_at'],
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Menunggu pembayaran...',
+                    'transaction' => $transaction,
+                    'payment' => [
+                        'provider' => $storeSettings->pg_active,
+                        'pay_url' => $pgResult['pay_url'] ?? null,
+                        'qr_url' => $pgResult['qr_url'] ?? null,
+                        'reference' => $pgResult['reference'],
+                        'expired_at' => $pgResult['expired_at'],
+                    ],
                 ]);
             }
 
             DB::commit();
-
-            // Kirim Notifikasi
-            try {
-                $user = auth()->user();
-                if ($user) {
-                    $user->notify(new \App\Notifications\OrderCreated($transaction));
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi: ' . $e->getMessage());
-            }
-
-            // Load transaction with items for receipt
-            $transaction->load(['items.product', 'user']);
 
             return response()->json([
                 'success' => true,
@@ -355,5 +470,23 @@ class PosController extends Controller
         $transaction->load(['items.product', 'user']);
 
         return response()->json($transaction);
+    }
+
+    /**
+     * Check the payment status of a transaction (for PG polling).
+     */
+    public function checkStatus(string $code)
+    {
+        $transaction = Transaction::where('transaction_code', $code)->first();
+
+        if (!$transaction) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        return response()->json([
+            'status' => $transaction->status,
+            'transaction_code' => $transaction->transaction_code,
+            'pg_provider' => $transaction->pg_provider,
+        ]);
     }
 }

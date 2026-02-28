@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('transaction_code')->unique()->comment('Unique transaction code');
             $table->foreignId('user_id')->constrained();
+            $table->foreignId('shift_id')->nullable()->constrained('cashier_shifts')->nullOnDelete();
             $table->decimal('subtotal', 12, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
@@ -22,7 +23,7 @@ return new class extends Migration
             $table->enum('payment_method', ['cash', 'utang', 'card', 'ewallet', 'transfer', 'qris'])->default('cash');
             $table->decimal('amount_paid', 12, 2);
             $table->decimal('change_amount', 10, 2)->default(0);
-            $table->enum('status', ['completed', 'cancelled'])->default('completed');
+            $table->string('status', 20)->default('completed');
             $table->string('customer_name')->nullable()->default('Umum');
             $table->text('note')->nullable();
             $table->timestamps();

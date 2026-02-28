@@ -212,12 +212,14 @@ const ThermalPrinter = (() => {
         r += '================================\n';
 
         // Items
-        const items = tx.items || [];
-        items.forEach(item => {
+        (tx.items || []).forEach(item => {
             const name = item.product ? item.product.name : (item.name || 'Item');
             const price = parseFloat(item.price);
             const qty = parseInt(item.quantity);
             r += `${name}\n`;
+            if (item.employee) {
+                r += `  (${storeSettings.employee_label || 'Pegawai'}: ${item.employee.name})\n`;
+            }
             r += `  ${qty} x ${fmtRp(price)} = ${fmtRp(qty * price)}\n`;
         });
 
@@ -288,6 +290,7 @@ const ThermalPrinter = (() => {
             return `
                     <div style="margin-bottom: 5px;">
                         <div>${name}</div>
+                        ${item.employee ? `<div style="font-size: 10px; margin-left: 10px;">(${storeSettings.employee_label || 'Pegawai'}: ${item.employee.name})</div>` : ''}
                         <div style="display: flex; justify-content: space-between;">
                             <span>&nbsp;&nbsp;${item.quantity} x ${fmtRp(item.price)}</span>
                             <span>${fmtRp(item.quantity * item.price)}</span>

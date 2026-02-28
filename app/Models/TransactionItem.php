@@ -51,6 +51,9 @@ class TransactionItem extends Model
         'quantity',
         'price',
         'subtotal',
+        'employee_id',
+        'commission_amount',
+        'settlement_id',
         'created_at',
         'updated_at',
     ];
@@ -64,6 +67,8 @@ class TransactionItem extends Model
         'quantity' => 'integer',
         'price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'commission_amount' => 'decimal:2',
+        'settlement_id' => 'integer',
     ];
 
     /**
@@ -80,5 +85,21 @@ class TransactionItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the employee who performed the service on this transaction item.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Get the settlement that includes this transaction item.
+     */
+    public function settlement(): BelongsTo
+    {
+        return $this->belongsTo(CommissionSettlement::class, 'settlement_id');
     }
 }

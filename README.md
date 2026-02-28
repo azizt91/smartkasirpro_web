@@ -1,6 +1,6 @@
-# Kasir App - Aplikasi Kasir Berbasis Web
+# SmartKasir Pro - Aplikasi Penjualan (Barang & Jasa)
 
-Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah pengguna, dirancang untuk membantu mengelola transaksi penjualan, produk, dan stok dengan efisien.
+SmartKasir Pro adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah pengguna, dirancang untuk membantu mengelola transaksi penjualan, produk, dan jasa dengan efisien.
 
 ## Fitur Utama
 
@@ -18,6 +18,11 @@ Kasir App adalah aplikasi Point of Sale (POS) berbasis web yang modern dan ramah
 - **Biaya Operasional:** Catat pengeluaran toko (listrik, gaji, dll)
 - **Riwayat Transaksi:** Lihat dan kelola histori penjualan (termasuk fitur Void/Batal)
 - **Support Printer:** Cetak struk via USB (WebUSB), Bluetooth, dan Browser Dialog
+- **Barang & Jasa:** Mendukung penjualan produk fisik maupun layanan non-fisik (Jasa) tanpa memotong stok
+- **Sistem Komisi Pegawai:** Hitung komisi pegawai per layanan secara otomatis (Nominal Tetap / Persentase)
+- **Manajemen Shift Kasir:** Validasi buka/tutup shift kasir, input modal awal, dan pencocokan uang fisik dengan X-Report
+- **Log Aktivitas (Audit):** Pantau penambahan produk, penghapusan transaksi, atau settlement komisi (Data Lama vs Baru)
+- **Import Produk via Excel:** Tambah data produk massal menggunakan template Excel/CSV yang sudah disediakan
 - **Pengaturan Toko:** Nama toko, alamat, logo, dan lainnya
 
 ## Panduan Printer USB
@@ -121,9 +126,9 @@ Buka browser dan akses: `http://127.0.0.1:8000`
 
 | Role  | Email                    | Password |
 |-------|--------------------------|----------|
-| Admin | admin@minimarket.com     | password |
-| Kasir | kasir1@minimarket.com    | password |
-| Kasir | kasir2@minimarket.com    | password |
+| Admin | admin@smartkasir.com     | password |
+| Kasir | kasir1@smartkasir.com    | password |
+| Kasir | kasir2@smartkasir.com    | password |
 
 ## Catatan Penting
 
@@ -133,4 +138,4 @@ Buka browser dan akses: `http://127.0.0.1:8000`
 
 ---
 
-© 2025 Kasir App
+© 2026 SmartKasir Pro

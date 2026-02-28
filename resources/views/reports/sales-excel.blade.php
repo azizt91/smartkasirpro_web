@@ -15,6 +15,10 @@
             <td style="font-weight: bold;">Rp {{ number_format($summary['total_amount'], 0, ',', '.') }}</td>
         </tr>
         <tr>
+            <td colspan="2" style="font-style: italic; padding-left: 10px;"> - Total Potongan Poin</td>
+            <td style="font-style: italic;">(Rp {{ number_format($summary['total_points_discount'], 0, ',', '.') }})</td>
+        </tr>
+        <tr>
             <td colspan="2" style="font-style: italic; padding-left: 10px;"> - Tunai / Transfer</td>
             <td style="font-style: italic;">Rp {{ number_format($summary['total_received'], 0, ',', '.') }}</td>
         </tr>
@@ -37,19 +41,27 @@
         <tr></tr>
         <tr>
             <th style="font-weight: bold; border: 1px solid #000000;">Tanggal</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">No. Nota</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">Pelanggan</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Kasir</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Keterangan</th>
             <th style="font-weight: bold; border: 1px solid #000000;">Metode Pembayaran</th>
-            <th style="font-weight: bold; border: 1px solid #000000;">Total</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">Subtotal</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">Potongan Poin</th>
+            <th style="font-weight: bold; border: 1px solid #000000;">Total Akhir</th>
         </tr>
     </thead>
     <tbody>
         @foreach($transactions as $transaction)
             <tr>
                 <td style="border: 1px solid #000000;">{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
+                <td style="border: 1px solid #000000;">{{ $transaction->transaction_code }}</td>
+                <td style="border: 1px solid #000000;">{{ $transaction->customer_name ?? 'Umum' }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->user->name }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->note ?? '-' }}</td>
                 <td style="border: 1px solid #000000;">{{ ucfirst($transaction->payment_method) }}</td>
+                <td style="border: 1px solid #000000;">{{ $transaction->subtotal }}</td>
+                <td style="border: 1px solid #000000;">{{ $transaction->points_discount_amount }}</td>
                 <td style="border: 1px solid #000000;">{{ $transaction->total_amount }}</td>
             </tr>
         @endforeach

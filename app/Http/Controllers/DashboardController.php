@@ -18,12 +18,20 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         
+        // Monthly commission calculation
+        $monthly_commission = \App\Models\TransactionItem::whereHas('transaction', function($q) {
+                $q->where('status', 'completed')
+                  ->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+            })->sum('commission_amount');
+
         // Get basic statistics (only completed transactions)
         $stats = [
             'total_products' => Product::count(),
             'low_stock_products' => Product::lowStock()->count(),
             'total_transactions' => Transaction::where('status', 'completed')->whereDate('created_at', today())->count(),
             'daily_sales' => Transaction::where('status', 'completed')->whereDate('created_at', today())->sum('total_amount'),
+            'monthly_commission' => $monthly_commission,
         ];
 
         // Get recent transactions (last 10)

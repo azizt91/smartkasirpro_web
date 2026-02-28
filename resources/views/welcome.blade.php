@@ -57,7 +57,7 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                     <!-- <div class="flex-shrink-0">
                         <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                            <span class="text-3xl text-blue-600">🏪</span> MiniMarket POS
+                            <span class="text-3xl text-blue-600">🏪</span> SmartKasir Pro
                         </h1>
                     </div> -->
 
@@ -168,7 +168,7 @@ use Illuminate\Support\Facades\Storage;
         <footer class="bg-gray-900 py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <p class="text-gray-400 text-lg">
-                    &copy; {{ date('Y') }} MiniMarket POS. Sistem Point of Sale untuk toko modern.
+                    &copy; {{ date('Y') }} SmartKasir Pro. Sistem Point of Sale untuk toko modern.
                 </p>
             </div>
         </footer>

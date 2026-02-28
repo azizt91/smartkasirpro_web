@@ -135,6 +135,7 @@ class ReportController extends BaseController
             'total_received' => $totalReceived,
             'total_receivables' => $totalReceivables,
             'total_discount' => $activeTransactionsQuery->sum('discount'),
+            'total_points_discount' => $activeTransactionsQuery->sum('points_discount_amount'),
             'total_tax' => $activeTransactionsQuery->sum('tax'),
             'average_transaction' => $activeCount > 0 ? $totalSales / $activeCount : 0,
             'total_expenses' => $totalExpenses,
@@ -300,5 +301,152 @@ class ReportController extends BaseController
         ]);
 
         return back()->with('success', 'Piutang berhasil ditandai sebagai lunas.');
+    }
+
+    /**
+     * Display commissions report
+     */
+    public function commissions(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
+        $employeeId = $request->get('employee_id');
+        $format = $request->get('format', 'view');
+
+        $query = TransactionItem::with(['transaction', 'employee', 'product'])
+            ->whereHas('transaction', function($q) use ($startDate, $endDate) {
+                $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                  ->where('status', 'completed');
+            })
+            ->whereNotNull('employee_id')
+            ->orderBy('created_at', 'desc');
+
+        if ($employeeId) {
+            $query->where('employee_id', $employeeId);
+        }
+
+        $summary = [
+            'total_commission' => $query->sum('commission_amount'),
+            'total_services' => $query->count(),
+            'unpaid_commission' => (clone $query)->whereNull('settlement_id')->sum('commission_amount'),
+        ];
+
+        if ($format === 'pdf') {
+            $items = $query->get();
+            $pdf = Pdf::loadView('reports.commissions-pdf', compact('items', 'summary', 'startDate', 'endDate', 'employeeId'));
+            return $pdf->download('laporan-komisi-' . $startDate . '-to-' . $endDate . '.pdf');
+        }
+
+        if ($format === 'excel') {
+            $items = $query->get();
+            return Excel::download(new \App\Exports\CommissionReportExport($items, $summary, $startDate, $endDate), 
+                'laporan-komisi-' . $startDate . '-to-' . $endDate . '.xlsx');
+        }
+
+        $items = $query->paginate(15);
+        $employees = \App\Models\Employee::orderBy('name')->get();
+
+        return view('reports.commissions', compact('items', 'summary', 'startDate', 'endDate', 'employees', 'employeeId'));
+    }
+
+    /**
+     * Settle selected commission items (batch) via AJAX.
+     */
+    public function settleCommission(Request $request)
+    {
+        $this->checkAdminAccess();
+
+        $request->validate([
+            'item_ids' => 'required|array|min:1',
+            'item_ids.*' => 'integer|exists:transaction_items,id',
+            'payment_source' => 'required|in:tunai,bank',
+        ]);
+
+        $itemIds = $request->input('item_ids');
+        $paymentSource = $request->input('payment_source');
+
+        // Get unpaid commission items only
+        $unpaidItems = TransactionItem::whereIn('id', $itemIds)
+            ->whereNull('settlement_id')
+            ->where('commission_amount', '>', 0)
+            ->with('employee')
+            ->get();
+
+        if ($unpaidItems->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada komisi pending yang valid dari item yang dipilih.',
+            ], 422);
+        }
+
+        \DB::beginTransaction();
+        try {
+            $label = \App\Models\Setting::getStoreSettings()->employee_label ?? 'Pegawai';
+            $settledCount = 0;
+            $totalAmount = 0;
+
+            // Group items by employee
+            $grouped = $unpaidItems->groupBy('employee_id');
+
+            foreach ($grouped as $employeeId => $items) {
+                $employeeTotal = $items->sum('commission_amount');
+                $employee = $items->first()->employee;
+                $employeeName = $employee ? $employee->name : ($label . ' #' . $employeeId);
+
+                // 1. Create Settlement Record
+                $settlement = \App\Models\CommissionSettlement::create([
+                    'employee_id' => $employeeId,
+                    'amount' => $employeeTotal,
+                    'payment_date' => now()->format('Y-m-d'),
+                    'payment_source' => $paymentSource,
+                    'settled_by' => auth()->id(),
+                    'reference_note' => "Pembayaran Komisi - {$employeeName} ({$items->count()} item)",
+                ]);
+
+                // 2. Update Transaction Items with settlement_id
+                foreach ($items as $item) {
+                    $item->update(['settlement_id' => $settlement->id]);
+                }
+
+                // 3. Create Expense Record
+                \App\Models\Expense::create([
+                    'name' => 'Gaji/Komisi',
+                    'date' => now()->format('Y-m-d'),
+                    'description' => "Pembayaran Komisi Jasa - {$employeeName} ({$items->count()} layanan)",
+                    'amount' => $employeeTotal,
+                    'user_id' => auth()->id(),
+                ]);
+
+                // 4. Audit Log
+                \Log::info('[Komisi] Settlement created', [
+                    'settlement_id' => $settlement->id,
+                    'employee' => $employeeName,
+                    'amount' => $employeeTotal,
+                    'payment_source' => $paymentSource,
+                    'items_count' => $items->count(),
+                    'settled_by' => auth()->user()->name,
+                ]);
+
+                $settledCount += $items->count();
+                $totalAmount += $employeeTotal;
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil mencairkan {$settledCount} komisi senilai Rp " . number_format($totalAmount, 0, ',', '.') . " via " . ucfirst($paymentSource) . ". Tercatat sebagai Pengeluaran.",
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('[Komisi] Settlement failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mencairkan komisi: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

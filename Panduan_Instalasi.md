@@ -109,11 +109,11 @@ Pindahkan file `.apk` tersebut ke HP Android kasir Anda dan siap digunakan! 🎉
 
 ### Info Akun Login Demo (Bawaan Database)
 Anda dapat menggunakan akun ini untuk login pertama kali di Web maupun di Mobile App:
-- **Admin**: admin@minimarket.com / Password: `password`
-- **Kasir**: kasir1@minimarket.com / Password: `password`
-- **Kasir**: kasir2@minimarket.com / Password: `password`
+- **Admin**: admin@smartkasir.com / Password: `password`
+- **Kasir**: kasir1@smartkasir.com / Password: `password`
+- **Kasir**: kasir2@smartkasir.com / Password: `password`
 
 *(Pastikan ganti password ini demi keamanan jika sudah dironline-kan!).*
 
 ---
-© 2025 Kasir App Pro - Hak Cipta Dilindungi
+© 2026 SmartKasir Pro - Hak Cipta Dilindungi

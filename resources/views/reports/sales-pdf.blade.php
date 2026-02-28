@@ -90,7 +90,7 @@
 <body>
     <div class="header">
         <h1>LAPORAN PENJUALAN</h1>
-        <p><strong>Minimarket POS System</strong></p>
+        <p><strong>SmartKasir Pro System</strong></p>
         <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
         <p>Dicetak pada: {{ now()->format('d M Y, H:i') }} WIB</p>
     </div>
@@ -103,7 +103,8 @@
                 <div class="value">Rp {{ number_format($summary['total_amount'], 0, ',', '.') }}</div>
                 <div style="font-size: 10px; color: #666; margin-top: 3px;">
                     Tunai: Rp {{ number_format($summary['total_received'], 0, ',', '.') }}<br>
-                    Piutang: Rp {{ number_format($summary['total_receivables'], 0, ',', '.') }}
+                    Piutang: Rp {{ number_format($summary['total_receivables'], 0, ',', '.') }}<br>
+                    <span style="color: #ed6c02;">Potongan Poin: (Rp {{ number_format($summary['total_points_discount'], 0, ',', '.') }})</span>
                 </div>
             </div>
             <div class="summary-item">
@@ -132,9 +133,12 @@
             <tr>
                 <th>No</th>
                 <th>Tanggal</th>
+                <th>No. Nota</th>
+                <th>Pelanggan</th>
                 <th>Kasir</th>
-                <th>Keterangan</th>
-                <th class="text-right">Total</th>
+                <th class="text-right">Subtotal</th>
+                <th class="text-right">Ptg Poin</th>
+                <th class="text-right">Total Akhir</th>
                 <th class="text-center">Pembayaran</th>
             </tr>
         </thead>
@@ -142,9 +146,12 @@
             @forelse($transactions as $index => $transaction)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ $transaction->created_at->format('d/m/y H:i') }}</td>
+                    <td>{{ $transaction->transaction_code }}</td>
+                    <td>{{ $transaction->customer_name ?? 'Umum' }}</td>
                     <td>{{ $transaction->user->name }}</td>
-                    <td>{{ $transaction->note ?? '-' }}</td>
+                    <td class="text-right">Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</td>
+                    <td class="text-right" style="{{ $transaction->points_discount_amount > 0 ? 'color: #ed6c02;' : '' }}">Rp {{ number_format($transaction->points_discount_amount, 0, ',', '.') }}</td>
                     <td class="text-right"><strong>Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</strong></td>
                     <td class="text-center">{{ ucfirst($transaction->payment_method) }}</td>
                 </tr>
@@ -156,7 +163,9 @@
         </tbody>
         <tfoot>
             <tr style="background-color: #f8f9fa; font-weight: bold;">
-                <td colspan="4" class="text-center">TOTAL</td>
+                <td colspan="5" class="text-center">TOTAL</td>
+                <td class="text-right">Rp {{ number_format($transactions->sum('subtotal'), 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($transactions->sum('points_discount_amount'), 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($transactions->sum('total_amount'), 0, ',', '.') }}</td>
                 <td></td>
             </tr>
@@ -250,8 +259,8 @@
     </table>
 
     <div class="footer">
-        <p>Laporan ini digenerate secara otomatis oleh sistem POS Minimarket</p>
-        <p>© {{ date('Y') }} Minimarket POS System - All Rights Reserved</p>
+        <p>Laporan ini digenerate secara otomatis oleh sistem SmartKasir Pro</p>
+        <p>© {{ date('Y') }} SmartKasir Pro System - All Rights Reserved</p>
     </div>
 </body>
 </html>

@@ -58,4 +58,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/customers', [\App\Http\Controllers\Api\CustomerController::class, 'store']);
     Route::put('/customers/{id}', [\App\Http\Controllers\Api\CustomerController::class, 'update']);
     Route::delete('/customers/{id}', [\App\Http\Controllers\Api\CustomerController::class, 'destroy']);
+
+    // Employees
+    Route::get('/employees', [\App\Http\Controllers\Api\EmployeeController::class, 'index']);
+
+    // Cashier Shifts
+    Route::get('/shifts/check', [\App\Http\Controllers\Api\ShiftController::class, 'check']);
+    Route::post('/shifts/open', [\App\Http\Controllers\Api\ShiftController::class, 'open']);
+    Route::post('/shifts/close', [\App\Http\Controllers\Api\ShiftController::class, 'close']);
 });

@@ -120,6 +120,9 @@
         @foreach($transaction->items as $item)
             <div class="mb-1">
                 <div>{{ $item->product->name }}</div>
+                @if($item->employee)
+                <div style="font-size: 10px; margin-left: 10px;">(Kapster: {{ $item->employee->name }})</div>
+                @endif
                 <div class="flex">
                     <span>&nbsp;&nbsp;{{ $item->quantity }} x {{ number_format($item->price, 0, ',', '.') }}</span>
                     <span>{{ number_format($item->quantity * $item->price, 0, ',', '.') }}</span>

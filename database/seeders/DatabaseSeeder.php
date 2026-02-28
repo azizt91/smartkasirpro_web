@@ -10,6 +10,8 @@ use App\Models\Supplier;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Models\Employee;
+use App\Models\CashierShift;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -22,7 +24,7 @@ class DatabaseSeeder extends Seeder
         // ─── Users ───────────────────────────────────────────────
         $admin = User::create([
             'name' => 'Admin Minimarket',
-            'email' => 'admin@minimarket.com',
+            'email' => 'admin@smartkasir.com',
             'password' => bcrypt('password'),
             'role' => 'admin',
             'email_verified_at' => now(),
@@ -30,7 +32,7 @@ class DatabaseSeeder extends Seeder
 
         $kasir1 = User::create([
             'name' => 'Kasir 1',
-            'email' => 'kasir1@minimarket.com',
+            'email' => 'kasir1@smartkasir.com',
             'password' => bcrypt('password'),
             'role' => 'kasir',
             'email_verified_at' => now(),
@@ -38,7 +40,7 @@ class DatabaseSeeder extends Seeder
 
         $kasir2 = User::create([
             'name' => 'Kasir 2',
-            'email' => 'kasir2@minimarket.com',
+            'email' => 'kasir2@smartkasir.com',
             'password' => bcrypt('password'),
             'role' => 'kasir',
             'email_verified_at' => now(),
@@ -50,9 +52,14 @@ class DatabaseSeeder extends Seeder
         $catRumah     = Category::create(['name' => 'Peralatan Rumah Tangga',  'description' => 'Keperluan rumah tangga']);
         $catKesehatan = Category::create(['name' => 'Kesehatan & Kecantikan',  'description' => 'Produk kesehatan dan kecantikan']);
         $catPakaian   = Category::create(['name' => 'Pakaian & Aksesoris',     'description' => 'Pakaian dan aksesoris']);
+        $catJasa      = Category::create(['name' => 'Layanan (Jasa)',          'description' => 'Layanan dan perbaikan']);
 
         // ─── Suppliers ───────────────────────────────────────────
         Supplier::factory(5)->create();
+
+        // ─── Pegawai (Employees) ──────────────────────────────────
+        $empBudi = Employee::create(['name' => 'Budi Teknisi', 'phone' => '081234567890', 'address' => 'Jl. Merdeka 1', 'status' => 'active']);
+        $empSari = Employee::create(['name' => 'Sari Stylist', 'phone' => '089876543210', 'address' => 'Jl. Pahlawan 2', 'status' => 'active']);
 
         // ─── Products (SEMUA HARGA INTEGER / BULAT) ──────────────
         $productData = [
@@ -122,6 +129,45 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        // ─── Layanan / Jasa ──────────────────────────────────────
+        ProductGroup::create([
+            'name' => 'Service Perbaikan HP',
+            'category_id' => $catJasa->id,
+            'has_variants' => false,
+        ]);
+        $jasaService = Product::create([
+            'product_group_id' => ProductGroup::where('name', 'Service Perbaikan HP')->first()->id,
+            'category_id' => $catJasa->id,
+            'name' => 'Service Perbaikan HP',
+            'barcode' => 'JASA-001',
+            'type' => 'jasa',
+            'purchase_price' => 0,
+            'selling_price' => 150000,
+            'commission_type' => 'percentage',
+            'commission_amount' => 50, // 50%
+            'stock' => 0,
+            'minimum_stock' => 0,
+        ]);
+
+        ProductGroup::create([
+            'name' => 'Potong Rambut Dewasa',
+            'category_id' => $catJasa->id,
+            'has_variants' => false,
+        ]);
+        $jasaPotong = Product::create([
+            'product_group_id' => ProductGroup::where('name', 'Potong Rambut Dewasa')->first()->id,
+            'category_id' => $catJasa->id,
+            'name' => 'Potong Rambut Dewasa',
+            'barcode' => 'JASA-002',
+            'type' => 'jasa',
+            'purchase_price' => 0,
+            'selling_price' => 35000,
+            'commission_type' => 'fixed',
+            'commission_amount' => 15000, // Rp 15.000
+            'stock' => 0,
+            'minimum_stock' => 0,
+        ]);
+
         // ─── Variant Products (Pakaian) ──────────────────────────
         $this->seedVariantProducts($catPakaian);
 
@@ -132,9 +178,23 @@ class DatabaseSeeder extends Seeder
             $txDate = fake()->dateTimeBetween('-30 days', 'now');
             $paymentMethod = fake()->randomElement(['cash', 'utang', 'card', 'ewallet', 'transfer', 'qris']);
 
+            // Adding Shift
+            $shift = CashierShift::firstOrCreate([
+                'user_id' => $users->random()->id,
+                'status' => 'closed', // we are closing it randomly later, but let's record it under closed shift for history
+            ], [
+                'start_time' => \Carbon\Carbon::instance($txDate)->copy()->subHours(8),
+                'end_time' => \Carbon\Carbon::instance($txDate)->copy()->addHours(1),
+                'starting_cash' => 500000,
+                'status' => 'closed',
+                'actual_cash' => 2000000,
+                'difference' => 0,
+            ]);
+
             $transaction = Transaction::create([
                 'transaction_code' => 'TRX' . date('Ymd') . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
-                'user_id' => $users->random()->id,
+                'user_id' => $shift->user_id,
+                'shift_id' => $shift->id,
                 'subtotal' => 0,
                 'discount' => 0,
                 'tax' => 0,
@@ -147,9 +207,35 @@ class DatabaseSeeder extends Seeder
                 'created_at' => $txDate,
             ]);
 
-            // Add 1-4 items
-            $products = Product::where('stock', '>', 0)->inRandomOrder()->take(random_int(1, 4))->get();
             $subtotal = 0;
+
+            // Add 1-4 items
+            // Including Jasa randomly
+            $hasJasa = fake()->boolean(20);
+            if ($hasJasa) {
+                $jasaProduct = rand(0, 1) ? $jasaService : $jasaPotong;
+                $emp = rand(0, 1) ? $empBudi : $empSari;
+                $jasaPrice = (int) $jasaProduct->selling_price;
+                
+                $commAmount = $jasaProduct->commission_type === 'percentage' 
+                    ? ($jasaPrice * ($jasaProduct->commission_amount / 100))
+                    : $jasaProduct->commission_amount;
+                
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $jasaProduct->id,
+                    'product_name' => $jasaProduct->name,
+                    'quantity' => 1,
+                    'price' => $jasaPrice,
+                    'subtotal' => $jasaPrice,
+                    'employee_id' => $emp->id,
+                    'commission_amount' => $commAmount,
+                    'created_at' => $txDate,
+                ]);
+                $subtotal += $jasaPrice;
+            }
+
+            $products = Product::where('type', 'barang')->where('stock', '>', 0)->inRandomOrder()->take(random_int(1, 3))->get();
 
             foreach ($products as $product) {
                 $quantity = random_int(1, min(3, $product->stock));
@@ -159,6 +245,7 @@ class DatabaseSeeder extends Seeder
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->id,
+                    'product_name' => $product->name,
                     'quantity' => $quantity,
                     'price' => $price,
                     'subtotal' => $itemSubtotal,
@@ -213,8 +300,8 @@ class DatabaseSeeder extends Seeder
         $this->command->info('');
         $this->command->info('✅ Database seeded successfully!');
         $this->command->info('──────────────────────────────────');
-        $this->command->info('Admin : admin@minimarket.com / password');
-        $this->command->info('Kasir : kasir1@minimarket.com / password');
+        $this->command->info('Admin : admin@smartkasir.com / password');
+        $this->command->info('Kasir : kasir1@smartkasir.com / password');
         $this->command->info('Products: 27 single + 13 variants = 40 total');
         $this->command->info('Transactions: 50 (30 hari terakhir)');
         $this->command->info('──────────────────────────────────');

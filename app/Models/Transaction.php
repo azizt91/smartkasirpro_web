@@ -59,6 +59,7 @@ class Transaction extends Model
     protected $fillable = [
         'transaction_code',
         'user_id',
+        'shift_id',
         'subtotal',
         'discount',
         'tax',
@@ -69,6 +70,14 @@ class Transaction extends Model
         'status',
         'customer_name',
         'note',
+        'points_earned',
+        'points_redeemed',
+        'points_discount_amount',
+        // Payment Gateway
+        'pg_provider',
+        'pg_reference',
+        'pg_pay_url',
+        'pg_expired_at',
         'created_at',
         'updated_at',
     ];
@@ -85,6 +94,7 @@ class Transaction extends Model
         'total_amount' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'change_amount' => 'decimal:2',
+        'pg_expired_at' => 'datetime',
     ];
 
     /**
@@ -93,6 +103,14 @@ class Transaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the shift associated with the transaction.
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(CashierShift::class, 'shift_id');
     }
 
     /**

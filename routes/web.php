@@ -18,21 +18,46 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Payment Gateway Webhook Callbacks (public, no auth)
+Route::post('/payment/callback/tripay', [\App\Http\Controllers\PaymentCallbackController::class, 'tripay'])->name('payment.callback.tripay');
+Route::post('/payment/callback/duitku', [\App\Http\Controllers\PaymentCallbackController::class, 'duitku'])->name('payment.callback.duitku');
+Route::post('/payment/callback/midtrans', [\App\Http\Controllers\PaymentCallbackController::class, 'midtrans'])->name('payment.callback.midtrans');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-    Route::get('/pos/products/search', [PosController::class, 'searchProducts'])->name('pos.products.search');
-    Route::get('/pos/categories', [PosController::class, 'getCategories'])->name('pos.categories');
-    Route::post('/pos/search', [PosController::class, 'searchProducts'])->name('pos.search');
-    Route::post('/pos/transaction', [PosController::class, 'store'])->name('pos.transaction');
+    
+    // POS Shift Management
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/shift/create', [\App\Http\Controllers\ShiftController::class, 'create'])->name('shift.create');
+        Route::post('/shift/store', [\App\Http\Controllers\ShiftController::class, 'store'])->name('shift.store');
+        Route::get('/shift/close', [\App\Http\Controllers\ShiftController::class, 'edit'])->name('shift.close');
+        Route::post('/shift/close', [\App\Http\Controllers\ShiftController::class, 'update'])->name('shift.update');
+    });
+
+    // Main POS interface (requires open shift)
+    Route::middleware('shift.open')->group(function () {
+        Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::get('/pos/products/search', [PosController::class, 'searchProducts'])->name('pos.products.search');
+        Route::get('/pos/categories', [PosController::class, 'getCategories'])->name('pos.categories');
+        Route::post('/pos/search', [PosController::class, 'searchProducts'])->name('pos.search');
+        Route::post('/pos/transaction', [PosController::class, 'store'])->name('pos.transaction');
+        Route::get('/pos/transaction/{code}/status', [PosController::class, 'checkStatus'])->name('pos.transaction.status');
+    });
 
 
 
     // Protected Routes (Admin or Permission based)
+    Route::get('/products/export-template', [\App\Http\Controllers\ProductController::class, 'exportTemplate'])
+        ->name('products.export-template')
+        ->middleware('permission:view_products');
+    Route::post('/products/import', [\App\Http\Controllers\ProductController::class, 'import'])
+        ->name('products.import')
+        ->middleware('permission:view_products');
+    
     Route::resource('products', ProductController::class)->middleware('permission:view_products');
     Route::get('/products/barcodes/print', [App\Http\Controllers\ProductController::class, 'printBarcodes'])
         ->name('products.print_barcodes')
@@ -61,11 +86,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/stock/export-excel', [ReportController::class, 'exportStockExcel'])->name('stock.excel');
         Route::get('/receivables', [ReportController::class, 'receivables'])->name('receivables');
         Route::post('/receivables/{transaction}/paid', [ReportController::class, 'markAsPaid'])->name('receivables.paid');
+        Route::get('/commissions', [ReportController::class, 'commissions'])->name('commissions');
+        Route::post('/commissions/settle', [ReportController::class, 'settleCommission'])->name('commissions.settle');
+        
+        // Cashier Shifts Report
+        Route::get('/shifts', [\App\Http\Controllers\ShiftController::class, 'index'])->name('shifts');
+        
+        // Audit Logs Report
+        Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits');
     });
 
     // Admin only routes
     Route::middleware('admin')->group(function () {
         Route::resource('users', UserController::class);
+        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     });

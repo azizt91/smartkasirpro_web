@@ -26,6 +26,10 @@
                 <p class="text-gray-600 mt-1">Scan, add products, and process transactions</p>
             </div>
             <div class="mt-4 sm:mt-0 flex items-center space-x-3">
+                <a href="{{ route('pos.shift.close') }}" class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors border border-red-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Tutup Kasir
+                </a>
                 <div class="flex items-center px-3 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
                     <span class="text-sm font-medium text-gray-700">Online</span>
@@ -72,11 +76,12 @@
 
             {{-- Products Grid --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900">Products</h3>
                         <p class="text-sm text-gray-500">Click on a product to add it to cart</p>
                     </div>
+
                 </div>
                 
                 <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4 min-h-[400px]">
@@ -210,6 +215,31 @@
     </div>
 </div>
 
+{{-- Modal Pilih Pegawai (Untuk Jasa) --}}
+<div id="employee-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b bg-indigo-50 flex-shrink-0">
+            <h3 class="text-lg font-bold text-indigo-900">Pilih {{ \App\Models\Setting::getStoreSettings()->employee_label ?? 'Pegawai' }} (Jasa)</h3>
+            <button onclick="closeEmployeeModal()" class="text-indigo-400 hover:text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-4 space-y-3">
+            <p class="text-sm text-gray-600 mb-2">Pilih {{ strtolower(\App\Models\Setting::getStoreSettings()->employee_label ?? 'pegawai') }} yang akan mengerjakan layanan <strong id="employee-modal-item-name"></strong>:</p>
+            <select id="selected-employee-id" class="w-full border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">-- Tidak dikaitkan (Opsional) --</option>
+                @foreach($employees as $emp)
+                    <option value="{{ $emp->id }}">{{ $emp->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="p-4 bg-gray-50 border-t flex justify-between gap-3 flex-shrink-0">
+            <button onclick="closeEmployeeModal()" class="w-1/2 py-2 text-center font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition">Batal</button>
+            <button onclick="confirmEmployeeSelection()" class="w-1/2 py-2 text-center font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition">Lanjut</button>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Pembayaran --}}
 <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
@@ -231,7 +261,7 @@
                     open: false,
                     search: '',
                     selected: 'Umum',
-                    customers: {{ $customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-'])->toJson() }},
+                    customers: {{ $customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points])->toJson() }},
                     get filteredCustomers() {
                         if (this.search === '') return this.customers;
                         return this.customers.filter(c => 
@@ -239,8 +269,15 @@
                             (c.phone && c.phone.includes(this.search))
                         );
                     },
-                    selectCustomer(name) {
-                        this.selected = name;
+                    selectCustomer(customer) {
+                        if (typeof customer === 'string') {
+                            this.selected = customer;
+                            if(document.getElementById('customer-points')) document.getElementById('customer-points').value = 0;
+                        } else {
+                            this.selected = customer.name;
+                            if(document.getElementById('customer-points')) document.getElementById('customer-points').value = customer.points || 0;
+                        }
+                        if (typeof updatePointUI === 'function') updatePointUI();
                         this.open = false;
                         this.search = '';
                     },
@@ -300,13 +337,16 @@
                             </li>
 
                             <template x-for="customer in filteredCustomers" :key="customer.name">
-                                <li @click="selectCustomer(customer.name)" 
-                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50"
+                                <li @click="selectCustomer(customer)" 
+                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between items-center"
                                     :class="{'bg-blue-50 text-blue-700': selected === customer.name}">
                                     <div class="flex flex-col">
                                         <span class="font-medium" x-text="customer.name"></span>
                                         <span class="text-xs text-gray-400" x-text="customer.phone"></span>
                                     </div>
+                                    @if(data_get($settings, 'enable_loyalty_points', true))
+                                    <span class="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 rounded-full" x-text="'⭐ ' + (customer.points || 0)"></span>
+                                    @endif
                                 </li>
                             </template>
                             
@@ -317,6 +357,23 @@
                         </ul>
                     </div>
                 </div>
+                 
+                 <input type="hidden" id="customer-points" value="0">
+                 @if(data_get($settings, 'enable_loyalty_points', true))
+                 <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Gunakan Poin</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="use-points" min="0" value="0"
+                               class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-sm text-right font-bold"
+                               oninput="updateModalPayment()">
+                        <span class="text-xs text-gray-500 whitespace-nowrap" id="max-points-label">0 pts</span>
+                    </div>
+                    <div class="text-xs text-blue-600 mt-1 font-medium" id="point-discount-preview">- Rp 0</div>
+                </div>
+                 @else
+                 <input type="hidden" id="use-points" value="0">
+                 @endif
+
                  <div>
                     <label for="payment-method" class="block text-xs font-medium text-gray-500 mb-1">Metode Pembayaran</label>
                     <select id="payment-method"
@@ -494,6 +551,7 @@
     let searchTimeout = null;
     let currentPage = 1;
     let currentCategory = 'all';
+    let currentType = ''; // unused, kept for loadProducts URL compatibility
     let perPage = 10;
     let countdownInterval = null;
     let currentProductsList = []; // New Global store for products
@@ -518,13 +576,13 @@
     }
     
     // Add this function to handle direct quantity updates
-    function updateItemQuantity(id, value) {
-        const item = cart.find(item => item.id === id);
+    function updateItemQuantity(cartId, value) {
+        const item = cart.find(item => item.cartId === cartId);
         if (item) {
             let newQty = parseInt(value);
             if (isNaN(newQty) || newQty < 1) newQty = 1;
             
-            if (newQty <= item.stock) {
+            if (item.type === 'jasa' || newQty <= item.stock) {
                 item.quantity = newQty;
                 updateCartDisplay();
             } else {
@@ -562,7 +620,7 @@
         const searchInput = document.getElementById('product-search');
         const query = searchInput.value.trim();
 
-        const url = `/pos/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&category=${currentCategory}&per_page=${perPage}`;
+        const url = `/pos/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&category=${currentCategory}&type=${currentType}&per_page=${perPage}`;
 
         const data = await fetchData(url);
 
@@ -583,7 +641,7 @@
                  
                 if (!currentProductsList[0].is_group) {
                     const product = currentProductsList[0];
-                    addToCart(product.id, product.name, product.selling_price, product.stock, product.image);
+                    addToCart(product.id, product.name, product.selling_price, product.stock, product.image, product.type);
                     searchInput.value = '';
                     currentPage = 1; 
                     await loadProducts();
@@ -609,6 +667,8 @@
         container.innerHTML = tabsHTML;
     }
 
+
+
     function displayProductsGrid(products) {
         const grid = document.getElementById('products-grid');
         if (!products || products.length === 0) {
@@ -626,18 +686,18 @@
                         ${p.image ? `<img src="/storage/${p.image}" alt="${p.name}" class="w-full h-full object-cover">` : `<span class="text-2xl">📦</span>`}
                     </div>
                     <div class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${p.name}</div>
-                    <div class="text-xs text-gray-500 mb-2">Total Stok: ${p.stock}</div>
+                    <div class="text-xs text-gray-500 mb-2">${p.type === 'jasa' ? 'Jasa/Servis' : 'Total Stok: ' + p.stock}</div>
                     <div class="text-sm font-bold text-teal-600">${typeof p.price_display === 'number' ? formatRupiah(p.price_display) : formatRupiah(p.selling_price)}</div>
                 </div>`;
             } else {
                 // Render Single Card
                 return `
-                <div class="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer" onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price}, ${p.stock}, '${p.image || ''}')">
+                <div class="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer" onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price}, ${p.stock}, '${p.image || ''}', '${p.type || 'barang'}')">
                     <div class="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                         ${p.image ? `<img src="/storage/${p.image}" alt="${p.name}" class="w-full h-full object-cover">` : `<span class="text-2xl">📦</span>`}
                     </div>
                     <div class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${p.name}</div>
-                    <div class="text-xs text-gray-500 mb-2">Stok: ${p.stock}</div>
+                    <div class="text-xs text-gray-500 mb-2">${p.type === 'jasa' ? 'Jasa/Servis' : 'Stok: ' + p.stock}</div>
                     <div class="text-sm font-bold text-teal-600">${formatRupiah(p.selling_price)}</div>
                 </div>`;
             }
@@ -695,15 +755,15 @@
         modalTitle.textContent = group.name;
         
         modalBody.innerHTML = group.variants.map(v => `
-            <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer ${v.stock <= 0 ? 'opacity-50 pointer-events-none' : ''}" 
-                 onclick="${v.stock > 0 ? `addToCart(${v.id}, '${v.full_name.replace(/'/g, "\\'")}', ${v.price}, ${v.stock}, '${v.image || group.image || ''}'); closeVariantModal();` : ''}">
+            <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer ${v.stock <= 0 && v.type !== 'jasa' ? 'opacity-50 pointer-events-none' : ''}" 
+                 onclick="${v.stock > 0 || v.type === 'jasa' ? `addToCart(${v.id}, '${v.full_name.replace(/'/g, "\\'")}', ${v.price}, ${v.stock}, '${v.image || group.image || ''}', '${v.type || 'barang'}'); closeVariantModal();` : ''}">
                 <div class="flex items-center">
                     <div class="w-10 h-10 bg-gray-200 rounded flex-shrink-0 mr-3 overflow-hidden">
                          ${v.image || group.image ? `<img src="/storage/${v.image || group.image}" class="w-full h-full object-cover">` : ''}
                     </div>
                     <div>
                         <div class="font-medium text-gray-900">${v.name}</div>
-                        <div class="text-sm text-gray-500">Stok: ${v.stock}</div>
+                        <div class="text-sm text-gray-500">${v.type === 'jasa' ? 'Jasa/Servis' : 'Stok: ' + v.stock}</div>
                     </div>
                 </div>
                 <div class="font-bold text-teal-600">${formatRupiah(v.price)}</div>
@@ -925,20 +985,54 @@
         }
     }
 
-    // === CART LOGIC ===
-    function addToCart(id, name, price, stock, image) {
-        const existingItem = cart.find(item => item.id === id);
+    // === JASA MODAL & CART LOGIC ===
+    let pendingJasaItem = null;
+
+    function openEmployeeModal(itemData) {
+        pendingJasaItem = itemData;
+        document.getElementById('employee-modal-item-name').textContent = itemData.name;
+        document.getElementById('selected-employee-id').value = ""; // reset
+        document.getElementById('employee-modal').classList.remove('hidden');
+    }
+
+    function closeEmployeeModal() {
+        pendingJasaItem = null;
+        document.getElementById('employee-modal').classList.add('hidden');
+    }
+
+    function confirmEmployeeSelection() {
+        if (!pendingJasaItem) return;
+        const selector = document.getElementById('selected-employee-id');
+        const empId = selector.value;
+        const empName = empId ? selector.options[selector.selectedIndex].text : null;
+        
+        executeAddToCart(pendingJasaItem.id, pendingJasaItem.name, pendingJasaItem.price, pendingJasaItem.stock, pendingJasaItem.image, pendingJasaItem.type, empId, empName);
+        closeEmployeeModal();
+    }
+
+    function addToCart(id, name, price, stock, image, type = 'barang') {
+        if (type === 'jasa') {
+            openEmployeeModal({id, name, price, stock, image, type});
+            return;
+        }
+        executeAddToCart(id, name, price, stock, image, type, null, null);
+    }
+
+    function executeAddToCart(id, name, price, stock, image, type, employee_id, employee_name) {
+        const cartId = type === 'jasa' ? id + '-' + (employee_id || 'none') : String(id);
+        const existingItem = cart.find(item => item.cartId === cartId);
+        
         if (existingItem) {
-            if (existingItem.quantity < stock) {
+            if (type === 'jasa' || existingItem.quantity < stock) {
                 existingItem.quantity++;
             } else {
                 alert('Stok tidak mencukupi!');
             }
         } else {
-            if (stock > 0) {
-                cart.push({ id, name, price, stock, image, quantity: 1 });
+            if (type === 'jasa' || stock > 0) {
+                cart.push({ cartId, id, name, price, stock, image, type, employee_id, employee_name, quantity: 1 });
             } else {
-                alert('Stok produk habis!', stock);
+                alert('Stok produk habis!');
             }
         }
         updateCartDisplay();
@@ -960,19 +1054,20 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-gray-900 truncate">${item.name}</div>
+                        ${item.employee_name ? `<div class="text-xs text-indigo-600 mb-1 font-medium">👨‍🔧 ${STORE_SETTINGS.employee_label || 'Pegawai'}: ${item.employee_name}</div>` : ''}
                         <div class="text-xs text-gray-500 mb-2">${formatRupiah(item.price)}</div>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex items-center space-x-1">
-                                <button onclick="decreaseQuantity(${item.id})" class="w-8 h-8 bg-gray-200 rounded text-lg font-bold hover:bg-gray-300 flex items-center justify-center text-gray-600">-</button>
+                                <button onclick="decreaseQuantity('${item.cartId}')" class="w-8 h-8 bg-gray-200 rounded text-lg font-bold hover:bg-gray-300 flex items-center justify-center text-gray-600">-</button>
                                 <input type="number" 
                                        value="${item.quantity}" 
                                        min="1" 
-                                       max="${item.stock}"
-                                       onchange="updateItemQuantity(${item.id}, this.value)"
+                                       ${item.type !== 'jasa' ? `max="${item.stock}"` : ''}
+                                       onchange="updateItemQuantity('${item.cartId}', this.value)"
                                        class="w-12 text-center text-sm border-gray-200 rounded focus:ring-indigo-500 focus:border-indigo-500 p-1 mx-1">
-                                <button onclick="increaseQuantity(${item.id})" class="w-8 h-8 bg-teal-600 text-white rounded text-lg font-bold hover:bg-teal-700 flex items-center justify-center">+</button>
+                                <button onclick="increaseQuantity('${item.cartId}')" class="w-8 h-8 bg-teal-600 text-white rounded text-lg font-bold hover:bg-teal-700 flex items-center justify-center">+</button>
                             </div>
-                            <button onclick="removeFromCart(${item.id})" class="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600">×</button>
+                            <button onclick="removeFromCart('${item.cartId}')" class="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600">×</button>
                         </div>
                     </div>
                 </div>
@@ -982,9 +1077,9 @@
         updateCartTotals();
     }
 
-    function increaseQuantity(id) {
-        const item = cart.find(item => item.id === id);
-        if (item && item.quantity < item.stock) {
+    function increaseQuantity(cartId) {
+        const item = cart.find(item => item.cartId === cartId);
+        if (item && (item.type === 'jasa' || item.quantity < item.stock)) {
             item.quantity++;
             updateCartDisplay();
         } else if (item) {
@@ -992,18 +1087,18 @@
         }
     }
 
-    function decreaseQuantity(id) {
-        const item = cart.find(item => item.id === id);
+    function decreaseQuantity(cartId) {
+        const item = cart.find(item => item.cartId === cartId);
         if (item && item.quantity > 1) {
             item.quantity--;
             updateCartDisplay();
         } else if (item) {
-            removeFromCart(id);
+            removeFromCart(cartId);
         }
     }
 
-    function removeFromCart(id) {
-        cart = cart.filter(item => item.id !== id);
+    function removeFromCart(cartId) {
+        cart = cart.filter(item => item.cartId !== cartId);
         updateCartDisplay();
     }
 
@@ -1104,14 +1199,40 @@
         updateModalPayment();
     }
 
+    function updatePointUI() {
+        const points = parseInt(document.getElementById('customer-points').value) || 0;
+        document.getElementById('max-points-label').textContent = `${points} pts`;
+        document.getElementById('use-points').max = points;
+        document.getElementById('use-points').value = 0;
+        updateModalPayment();
+    }
+
     function updateModalPayment() {
         const total = parseFloat(document.getElementById('total').dataset.value) || 0;
+        
+        let usePoints = parseInt(document.getElementById('use-points').value) || 0;
+        const maxPoints = parseInt(document.getElementById('customer-points').value) || 0;
+        if (usePoints > maxPoints) {
+            usePoints = maxPoints;
+            document.getElementById('use-points').value = usePoints;
+        }
+
+        const pointExchangeRate = STORE_SETTINGS.point_exchange_rate || 100;
+        const pointDiscount = usePoints * pointExchangeRate;
+        document.getElementById('point-discount-preview').textContent = `- Rp ${new Intl.NumberFormat('id-ID').format(pointDiscount)}`;
+        
+        const finalTotal = Math.max(0, total - pointDiscount);
+        document.getElementById('modal-total').textContent = formatRupiah(finalTotal);
+
         const amount = parseFloat(document.getElementById('amount-paid').value) || 0;
-        const change = Math.max(0, amount - total);
+        const change = Math.max(0, amount - finalTotal);
         document.getElementById('modal-change').textContent = formatRupiah(change);
     }
 
     let isProcessing = false; // Guard against double-submit
+
+    // Metode digital yang diproses via Payment Gateway
+    const DIGITAL_METHODS = ['qris', 'transfer', 'ewallet'];
 
     async function processTransaction() {
         if (isProcessing) return; // Prevent double-click
@@ -1132,15 +1253,18 @@
         const tax = taxableAmount * (taxRate / 100);
         const total = Math.max(0, subtotal - discount + tax);
 
-        const amountPaid = parseFloat(document.getElementById('amount-paid').value) || 0;
         const paymentMethod = document.getElementById('payment-method').value;
+        const isDigital = DIGITAL_METHODS.includes(paymentMethod);
+
+        // Untuk digital payment, amount_paid = total (otomatis)
+        const amountPaid = isDigital ? total : (parseFloat(document.getElementById('amount-paid').value) || 0);
         
         if (cart.length === 0) { resetProcessing(); return alert('Keranjang kosong!'); }
         if (!paymentMethod) { resetProcessing(); return alert('Pilih metode pembayaran!'); }
-        if (amountPaid < total) { resetProcessing(); return alert('Jumlah bayar kurang!'); }
+        if (!isDigital && amountPaid < total) { resetProcessing(); return alert('Jumlah bayar kurang!'); }
 
         const transactionData = {
-            items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
+            items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price, employee_id: item.employee_id })),
             payment_method: paymentMethod,
             amount_paid: amountPaid,
             customer_name: document.getElementById('customer-name').value || 'Umum',
@@ -1149,6 +1273,7 @@
             subtotal: subtotal,
             note: document.getElementById('transaction-note').value,
             transaction_date: document.getElementById('transaction-date') ? document.getElementById('transaction-date').value : null,
+            points_redeemed: parseInt(document.getElementById('use-points').value) || 0,
         };
 
         try {
@@ -1164,7 +1289,13 @@
             const result = await response.json();
             if (response.ok && result.success) {
                 closePaymentModal();
-                showSuccessModal(result.transaction);
+
+                // Cek apakah ini pembayaran digital (ada data PG)
+                if (result.payment) {
+                    showPaymentPendingModal(result.transaction, result.payment);
+                } else {
+                    showSuccessModal(result.transaction);
+                }
             } else {
                 alert(result.message || 'Transaksi gagal!');
             }
@@ -1174,6 +1305,172 @@
         } finally {
             resetProcessing();
         }
+    }
+
+    // === PAYMENT GATEWAY PENDING MODAL ===
+    let pgCheckInterval = null;
+
+    function showPaymentPendingModal(transaction, payment) {
+        window.currentTransaction = transaction;
+        const method = transaction.payment_method;
+        const provider = (payment.provider || '').toUpperCase();
+
+        let contentHtml = '';
+
+        if (method === 'qris') {
+            // Tampilkan QR Code
+            const qrUrl = payment.qr_url || payment.pay_url;
+            contentHtml = `
+                <div class="text-center">
+                    <div class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                        📲 QRIS — ${provider}
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Scan QR Code di bawah ini dengan aplikasi e-wallet atau mobile banking Anda.</p>
+                    ${qrUrl 
+                        ? `<img src="${qrUrl}" alt="QR Code" class="mx-auto max-w-[250px] rounded-lg border-2 border-gray-200 shadow-md mb-4" onerror="this.outerHTML='<a href=\\'' + '${payment.pay_url}' + '\\'' + ' target=\\'_blank\\' class=\\'inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700\\'>Buka Halaman Pembayaran</a>'">`
+                        : `<a href="${payment.pay_url}" target="_blank" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 mb-4">Buka Halaman Pembayaran</a>`
+                    }
+                    <p class="text-xs text-gray-400">Total: <strong>${formatRupiah(transaction.total_amount)}</strong></p>
+                </div>
+            `;
+        } else if (method === 'transfer') {
+            // Tampilkan Virtual Account / Link Bayar
+            contentHtml = `
+                <div class="text-center">
+                    <div class="inline-flex items-center gap-2 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                        🏦 Transfer Bank — ${provider}
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Silakan transfer ke rekening berikut atau buka halaman pembayaran.</p>
+                    <div class="bg-gray-50 border rounded-xl p-4 mb-4">
+                        <p class="text-sm text-gray-500">Total Bayar</p>
+                        <p class="text-2xl font-bold text-gray-900">${formatRupiah(transaction.total_amount)}</p>
+                    </div>
+                    <a href="${payment.pay_url}" target="_blank" class="inline-block w-full px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 mb-2">Buka Halaman Pembayaran</a>
+                </div>
+            `;
+        } else {
+            // E-Wallet: Tampilkan link redirect
+            contentHtml = `
+                <div class="text-center">
+                    <div class="inline-flex items-center gap-2 bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                        📱 E-Wallet — ${provider}
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Pelanggan akan diarahkan ke aplikasi e-wallet untuk menyelesaikan pembayaran.</p>
+                    <div class="bg-gray-50 border rounded-xl p-4 mb-4">
+                        <p class="text-sm text-gray-500">Total Bayar</p>
+                        <p class="text-2xl font-bold text-gray-900">${formatRupiah(transaction.total_amount)}</p>
+                    </div>
+                    <a href="${payment.pay_url}" target="_blank" class="inline-block w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 mb-2">Buka Pembayaran</a>
+                </div>
+            `;
+        }
+
+        const expiredAt = payment.expired_at ? new Date(payment.expired_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : '-';
+
+        Swal.fire({
+            html: `
+                <div class="py-2">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-bold text-yellow-600">Menunggu Pembayaran...</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-5">Kode: ${transaction.transaction_code} · Batas: ${expiredAt}</p>
+                    ${contentHtml}
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: '🔄 Cek Status Bayar',
+            confirmButtonColor: '#3B82F6',
+            showCancelButton: true,
+            cancelButtonText: '⏳ Bayar Nanti',
+            cancelButtonColor: '#9CA3AF',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            width: 420,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                checkPaymentStatus(transaction.transaction_code);
+            } else {
+                // Bayar Nanti — tutup dan reset
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Pembayaran Tertunda',
+                    html: `<p class="text-sm">Transaksi <strong>${transaction.transaction_code}</strong> masih <span class="text-yellow-600 font-bold">pending</span>.</p><p class="text-xs text-gray-400 mt-2">Status akan otomatis berubah saat pelanggan membayar.</p>`,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3B82F6',
+                });
+                cart = [];
+                updateCartDisplay();
+                loadProducts();
+            }
+        });
+
+        // Auto-poll setiap 10 detik
+        if (pgCheckInterval) clearInterval(pgCheckInterval);
+        pgCheckInterval = setInterval(() => {
+            checkPaymentStatusSilent(transaction.transaction_code);
+        }, 10000);
+    }
+
+    async function checkPaymentStatus(transactionCode) {
+        Swal.fire({ title: 'Mengecek...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await fetch(`/pos/transaction/${transactionCode}/status`, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+            });
+            const data = await res.json();
+
+            if (data.status === 'completed') {
+                if (pgCheckInterval) clearInterval(pgCheckInterval);
+                Swal.fire({ icon: 'success', title: 'Pembayaran Berhasil! ✅', text: `Transaksi ${transactionCode} telah lunas.`, confirmButtonColor: '#10B981' });
+                cart = [];
+                updateCartDisplay();
+                loadProducts();
+            } else if (data.status === 'cancelled') {
+                if (pgCheckInterval) clearInterval(pgCheckInterval);
+                Swal.fire({ icon: 'error', title: 'Pembayaran Gagal', text: 'Transaksi ini telah dibatalkan atau expired.', confirmButtonColor: '#EF4444' });
+                cart = [];
+                updateCartDisplay();
+                loadProducts();
+            } else {
+                Swal.fire({
+                    icon: 'warning', title: 'Belum Dibayar',
+                    html: `<p class="text-sm">Status masih <strong class="text-yellow-600">pending</strong>.</p><p class="text-xs text-gray-400 mt-2">Mohon tunggu pelanggan menyelesaikan pembayaran.</p>`,
+                    confirmButtonText: '🔄 Cek Lagi',
+                    confirmButtonColor: '#3B82F6',
+                    showCancelButton: true,
+                    cancelButtonText: '⏳ Bayar Nanti',
+                    cancelButtonColor: '#9CA3AF',
+                }).then((result) => {
+                    if (result.isConfirmed) checkPaymentStatus(transactionCode);
+                    else {
+                        if (pgCheckInterval) clearInterval(pgCheckInterval);
+                        cart = []; updateCartDisplay(); loadProducts();
+                    }
+                });
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal mengecek status pembayaran.' });
+        }
+    }
+
+    async function checkPaymentStatusSilent(transactionCode) {
+        try {
+            const res = await fetch(`/pos/transaction/${transactionCode}/status`, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+            });
+            const data = await res.json();
+            if (data.status === 'completed') {
+                if (pgCheckInterval) clearInterval(pgCheckInterval);
+                Swal.fire({ icon: 'success', title: 'Pembayaran Berhasil! ✅', text: `Transaksi ${transactionCode} telah lunas.`, confirmButtonColor: '#10B981' });
+                cart = []; updateCartDisplay(); loadProducts();
+            } else if (data.status === 'cancelled') {
+                if (pgCheckInterval) clearInterval(pgCheckInterval);
+                Swal.fire({ icon: 'error', title: 'Pembayaran Expired', text: 'Transaksi ini telah expired.', confirmButtonColor: '#EF4444' });
+                cart = []; updateCartDisplay(); loadProducts();
+            }
+        } catch (e) { /* silent fail */ }
     }
 
     function resetProcessing() {

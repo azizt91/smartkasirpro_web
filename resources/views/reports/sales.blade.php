@@ -142,6 +142,21 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Point Discounts -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-5 border-l-4 border-yellow-500">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Potongan Poin</dt>
+                                <dd class="text-lg font-bold text-yellow-600">Rp {{ number_format($summary['total_points_discount'], 0, ',', '.') }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Transactions Cards -->
@@ -171,12 +186,18 @@
                                         <p class="text-lg font-bold text-green-600">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-sm space-y-1 text-gray-600">
+                                        <div class="flex justify-between"><p>Subtotal:</p> <p>Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</p></div>
+                                        <div class="flex justify-between"><p>Diskon Reguler:</p> <p class="text-orange-600">- Rp {{ number_format($transaction->discount, 0, ',', '.') }}</p></div>
+                                        @if($transaction->points_discount_amount > 0)
+                                        <div class="flex justify-between font-medium text-yellow-600"><p>Potongan Poin:</p> <p>- Rp {{ number_format($transaction->points_discount_amount, 0, ',', '.') }}</p></div>
+                                        @endif
+                                        <div class="flex justify-between"><p>Pajak:</p> <p>+ Rp {{ number_format($transaction->tax, 0, ',', '.') }}</p></div>
                                         @if($transaction->note)
-                                            <div class="bg-gray-50 p-2 rounded text-xs mb-2">
+                                            <div class="bg-gray-50 p-2 rounded text-xs mb-2 mt-2">
                                                 <span class="font-semibold">Ket:</span> {{ $transaction->note }}
                                             </div>
                                         @endif
-                                        <div class="flex justify-between mt-2 pt-2"><p>Kasir:</p> <p class="font-medium">{{ $transaction->user->name }}</p></div>
+                                        <div class="flex justify-between border-t mt-2 pt-2"><p>Kasir:</p> <p class="font-medium">{{ $transaction->user->name }}</p></div>
                                     </div>
                                 </div>
                             </div>
@@ -197,9 +218,11 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kasir</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Nota</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Potongan Poin</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Akhir</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pembayaran</th>
                                 </tr>
                             </thead>
@@ -209,13 +232,19 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $transaction->created_at->format('d/m/Y H:i') }}
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ $transaction->transaction_code }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $transaction->user->name }}
+                                            {{ $transaction->customer_name ?? 'Umum' }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-gray-500">
-                                            {{ $transaction->note ?? '-' }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                                            Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ $transaction->status == 'cancelled' ? 'text-gray-400 line-through' : 'text-green-600' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right {{ $transaction->points_discount_amount > 0 ? 'text-yellow-600 font-medium' : 'text-gray-500' }}">
+                                            Rp {{ number_format($transaction->points_discount_amount, 0, ',', '.') }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold {{ $transaction->status == 'cancelled' ? 'text-gray-400 line-through' : 'text-green-600' }}">
                                             Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -298,7 +327,8 @@
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <p class="font-bold text-gray-900 {{ $transaction->status == 'cancelled' ? 'line-through text-gray-500' : '' }}">{{ $transaction->transaction_code }}</p>
-                                        <p class="text-sm text-gray-500">{{ $transaction->created_at->format('d M Y, H:i') }}</p>
+                                        <p class="text-xs font-medium text-blue-600 mt-0.5"><svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>{{ $transaction->customer_name ?? 'Umum' }}</p>
+                                        <p class="text-sm text-gray-500 mt-1">{{ $transaction->created_at->format('d M Y, H:i') }}</p>
                                     </div>
                                     @if($transaction->status == 'cancelled')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">

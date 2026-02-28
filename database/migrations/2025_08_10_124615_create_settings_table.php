@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string('store_name')->default('Minimarket POS');
+            $table->string('store_name')->default('SmartKasir Pro');
             $table->string('store_address')->nullable();
             $table->string('store_phone')->nullable();
             $table->string('store_logo')->nullable();

@@ -92,6 +92,13 @@
                             <span>+ Rp {{ number_format($transaction->tax, 0, ',', '.') }}</span>
                         </div>
                         @endif
+                        
+                        @if($transaction->points_discount_amount > 0)
+                        <div class="flex justify-between text-sm text-yellow-600">
+                            <span>Diskon Poin ({{ number_format($transaction->points_redeemed, 0, ',', '.') }} pts)</span>
+                            <span>- Rp {{ number_format($transaction->points_discount_amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
 
                         <div class="border-t border-gray-300 pt-2 flex justify-between text-lg font-bold text-gray-900 mt-2">
                             <span>Total</span>
@@ -113,6 +120,15 @@
                         </span>
                     </div>
                 </div>
+                
+                @if($transaction->points_earned > 0)
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                     <div class="flex items-center space-x-2 text-yellow-700 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
+                         <span class="text-lg">⭐</span>
+                         <span class="text-sm font-medium">Pelanggan mendapatkan {{ number_format($transaction->points_earned, 0, ',', '.') }} Poin dari transaksi ini!</span>
+                     </div>
+                </div>
+                @endif
 
                 @if($transaction->note)
                 <div class="mt-4 pt-4 border-t border-gray-200">

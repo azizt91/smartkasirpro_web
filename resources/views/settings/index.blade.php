@@ -29,11 +29,19 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div class="md:col-span-2">
-                                <label for="store_phone" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
                                 <input type="text" id="store_phone" name="store_phone" value="{{ old('store_phone', $settings->store_phone) }}"
                                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                                        placeholder="(021) 123-4567">
                                 @error('store_phone')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="employee_label" class="block text-sm font-medium text-gray-700 mb-1">Label Sebutan Pegawai <span class="text-gray-500">(Maks 20 huruf)</span></label>
+                                <input type="text" id="employee_label" name="employee_label" value="{{ old('employee_label', $settings->employee_label ?? 'Pegawai') }}" maxlength="20"
+                                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="Mekanik untuk Bengkel, Kapster untuk Barber, Terapis untuk Spa">
+                                <p class="mt-1 text-xs text-gray-500">Label ini akan mengubah semua penamaan fitur jasa, struk, dan laporannya (Default: Pegawai).</p>
+                                @error('employee_label')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
                             </div>
 
                             <div class="md:col-span-2">
@@ -103,6 +111,213 @@ use Illuminate\Support\Facades\Storage;
                                 </div>
                                 @error('store_logo')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
                             </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">Program Loyalitas (Poin)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                            <div class="md:col-span-1">
+                                <label for="point_earning_rate" class="block text-sm font-medium text-gray-700 mb-1">Nilai Belanja per 1 Poin (Rp) <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">Rp</span>
+                                    </div>
+                                    <input type="number" id="point_earning_rate" name="point_earning_rate" value="{{ old('point_earning_rate', $settings->point_earning_rate ?? 10000) }}" min="1" required
+                                           class="w-full pl-10 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                           placeholder="10000">
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Contoh: 10000 (Pelanggan mendapat 1 poin setiap belanja kelipatan Rp 10.000)</p>
+                                @error('point_earning_rate')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div class="md:col-span-1">
+                                <label for="point_exchange_rate" class="block text-sm font-medium text-gray-700 mb-1">Nilai Tukar 1 Poin (Rp) <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">Rp</span>
+                                    </div>
+                                    <input type="number" id="point_exchange_rate" name="point_exchange_rate" value="{{ old('point_exchange_rate', $settings->point_exchange_rate ?? 100) }}" min="1" required
+                                           class="w-full pl-10 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                           placeholder="100">
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Contoh: 100 (1 Poin dapat ditukar diskon senilai Rp 100)</p>
+                                @error('point_exchange_rate')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div class="md:col-span-2 mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900">Aktifkan Fitur Poin</h3>
+                                    <p class="text-xs text-gray-500 mt-1">Matikan fitur ini jika toko tidak memerlukan sistem poin loyalitas.</p>
+                                </div>
+                                
+                                {{-- Menggunakan Alpine.js untuk kepastian Toggle Rendering UI --}}
+                                <div x-data="{ enabled: {{ old('enable_loyalty_points', $settings->enable_loyalty_points) ? 'true' : 'false' }} }" class="flex items-center">
+                                    <input type="hidden" name="enable_loyalty_points" :value="enabled ? '1' : '0'">
+                                    
+                                    <button 
+                                        type="button" 
+                                        @click="enabled = !enabled"
+                                        :class="enabled ? 'bg-indigo-600' : 'bg-gray-200'"
+                                        class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" 
+                                        role="switch" 
+                                        :aria-checked="enabled">
+                                        <span class="sr-only">Use loyalty points</span>
+                                        <span 
+                                            :class="enabled ? 'translate-x-7' : 'translate-x-0'"
+                                            class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ============================================= --}}
+                    {{-- PAYMENT GATEWAY SECTION --}}
+                    {{-- ============================================= --}}
+                    <div x-data="{ pgActive: '{{ old('pg_active', $settings->pg_active ?? 'none') }}' }">
+                        <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">
+                            <span class="inline-flex items-center gap-2">💳 Payment Gateway</span>
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mb-6">
+                            Integrasikan pembayaran digital (QRIS, Transfer Bank, E-Wallet) ke POS Anda. Pilih salah satu provider aktif.
+                        </p>
+
+                        {{-- Mode & Fee Bearer --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Mode Gateway</label>
+                                <select name="pg_mode" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                    <option value="sandbox" {{ old('pg_mode', $settings->pg_mode ?? 'sandbox') == 'sandbox' ? 'selected' : '' }}>🧪 Sandbox (Testing)</option>
+                                    <option value="production" {{ old('pg_mode', $settings->pg_mode ?? 'sandbox') == 'production' ? 'selected' : '' }}>🚀 Production (Live)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Biaya Admin Dibebankan Ke</label>
+                                <select name="pg_fee_bearer" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                    <option value="customer" {{ old('pg_fee_bearer', $settings->pg_fee_bearer ?? 'customer') == 'customer' ? 'selected' : '' }}>👤 Pelanggan</option>
+                                    <option value="merchant" {{ old('pg_fee_bearer', $settings->pg_fee_bearer ?? 'customer') == 'merchant' ? 'selected' : '' }}>🏪 Toko (Merchant)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Provider Selection Cards --}}
+                        <div class="space-y-4">
+                            {{-- NONE --}}
+                            <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all"
+                                   :class="pgActive === 'none' ? 'border-gray-400 bg-gray-50 ring-1 ring-gray-400' : 'border-gray-200 hover:border-gray-300'">
+                                <input type="radio" name="pg_active" value="none" x-model="pgActive"
+                                       class="text-gray-600 focus:ring-gray-500">
+                                <div>
+                                    <span class="font-medium text-gray-700">Nonaktif</span>
+                                    <p class="text-xs text-gray-500">Tidak menggunakan payment gateway digital</p>
+                                </div>
+                            </label>
+
+                            {{-- TRIPAY --}}
+                            <div class="border rounded-xl transition-all"
+                                 :class="pgActive === 'tripay' ? 'border-blue-400 bg-blue-50/30 ring-1 ring-blue-400' : 'border-gray-200 hover:border-gray-300'">
+                                <label class="flex items-center gap-3 p-4 cursor-pointer">
+                                    <input type="radio" name="pg_active" value="tripay" x-model="pgActive"
+                                           class="text-blue-600 focus:ring-blue-500">
+                                    <div class="flex-1">
+                                        <span class="font-semibold text-gray-900">Tripay</span>
+                                        <p class="text-xs text-gray-500">QRIS, Virtual Account, E-Wallet — <a href="https://tripay.co.id" target="_blank" class="text-blue-600 underline">tripay.co.id</a></p>
+                                    </div>
+                                </label>
+                                <div x-show="pgActive === 'tripay'" x-transition class="px-4 pb-4 pt-1 border-t border-blue-100 space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">API Key</label>
+                                        <input type="text" name="tripay_api_key" value="{{ old('tripay_api_key', $settings->tripay_api_key) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm font-mono"
+                                               placeholder="DEV-xxx...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Private Key</label>
+                                        <input type="password" name="tripay_private_key" value="{{ old('tripay_private_key', $settings->tripay_private_key) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm font-mono"
+                                               placeholder="xxx...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Merchant Code</label>
+                                        <input type="text" name="tripay_merchant_code" value="{{ old('tripay_merchant_code', $settings->tripay_merchant_code) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm font-mono"
+                                               placeholder="T12345">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- DUITKU --}}
+                            <div class="border rounded-xl transition-all"
+                                 :class="pgActive === 'duitku' ? 'border-green-400 bg-green-50/30 ring-1 ring-green-400' : 'border-gray-200 hover:border-gray-300'">
+                                <label class="flex items-center gap-3 p-4 cursor-pointer">
+                                    <input type="radio" name="pg_active" value="duitku" x-model="pgActive"
+                                           class="text-green-600 focus:ring-green-500">
+                                    <div class="flex-1">
+                                        <span class="font-semibold text-gray-900">Duitku</span>
+                                        <p class="text-xs text-gray-500">QRIS, Virtual Account, E-Wallet — <a href="https://duitku.com" target="_blank" class="text-green-600 underline">duitku.com</a></p>
+                                    </div>
+                                </label>
+                                <div x-show="pgActive === 'duitku'" x-transition class="px-4 pb-4 pt-1 border-t border-green-100 space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Merchant Code</label>
+                                        <input type="text" name="duitku_merchant_code" value="{{ old('duitku_merchant_code', $settings->duitku_merchant_code) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm font-mono"
+                                               placeholder="DXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">API Key</label>
+                                        <input type="password" name="duitku_api_key" value="{{ old('duitku_api_key', $settings->duitku_api_key) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm font-mono"
+                                               placeholder="xxx...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- MIDTRANS --}}
+                            <div class="border rounded-xl transition-all"
+                                 :class="pgActive === 'midtrans' ? 'border-yellow-400 bg-yellow-50/30 ring-1 ring-yellow-400' : 'border-gray-200 hover:border-gray-300'">
+                                <label class="flex items-center gap-3 p-4 cursor-pointer">
+                                    <input type="radio" name="pg_active" value="midtrans" x-model="pgActive"
+                                           class="text-yellow-600 focus:ring-yellow-500">
+                                    <div class="flex-1">
+                                        <span class="font-semibold text-gray-900">Midtrans</span>
+                                        <p class="text-xs text-gray-500">GoPay, ShopeePay, VA — <a href="https://midtrans.com" target="_blank" class="text-yellow-600 underline">midtrans.com</a></p>
+                                    </div>
+                                </label>
+                                <div x-show="pgActive === 'midtrans'" x-transition class="px-4 pb-4 pt-1 border-t border-yellow-100 space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Client Key</label>
+                                        <input type="text" name="midtrans_client_key" value="{{ old('midtrans_client_key', $settings->midtrans_client_key) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 text-sm font-mono"
+                                               placeholder="SB-Mid-client-xxx">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Server Key</label>
+                                        <input type="password" name="midtrans_server_key" value="{{ old('midtrans_server_key', $settings->midtrans_server_key) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 text-sm font-mono"
+                                               placeholder="SB-Mid-server-xxx">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Merchant ID</label>
+                                        <input type="text" name="midtrans_merchant_id" value="{{ old('midtrans_merchant_id', $settings->midtrans_merchant_id) }}"
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 text-sm font-mono"
+                                               placeholder="G123456789">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Webhook Info Box --}}
+                        <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p class="text-xs text-amber-800">
+                                <strong>ℹ️ Callback URL:</strong> Salin URL berikut ke dashboard provider Anda:<br>
+                                <code class="text-xs bg-amber-100 px-1 rounded">{{ url('/payment/callback/tripay') }}</code> (Tripay)<br>
+                                <code class="text-xs bg-amber-100 px-1 rounded">{{ url('/payment/callback/duitku') }}</code> (Duitku)<br>
+                                <code class="text-xs bg-amber-100 px-1 rounded">{{ url('/payment/callback/midtrans') }}</code> (Midtrans)
+                            </p>
                         </div>
                     </div>
 

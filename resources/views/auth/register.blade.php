@@ -10,7 +10,7 @@
                 </svg>
             </div>
             <h2 class="text-3xl font-bold text-gray-900 mb-2">Buat Akun Baru</h2>
-            <p class="text-gray-600">Daftar untuk mulai menggunakan Minimarket POS</p>
+            <p class="text-gray-600">Daftar untuk mulai menggunakan SmartKasir Pro</p>
         </div>
 
         <form method="POST" action="{{ route('register') }}" class="space-y-6">
