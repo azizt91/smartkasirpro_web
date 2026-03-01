@@ -56,24 +56,43 @@ class PaymentGatewayService
     /**
      * Buat transaksi pembayaran ke provider yang aktif.
      *
+     * @param Transaction $transaction
+     * @param string $method  Generic method: qris, transfer, ewallet
+     * @param string|null $channel  Specific channel code (e.g. BRIVA, OVO, DANA)
      * @return array{pay_url: string|null, qr_url: string|null, reference: string, expired_at: string}
      * @throws \Exception
      */
-    public function createTransaction(Transaction $transaction, string $method): array
+    public function createTransaction(Transaction $transaction, string $method, ?string $channel = null): array
     {
         $provider = $this->settings->pg_active;
 
         Log::info("[PaymentGateway] Creating {$provider} transaction", [
             'transaction_code' => $transaction->transaction_code,
             'method' => $method,
+            'channel' => $channel,
             'amount' => $transaction->total_amount,
         ]);
 
         return match ($provider) {
-            'tripay' => $this->createTripayTransaction($transaction, $method),
-            'duitku' => $this->createDuitkuTransaction($transaction, $method),
-            'midtrans' => $this->createMidtransTransaction($transaction, $method),
+            'tripay' => $this->createTripayTransaction($transaction, $method, $channel),
+            'duitku' => $this->createDuitkuTransaction($transaction, $method, $channel),
+            'midtrans' => $this->createMidtransTransaction($transaction, $method, $channel),
             default => throw new \Exception('Payment gateway tidak dikonfigurasi.'),
+        };
+    }
+
+    /**
+     * Daftar channel pembayaran yang tersedia per metode berdasarkan provider aktif.
+     */
+    public function getAvailableChannels(string $method): array
+    {
+        $provider = $this->settings->pg_active;
+
+        return match ($provider) {
+            'tripay' => $this->tripayChannels($method),
+            'duitku' => $this->duitkuChannels($method),
+            'midtrans' => $this->midtransChannels($method),
+            default => [],
         };
     }
 
@@ -98,8 +117,10 @@ class PaymentGatewayService
         };
     }
 
-    protected function tripayChannelCode(string $method): string
+    protected function tripayChannelCode(string $method, ?string $channel = null): string
     {
+        if ($channel) return strtoupper($channel);
+
         return match ($method) {
             'qris' => 'QRIS',
             'transfer' => 'BRIVA',
@@ -108,7 +129,33 @@ class PaymentGatewayService
         };
     }
 
-    protected function createTripayTransaction(Transaction $transaction, string $method): array
+    protected function tripayChannels(string $method): array
+    {
+        return match ($method) {
+            'ewallet' => [
+                ['code' => 'OVO', 'name' => 'OVO'],
+                ['code' => 'DANA', 'name' => 'DANA'],
+                ['code' => 'SHOPEEPAY', 'name' => 'ShopeePay'],
+                ['code' => 'LINKAJA', 'name' => 'LinkAja'],
+            ],
+            'transfer' => [
+                ['code' => 'BRIVA', 'name' => 'BRI Virtual Account'],
+                ['code' => 'BNIVA', 'name' => 'BNI Virtual Account'],
+                ['code' => 'MANDIRIVA', 'name' => 'Mandiri Virtual Account'],
+                ['code' => 'BCAVA', 'name' => 'BCA Virtual Account'],
+                ['code' => 'PERMATAVA', 'name' => 'Permata Virtual Account'],
+                ['code' => 'CIMBVA', 'name' => 'CIMB Niaga VA'],
+                ['code' => 'BSIVA', 'name' => 'BSI Virtual Account'],
+            ],
+            'qris' => [
+                ['code' => 'QRIS', 'name' => 'QRIS (Semua Aplikasi)'],
+                ['code' => 'QRISC', 'name' => 'QRIS (Customizable)'],
+            ],
+            default => [],
+        };
+    }
+
+    protected function createTripayTransaction(Transaction $transaction, string $method, ?string $channel = null): array
     {
         $apiKey = $this->settings->tripay_api_key;
         $privateKey = $this->settings->tripay_private_key;
@@ -118,7 +165,7 @@ class PaymentGatewayService
             throw new \Exception('Kredensial Tripay belum dikonfigurasi di Pengaturan.');
         }
 
-        $channelCode = $this->tripayChannelCode($method);
+        $channelCode = $this->tripayChannelCode($method, $channel);
         $merchantRef = $transaction->transaction_code;
         $amount = (int) $transaction->total_amount;
 
@@ -186,8 +233,10 @@ class PaymentGatewayService
         };
     }
 
-    protected function duitkuPaymentMethod(string $method): string
+    protected function duitkuPaymentMethod(string $method, ?string $channel = null): string
     {
+        if ($channel) return $channel;
+
         return match ($method) {
             'qris' => 'SP',       // ShopeePay QRIS
             'transfer' => 'VC',   // Permata VA (default)
@@ -196,7 +245,34 @@ class PaymentGatewayService
         };
     }
 
-    protected function createDuitkuTransaction(Transaction $transaction, string $method): array
+    protected function duitkuChannels(string $method): array
+    {
+        return match ($method) {
+            'ewallet' => [
+                ['code' => 'OV', 'name' => 'OVO'],
+                ['code' => 'DA', 'name' => 'DANA'],
+                ['code' => 'SA', 'name' => 'ShopeePay'],
+                ['code' => 'LA', 'name' => 'LinkAja'],
+            ],
+            'transfer' => [
+                ['code' => 'VC', 'name' => 'Permata Virtual Account'],
+                ['code' => 'BC', 'name' => 'BCA Virtual Account'],
+                ['code' => 'M2', 'name' => 'Mandiri Virtual Account'],
+                ['code' => 'VA', 'name' => 'Maybank Virtual Account'],
+                ['code' => 'BT', 'name' => 'Permata Bank Transfer'],
+                ['code' => 'I1', 'name' => 'BNI Virtual Account'],
+                ['code' => 'B1', 'name' => 'CIMB Niaga VA'],
+                ['code' => 'A1', 'name' => 'ATM Bersama'],
+            ],
+            'qris' => [
+                ['code' => 'SP', 'name' => 'QRIS / ShopeePay'],
+                ['code' => 'LQ', 'name' => 'QRIS / DANA'],
+            ],
+            default => [],
+        };
+    }
+
+    protected function createDuitkuTransaction(Transaction $transaction, string $method, ?string $channel = null): array
     {
         $merchantCode = $this->settings->duitku_merchant_code;
         $apiKey = $this->settings->duitku_api_key;
@@ -207,7 +283,7 @@ class PaymentGatewayService
 
         $merchantOrderId = $transaction->transaction_code;
         $paymentAmount = (int) $transaction->total_amount;
-        $paymentMethod = $this->duitkuPaymentMethod($method);
+        $paymentMethod = $this->duitkuPaymentMethod($method, $channel);
 
         // Duitku Signature: md5(merchantCode + merchantOrderId + paymentAmount + apiKey)
         $signature = md5($merchantCode . $merchantOrderId . $paymentAmount . $apiKey);
@@ -265,8 +341,10 @@ class PaymentGatewayService
         };
     }
 
-    protected function midtransEnabledPayments(string $method): array
+    protected function midtransEnabledPayments(string $method, ?string $channel = null): array
     {
+        if ($channel) return [$channel];
+
         return match ($method) {
             'qris' => ['gopay', 'shopeepay'],
             'transfer' => ['bank_transfer', 'echannel', 'permata_va'],
@@ -275,7 +353,27 @@ class PaymentGatewayService
         };
     }
 
-    protected function createMidtransTransaction(Transaction $transaction, string $method): array
+    protected function midtransChannels(string $method): array
+    {
+        return match ($method) {
+            'ewallet' => [
+                ['code' => 'gopay', 'name' => 'GoPay'],
+                ['code' => 'shopeepay', 'name' => 'ShopeePay'],
+            ],
+            'transfer' => [
+                ['code' => 'bank_transfer', 'name' => 'Bank Transfer (BCA/BNI/BRI)'],
+                ['code' => 'echannel', 'name' => 'Mandiri Bill Payment'],
+                ['code' => 'permata_va', 'name' => 'Permata Virtual Account'],
+            ],
+            'qris' => [
+                ['code' => 'gopay', 'name' => 'QRIS (GoPay)'],
+                ['code' => 'shopeepay', 'name' => 'QRIS (ShopeePay)'],
+            ],
+            default => [],
+        };
+    }
+
+    protected function createMidtransTransaction(Transaction $transaction, string $method, ?string $channel = null): array
     {
         $serverKey = $this->settings->midtrans_server_key;
 
@@ -293,7 +391,7 @@ class PaymentGatewayService
                 'email' => 'pos@store.local',
                 'phone' => '08000000000',
             ],
-            'enabled_payments' => $this->midtransEnabledPayments($method),
+            'enabled_payments' => $this->midtransEnabledPayments($method, $channel),
             'callbacks' => [
                 'finish' => url('/pos'),
             ],

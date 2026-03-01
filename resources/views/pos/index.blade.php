@@ -383,9 +383,18 @@
                         <option value="utang">📝 Utang</option>
                         <option value="card">💳 Kartu</option>
                         <option value="ewallet">📱 E-Wallet</option>
-                        <option value="transfer">🏦 Transfer</option>
+                        <option value="transfer">🏦 Transfer Bank</option>
                         <option value="qris">📲 QRIS</option>
                     </select>
+                </div>
+
+                <!-- Channel Selector Placeholder -->
+                <div id="channel-selector-container" class="hidden mt-3">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Pilih Provider</label>
+                    <div id="channel-selector-grid" class="grid grid-cols-2 gap-2">
+                        <!-- Channels rendered here -->
+                    </div>
+                    <input type="hidden" id="payment-channel" value="">
                 </div>
             </div>
             
@@ -798,6 +807,85 @@
     }
 
     function startScanner() {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", { fps: 10, qrbox: 250 });
+            
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+        
+        // Cekap scanner sebentar agar tidak kepencet berkali-kali
+        html5QrcodeScanner.pause();
+
+        // Masukkan text ke form pencarian
+        const searchInput = document.getElementById('product-search');
+        searchInput.value = decodedText;
+        
+        // Trigger pencarian
+        currentPage = 1;
+        loadProducts().then(() => {
+            // Check if exact match variant/group logic needed, backend handles barcode search.
+            // If strictly 1 result and it's a single product, it auto-adds (logic in loadProducts).
+            
+            // Resume scanner setelah 1.5 detik
+            setTimeout(() => {
+                if(html5QrcodeScanner) html5QrcodeScanner.resume();
+            }, 1500);
+        });
+        
+        // Opsional: Tutup modal otomatis setelah scan sukses (tergantung preferensi user)
+        // closeScannerModal(); 
+    }
+
+    // === PAYMENT CHANNEL UI ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethodSelect = document.getElementById('payment-method');
+        if (paymentMethodSelect) {
+            paymentMethodSelect.addEventListener('change', async function() {
+                const method = this.value;
+                const channelContainer = document.getElementById('channel-selector-container');
+                const channelGrid = document.getElementById('channel-selector-grid');
+                const channelInput = document.getElementById('payment-channel');
+                
+                channelInput.value = ''; // Reset
+                channelGrid.innerHTML = '';
+                
+                if (DIGITAL_METHODS.includes(method)) {
+                    channelContainer.classList.remove('hidden');
+                    channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-gray-500 py-2 pb-4">Memuat provider...</div>';
+                    
+                    try {
+                        const response = await fetch(`/pos/payment-channels?method=${method}`);
+                        const res = await response.json();
+                        
+                        if (res.success && res.data.length > 0) {
+                            channelGrid.innerHTML = res.data.map(ch => `
+                                <div onclick="selectPaymentChannel('${ch.code}', this)" class="channel-option cursor-pointer border rounded-lg p-2 text-center text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-500 transition-colors bg-white">
+                                    ${ch.name}
+                                </div>
+                            `).join('');
+                        } else {
+                            channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-red-500 py-2">Provider tidak tersedia / belum dikonfigurasi.</div>';
+                        }
+                    } catch (e) {
+                        channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-red-500 py-2">Gagal memuat provider.</div>';
+                    }
+                } else {
+                    channelContainer.classList.add('hidden');
+                }
+            });
+        }
+    });
+
+    function selectPaymentChannel(code, el) {
+        document.getElementById('payment-channel').value = code;
+        document.querySelectorAll('.channel-option').forEach(el => el.classList.remove('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-200'));
+        el.classList.add('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-200');
+    }
         if (html5QrcodeScanner) {
             // Already running
             return;
@@ -1254,6 +1342,7 @@
         const total = Math.max(0, subtotal - discount + tax);
 
         const paymentMethod = document.getElementById('payment-method').value;
+        const paymentChannel = document.getElementById('payment-channel') ? document.getElementById('payment-channel').value : '';
         const isDigital = DIGITAL_METHODS.includes(paymentMethod);
 
         // Untuk digital payment, amount_paid = total (otomatis)
@@ -1261,11 +1350,13 @@
         
         if (cart.length === 0) { resetProcessing(); return alert('Keranjang kosong!'); }
         if (!paymentMethod) { resetProcessing(); return alert('Pilih metode pembayaran!'); }
+        if (isDigital && !paymentChannel) { resetProcessing(); return alert('Pilih provider pembayaran (E-Wallet/Bank/dll)!'); }
         if (!isDigital && amountPaid < total) { resetProcessing(); return alert('Jumlah bayar kurang!'); }
 
         const transactionData = {
             items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price, employee_id: item.employee_id })),
             payment_method: paymentMethod,
+            payment_channel: paymentChannel,
             amount_paid: amountPaid,
             customer_name: document.getElementById('customer-name').value || 'Umum',
             discount: discount,

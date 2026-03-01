@@ -210,7 +210,7 @@ class PosController extends Controller
 
             // === PAYMENT GATEWAY LOGIC ===
             if ($isDigitalPayment) {
-                $pgResult = $pgService->createTransaction($transaction, $request->payment_method);
+                $pgResult = $pgService->createTransaction($transaction, $request->payment_method, $request->payment_channel);
                 $transaction->update([
                     'pg_provider' => $storeSettings->pg_active,
                     'pg_reference' => $pgResult['reference'],

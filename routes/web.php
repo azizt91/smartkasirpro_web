@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/search', [PosController::class, 'searchProducts'])->name('pos.search');
         Route::post('/pos/transaction', [PosController::class, 'store'])->name('pos.transaction');
         Route::get('/pos/transaction/{code}/status', [PosController::class, 'checkStatus'])->name('pos.transaction.status');
+        Route::get('/pos/payment-channels', [PosController::class, 'paymentChannels'])->name('pos.payment-channels');
     });
 
 

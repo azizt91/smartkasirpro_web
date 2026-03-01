@@ -422,7 +422,7 @@ class PosController extends Controller
             // === PAYMENT GATEWAY LOGIC ===
             if ($isDigitalPayment) {
                 // Panggil payment gateway API untuk mendapatkan URL pembayaran
-                $pgResult = $pgService->createTransaction($transaction, $request->payment_method);
+                $pgResult = $pgService->createTransaction($transaction, $request->payment_method, $request->payment_channel);
                 $transaction->update([
                     'pg_provider' => $storeSettings->pg_active,
                     'pg_reference' => $pgResult['reference'],
@@ -502,6 +502,21 @@ class PosController extends Controller
             'status' => $transaction->status,
             'transaction_code' => $transaction->transaction_code,
             'pg_provider' => $transaction->pg_provider,
+        ]);
+    }
+
+    public function paymentChannels(Request $request, PaymentGatewayService $pgService)
+    {
+        $method = $request->query('method');
+        if (!$method || !in_array($method, ['ewallet', 'transfer', 'qris'])) {
+            return response()->json(['success' => false, 'message' => 'Invalid method']);
+        }
+
+        $channels = $pgService->getAvailableChannels($method);
+
+        return response()->json([
+            'success' => true,
+            'data' => $channels
         ]);
     }
 }
