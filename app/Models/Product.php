@@ -141,7 +141,7 @@ class Product extends Model
      */
     public function scopeLowStock($query)
     {
-        return $query->whereColumn('stock', '<=', 'minimum_stock');
+        return $query->where('type', '!=', 'jasa')->whereColumn('stock', '<=', 'minimum_stock');
     }
 
     /**
