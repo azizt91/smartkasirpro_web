@@ -46,7 +46,7 @@ class ReportController extends BaseController
             'year_sales' => Transaction::where('status', 'completed')->where('payment_method', '!=', 'utang')->where('created_at', '>=', $thisYear)->sum('total_amount'),
             'year_transactions' => Transaction::where('status', 'completed')->where('created_at', '>=', $thisYear)->count(),
             'total_products' => Product::count(),
-            'low_stock_products' => Product::whereRaw('stock <= minimum_stock')->count(),
+            'low_stock_products' => Product::where('type', '!=', 'jasa')->whereRaw('stock <= minimum_stock')->count(),
             'total_categories' => Category::count(),
             'total_users' => User::count(),
         ];
@@ -86,6 +86,7 @@ class ReportController extends BaseController
 
         // Low stock products
         $lowStockProducts = Product::with('category')
+            ->where('type', '!=', 'jasa')
             ->whereRaw('stock <= minimum_stock')
             ->orderBy('stock', 'asc')
             ->take(10)
@@ -196,7 +197,7 @@ class ReportController extends BaseController
                 return $product->stock * $product->selling_price;
             }),
             'low_stock_count' => $products->filter(function($product) {
-                return $product->stock <= $product->minimum_stock;
+                return $product->type !== 'jasa' && $product->stock <= $product->minimum_stock;
             })->count(),
         ];
 
@@ -224,10 +225,10 @@ class ReportController extends BaseController
 
         switch ($status) {
             case 'low':
-                $query->whereRaw('stock <= minimum_stock AND stock > 0');
+                $query->where('type', '!=', 'jasa')->whereRaw('stock <= minimum_stock AND stock > 0');
                 break;
             case 'out':
-                $query->where('stock', 0);
+                $query->where('type', '!=', 'jasa')->where('stock', 0);
                 break;
             default:
                 // all products
@@ -238,8 +239,8 @@ class ReportController extends BaseController
 
         $summary = [
             'total_products' => Product::count(),
-            'low_stock_products' => Product::whereRaw('stock <= minimum_stock AND stock > 0')->count(),
-            'out_of_stock_products' => Product::where('stock', 0)->count(),
+            'low_stock_products' => Product::where('type', '!=', 'jasa')->whereRaw('stock <= minimum_stock AND stock > 0')->count(),
+            'out_of_stock_products' => Product::where('type', '!=', 'jasa')->where('stock', 0)->count(),
             'normal_stock_products' => Product::whereRaw('stock > minimum_stock')->count(),
         ];
 
