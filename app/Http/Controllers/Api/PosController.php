@@ -230,7 +230,7 @@ class PosController extends Controller
                             'pay_url' => $pgResult['pay_url'] ?? $pgResult['qr_url'] ?? null,
                             'expired_at' => $pgResult['expired_at'] ?? null,
                         ]
-                    );
+                    )->onConnection('sync');
                 }
 
                 return response()->json([

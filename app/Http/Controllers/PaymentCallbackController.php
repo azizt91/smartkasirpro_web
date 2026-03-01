@@ -246,7 +246,7 @@ class PaymentCallbackController extends Controller
             }
 
             if ($customerId) {
-                SendWhatsappNotification::dispatch('success', $transaction->id, $customerId);
+                SendWhatsappNotification::dispatch('success', $transaction->id, $customerId)->onConnection('sync');
             }
         }
     }
