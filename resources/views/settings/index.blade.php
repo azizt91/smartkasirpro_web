@@ -321,6 +321,93 @@ use Illuminate\Support\Facades\Storage;
                         </div>
                     </div>
 
+                    {{-- ============================================= --}}
+                    {{-- WHATSAPP GATEWAY (FONNTE) SECTION --}}
+                    {{-- ============================================= --}}
+                    <div x-data="{ 
+                        waEnabled: {{ old('enable_wa_notification', $settings->enable_wa_notification ?? false) ? 'true' : 'false' }},
+                        testLoading: false,
+                        testResult: null 
+                    }">
+                        <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">
+                            <span class="inline-flex items-center gap-2">💬 WhatsApp Gateway (Fonnte)</span>
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mb-6">
+                            Kirim notifikasi otomatis ke WhatsApp pelanggan saat transaksi digital pending dan setelah pembayaran berhasil.
+                            Daftar akun di <a href="https://fonnte.com" target="_blank" class="text-green-600 underline font-medium">fonnte.com</a>.
+                        </p>
+
+                        {{-- Toggle Enable --}}
+                        <div class="mb-6 flex items-center justify-between p-4 bg-green-50/50 border border-green-100 rounded-xl">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Aktifkan Notifikasi WhatsApp</h3>
+                                <p class="text-xs text-gray-500 mt-1">Pesan WA otomatis dikirim saat transaksi Payment Gateway pending & berhasil.</p>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="hidden" name="enable_wa_notification" :value="waEnabled ? '1' : '0'">
+                                <button 
+                                    type="button" 
+                                    @click="waEnabled = !waEnabled"
+                                    :class="waEnabled ? 'bg-green-600' : 'bg-gray-200'"
+                                    class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2" 
+                                    role="switch" 
+                                    :aria-checked="waEnabled">
+                                    <span class="sr-only">Enable WA Notification</span>
+                                    <span 
+                                        :class="waEnabled ? 'translate-x-7' : 'translate-x-0'"
+                                        class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Token Input --}}
+                        <div x-show="waEnabled" x-transition class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Fonnte API Token</label>
+                                <input type="password" name="fonnte_token" id="fonnte_token"
+                                       value="{{ old('fonnte_token', $settings->fonnte_token) }}"
+                                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm font-mono"
+                                       placeholder="Masukkan token dari dashboard Fonnte...">
+                                <p class="mt-1 text-xs text-gray-500">Dapatkan token di menu <strong>Device</strong> pada dashboard <a href="https://md.fonnte.com" target="_blank" class="text-green-600 underline">md.fonnte.com</a></p>
+                                @error('fonnte_token')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+
+                            {{-- Test Connection Button --}}
+                            <div class="flex items-center gap-3">
+                                <button type="button"
+                                        @click="testWaConnection()"
+                                        :disabled="testLoading"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait transition-all shadow-sm">
+                                    <template x-if="testLoading">
+                                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                    </template>
+                                    <template x-if="!testLoading">
+                                        <span>📡</span>
+                                    </template>
+                                    <span x-text="testLoading ? 'Mengecek...' : 'Test Koneksi WA'"></span>
+                                </button>
+
+                                <template x-if="testResult !== null">
+                                    <span :class="testResult.success ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium" x-text="testResult.success ? '✅ ' + testResult.detail : '❌ ' + testResult.detail"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Info Box --}}
+                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg" x-show="waEnabled" x-transition>
+                            <p class="text-xs text-green-800">
+                                <strong>ℹ️ Catatan:</strong> Notifikasi WA hanya dikirim ke pelanggan yang terdaftar dengan nomor HP. 
+                                Pelanggan berkategori "Umum" atau tanpa nomor HP akan otomatis dilewati (skip). 
+                                Pastikan <strong>Laravel Queue</strong> aktif: <code class="bg-green-100 px-1 rounded">php artisan queue:work</code>
+                            </p>
+                        </div>
+                    </div>
+
                     
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">Printer Struk</h2>
@@ -505,6 +592,39 @@ use Illuminate\Support\Facades\Storage;
     function resetPrinterPref() {
         localStorage.removeItem('pos_printer_preference');
         alert('✅ Preferensi printer di-reset. Dialog pilih printer akan muncul lagi.');
+    }
+
+    // WhatsApp Test Connection
+    async function testWaConnection() {
+        const token = document.getElementById('fonnte_token').value;
+        if (!token) {
+            alert('Masukkan token Fonnte terlebih dahulu.');
+            return;
+        }
+
+        // Get Alpine.js data scope
+        const el = document.querySelector('[x-data*="waEnabled"]');
+        const scope = Alpine.$data(el);
+        scope.testLoading = true;
+        scope.testResult = null;
+
+        try {
+            const response = await fetch('{{ route("settings.test-whatsapp") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ fonnte_token: token }),
+            });
+            const data = await response.json();
+            scope.testResult = data;
+        } catch (error) {
+            scope.testResult = { success: false, detail: 'Network error: ' + error.message };
+        } finally {
+            scope.testLoading = false;
+        }
     }
 </script>
 @endsection

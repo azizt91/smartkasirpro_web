@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Services\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,9 @@ class SettingController extends Controller
             'midtrans_client_key' => 'nullable|string|max:500',
             'midtrans_server_key' => 'nullable|string|max:500',
             'midtrans_merchant_id' => 'nullable|string|max:100',
+            // WhatsApp Notification (Fonnte)
+            'fonnte_token' => 'nullable|string|max:500',
+            'enable_wa_notification' => 'nullable|boolean',
         ]);
 
         $data = $request->only([
@@ -58,8 +62,11 @@ class SettingController extends Controller
             'tripay_api_key', 'tripay_private_key', 'tripay_merchant_code',
             'duitku_merchant_code', 'duitku_api_key',
             'midtrans_client_key', 'midtrans_server_key', 'midtrans_merchant_id',
+            // WhatsApp
+            'fonnte_token',
         ]);
         $data['enable_loyalty_points'] = $request->has('enable_loyalty_points');
+        $data['enable_wa_notification'] = $request->has('enable_wa_notification');
         $data['pg_active'] = $data['pg_active'] ?? 'none';
 
         // Handle logo upload
@@ -82,4 +89,16 @@ class SettingController extends Controller
             ->with('success', 'Pengaturan berhasil disimpan');
     }
 
+    /**
+     * Test WhatsApp connection via Fonnte API.
+     */
+    public function testWhatsapp(Request $request)
+    {
+        $request->validate(['fonnte_token' => 'required|string']);
+
+        $service = new WhatsappService($request->fonnte_token);
+        $result = $service->testConnection();
+
+        return response()->json($result);
+    }
 }

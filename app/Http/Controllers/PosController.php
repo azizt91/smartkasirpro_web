@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Services\PaymentGatewayService;
+use App\Jobs\SendWhatsappNotification;
+use App\Services\WhatsappService;
 
 class PosController extends Controller
 {
@@ -429,6 +431,19 @@ class PosController extends Controller
                 ]);
 
                 DB::commit();
+
+                // Dispatch WA notification for pending digital payment (outside DB transaction)
+                if (WhatsappService::isEnabled() && $customer) {
+                    SendWhatsappNotification::dispatch(
+                        'pending',
+                        $transaction->id,
+                        $customer->id,
+                        [
+                            'pay_url' => $pgResult['pay_url'] ?? $pgResult['qr_url'] ?? null,
+                            'expired_at' => $pgResult['expired_at'] ?? null,
+                        ]
+                    );
+                }
 
                 return response()->json([
                     'success' => true,

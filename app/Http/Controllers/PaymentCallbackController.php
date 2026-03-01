@@ -9,6 +9,8 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\SendWhatsappNotification;
+use App\Services\WhatsappService;
 
 class PaymentCallbackController extends Controller
 {
@@ -233,5 +235,19 @@ class PaymentCallbackController extends Controller
                 Log::error('[PaymentCallback] Notification error: ' . $e->getMessage());
             }
         });
+
+        // Dispatch WA success notification (outside DB transaction)
+        if (WhatsappService::isEnabled()) {
+            // Look up customer by name
+            $customerId = null;
+            if ($transaction->customer_name && $transaction->customer_name !== 'Umum') {
+                $customer = \App\Models\Customer::where('name', $transaction->customer_name)->first();
+                $customerId = $customer?->id;
+            }
+
+            if ($customerId) {
+                SendWhatsappNotification::dispatch('success', $transaction->id, $customerId);
+            }
+        }
     }
 }

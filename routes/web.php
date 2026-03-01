@@ -23,6 +23,9 @@ Route::post('/payment/callback/tripay', [\App\Http\Controllers\PaymentCallbackCo
 Route::post('/payment/callback/duitku', [\App\Http\Controllers\PaymentCallbackController::class, 'duitku'])->name('payment.callback.duitku');
 Route::post('/payment/callback/midtrans', [\App\Http\Controllers\PaymentCallbackController::class, 'midtrans'])->name('payment.callback.midtrans');
 
+// Public Digital Receipt (no auth required — shared via WhatsApp)
+Route::get('/receipt/{code}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipt.public');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -102,6 +105,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/test-whatsapp', [SettingController::class, 'testWhatsapp'])->name('settings.test-whatsapp');
     });
 });
 

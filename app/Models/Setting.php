@@ -29,6 +29,9 @@ class Setting extends Model
         'midtrans_client_key',
         'midtrans_server_key',
         'midtrans_merchant_id',
+        // WhatsApp Notification (Fonnte)
+        'fonnte_token',
+        'enable_wa_notification',
     ];
 
     /**
