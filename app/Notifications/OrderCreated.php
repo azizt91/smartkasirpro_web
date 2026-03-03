@@ -37,6 +37,8 @@ class OrderCreated extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $this->transaction->loadMissing('table');
+        
         $total = number_format($this->transaction->total_amount, 0, ',', '.');
         $itemCount = $this->transaction->items->count();
         $itemsStr = $this->transaction->items->take(2)->map(function ($item) {
@@ -47,9 +49,24 @@ class OrderCreated extends Notification
             $itemsStr .= ", +".($itemCount - 2)." lainnya";
         }
 
+        $title = 'Pesanan Baru Masuk 💰';
+        $body = "Rp {$total} - {$itemsStr}";
+
+        if ($this->transaction->is_self_order) {
+            $tableName = $this->transaction->table ? $this->transaction->table->nama_meja : '-';
+            $custName = $this->transaction->customer_name ?: 'Pelanggan';
+            $title = "[Meja {$tableName}] {$custName}";
+
+            $paymentInfo = $this->transaction->payment_status === 'paid' 
+                ? "LUNAS (" . strtoupper($this->transaction->payment_method) . ")" 
+                : "BAYAR NANTI/KASIR";
+                
+            $body = "{$paymentInfo} • Rp {$total}\n{$itemsStr}";
+        }
+
         return [
-            'title' => 'Pesanan Baru Masuk 💰',
-            'body' => "Rp {$total} - {$itemsStr}",
+            'title' => $title,
+            'body' => $body,
             'transaction_id' => $this->transaction->id,
             'type' => 'order_created',
         ];
@@ -60,6 +77,8 @@ class OrderCreated extends Notification
      */
     public function toFcm(object $notifiable)
     {
+        $this->transaction->loadMissing('table');
+        
         $total = number_format($this->transaction->total_amount, 0, ',', '.');
         $itemCount = $this->transaction->items->count();
         // Summary items: "Kopi (x2), Roti (x1)..."
@@ -71,9 +90,28 @@ class OrderCreated extends Notification
             $itemsStr .= ", +".($itemCount - 2)." lainnya";
         }
 
+        $title = 'Pesanan Baru: Rp ' . $total;
+        $body = $itemsStr;
+
+        // Customization for Self Order (Resto Mode)
+        if ($this->transaction->is_self_order) {
+            $tableName = $this->transaction->table ? $this->transaction->table->nama_meja : '-';
+            $custName = $this->transaction->customer_name ?: 'Pelanggan';
+            $title = "[Meja {$tableName}] {$custName}";
+
+            // Payment info
+            if ($this->transaction->payment_status === 'paid') {
+                $paymentInfo = "LUNAS (" . strtoupper($this->transaction->payment_method) . ")";
+            } else {
+                $paymentInfo = "BAYAR NANTI (KASIR)";
+            }
+            
+            $body = "{$paymentInfo} • Rp {$total}\n📋 {$itemsStr}";
+        }
+
         return [
-            'title' => 'Pesanan Baru: Rp ' . $total,
-            'body' => $itemsStr,
+            'title' => $title,
+            'body' => $body,
             'data' => [
                 'transaction_id' => (string) $this->transaction->id,
                 'type' => 'order_created',
