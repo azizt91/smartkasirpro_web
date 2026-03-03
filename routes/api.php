@@ -58,6 +58,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/expenses/{id}', [\App\Http\Controllers\Api\ExpenseController::class, 'update']);
     Route::delete('/expenses/{id}', [\App\Http\Controllers\Api\ExpenseController::class, 'destroy']);
 
+    // Tables
+    Route::get('/tables', [\App\Http\Controllers\Api\TableController::class, 'index']);
+    Route::post('/tables', [\App\Http\Controllers\Api\TableController::class, 'store']);
+    Route::put('/tables/{id}', [\App\Http\Controllers\Api\TableController::class, 'update']);
+    Route::delete('/tables/{id}', [\App\Http\Controllers\Api\TableController::class, 'destroy']);
+    Route::post('/tables/{id}/clear', [\App\Http\Controllers\Api\TableController::class, 'clear']);
+
     // Customers
     Route::get('/customers', [\App\Http\Controllers\Api\CustomerController::class, 'index']);
     Route::post('/customers', [\App\Http\Controllers\Api\CustomerController::class, 'store']);
