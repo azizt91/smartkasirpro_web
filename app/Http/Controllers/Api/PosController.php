@@ -269,7 +269,6 @@ class PosController extends Controller
     public function getPendingOrders()
     {
         $orders = Transaction::with(['items', 'table'])
-            ->where('is_self_order', true)
             ->whereNotIn('status', ['cancelled', 'void'])
             ->where(function ($q) {
                 // Tampilkan jika dapur belum selesai (pending/processing) ATAU kasir belum bayar (unpaid)
@@ -313,7 +312,6 @@ class PosController extends Controller
     public function getKitchenOrders()
     {
         $orders = Transaction::with(['items', 'table'])
-            ->where('is_self_order', true)
             ->whereIn('order_status', ['pending', 'processing'])
             ->orderBy('created_at', 'ASC')
             ->get()->map(function($t) {

@@ -25,7 +25,8 @@ class PosController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get();
         $employees = \App\Models\Employee::where('status', 'active')->orderBy('name')->get();
         $storeSettings = \App\Models\Setting::getStoreSettings(); // Tambahkan ini
-        return view('pos.index', compact('categories', 'customers', 'employees', 'storeSettings'));
+        $tables = \App\Models\Table::orderBy('nama_meja')->get();
+        return view('pos.index', compact('categories', 'customers', 'employees', 'storeSettings', 'tables'));
     }
 
     /**
@@ -176,6 +177,116 @@ class PosController extends Controller
     }
 
     /**
+     * RESTO MODE: Tampilan Kitchen (Dapur)
+     */
+    public function kitchen()
+    {
+        $settings = \App\Models\Setting::getStoreSettings();
+        if ($settings->business_mode !== 'resto') {
+            return redirect()->route('dashboard')->with('error', 'Fitur Kitchen View hanya tersedia di mode Resto');
+        }
+        return view('pos.kitchen', compact('settings'));
+    }
+
+    /**
+     * RESTO MODE: Fetch Pending/Processing Orders for Kitchen
+     */
+    public function getKitchenOrders()
+    {
+        $orders = Transaction::with(['items', 'table'])
+            ->whereIn('order_status', ['pending', 'processing'])
+            ->orderBy('created_at', 'ASC')
+            ->get()->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'transaction_code' => $t->transaction_code,
+                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'order_status' => $t->order_status,
+                    'time_ago' => $t->created_at->diffForHumans(),
+                    'items' => $t->items->map(function($i) {
+                        return [
+                            'name' => $i->product_name,
+                            'qty' => $i->quantity,
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json($orders);
+    }
+    
+    /**
+     * RESTO MODE: Update Kitchen Order Status
+     */
+    public function updateOrderStatus(Request $request, $code)
+    {
+        $transaction = Transaction::where('transaction_code', $code)->firstOrFail();
+        $status = $request->get('status');
+        
+        if (in_array($status, ['pending', 'processing', 'completed', 'cancelled'])) {
+            $updateData = ['order_status' => $status];
+            if ($status === 'cancelled') {
+                $updateData['status'] = 'cancelled';
+            }
+            $transaction->update($updateData);
+            
+            // Note: If marked as completed by kitchen/cashier, and payment is done, 
+            // trigger observer logic if not already triggered (Phase 5 check)
+            
+            // Update table status if completed or cancelled
+            if (in_array($status, ['completed', 'cancelled'])) {
+                if ($transaction->table_id) {
+                    $table = \App\Models\Table::find($transaction->table_id);
+                    if ($table) {
+                        $table->update(['status' => 'available']);
+                    }
+                }
+            }
+        }
+        
+        return response()->json(['success' => true]);
+    }
+    public function getPendingOrders()
+    {
+        $orders = Transaction::with(['items', 'table'])
+            ->whereNotIn('status', ['cancelled', 'void'])
+            ->where(function ($q) {
+                // Tampilkan jika dapur belum selesai (pending/processing) ATAU kasir belum bayar (unpaid)
+                $q->whereIn('order_status', ['pending', 'processing'])
+                  ->orWhere('payment_status', 'unpaid');
+            })
+            ->orderBy('created_at', 'ASC')
+            ->get()->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'transaction_code' => $t->transaction_code,
+                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'customer_name' => $t->customer_name,
+                    'order_status' => $t->order_status,
+                    'payment_status' => $t->payment_status,
+                    'payment_method' => $t->payment_method,
+                    'time_ago' => $t->created_at->diffForHumans(),
+                    'total_amount' => $t->total_amount,
+                    'items_summary' => $t->items->map(function($i) {
+                        return "{$i->quantity}x {$i->product_name}";
+                    })->join(', '),
+                    'items' => $t->items->map(function($i) {
+                        return [
+                            'id' => $i->product_id,
+                            'name' => $i->product_name,
+                            'price' => $i->price,
+                            'qty' => $i->quantity,
+                            'type' => $i->type ?? 'barang',
+                            'image' => '' // Can be populated if needed
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json($orders);
+    }
+
+    /**
      * Show product search results for POS.
      */
     public function show(Request $request)
@@ -305,9 +416,16 @@ class PosController extends Controller
             // === Fee Payment Gateway ===
             $pgService = new PaymentGatewayService();
             $pgFee = 0;
-            $isDigitalPayment = $pgService->isActive() && $pgService->isDigitalPayment($request->payment_method);
+            
+            $paymentMethod = $request->payment_method;
+            if ($pgService->isDigitalPayment($paymentMethod) && !$pgService->isActive()) {
+                // Fallback to cash if PG is disabled but digital method is selected
+                $paymentMethod = 'cash';
+            }
+            
+            $isDigitalPayment = $pgService->isActive() && $pgService->isDigitalPayment($paymentMethod);
             if ($isDigitalPayment) {
-                $pgFee = $pgService->calculateFee($totalAmount, $request->payment_method);
+                $pgFee = $pgService->calculateFee($totalAmount, $paymentMethod);
                 $totalAmount += $pgFee;
             }
 
@@ -318,7 +436,7 @@ class PosController extends Controller
                 // Digital: amount = total, tidak ada kembalian
                 $amountPaid = $totalAmount;
                 $changeAmount = 0;
-            } elseif ($request->payment_method === 'utang') {
+            } elseif ($paymentMethod === 'utang') {
                 $changeAmount = 0; // Utang tidak ada kembalian di POS standar
             } else {
                  $changeAmount = $amountPaid - $totalAmount;
@@ -352,27 +470,57 @@ class PosController extends Controller
                 }
             }
 
-            // Create transaction
-            $transaction = Transaction::create([
-                'transaction_code' => Transaction::generateTransactionCode(),
-                'user_id' => auth()->id(),
-                'shift_id' => $openShift ? $openShift->id : null,
-                'subtotal' => $subtotal,
-                'discount' => $discount,
-                'tax' => $tax,
-                'total_amount' => $totalAmount,
-                'payment_method' => $request->payment_method,
-                'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
-                'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
-                'status' => $isDigitalPayment ? 'pending' : 'completed',
-                'customer_name' => $request->customer_name ?? 'Umum',
-                'note' => $request->note,
-                'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
-                'points_redeemed' => $pointsRedeemed,
-                'points_discount_amount' => $pointsDiscountAmount,
-                'created_at' => $transactionDate,
-                'updated_at' => $transactionDate,
-            ]);
+            // Create or Update transaction
+            if ($request->filled('pending_order_code')) {
+                $transaction = Transaction::where('transaction_code', $request->pending_order_code)->firstOrFail();
+                $transaction->update([
+                    'shift_id' => $openShift ? $openShift->id : null,
+                    'subtotal' => $subtotal,
+                    'discount' => $discount,
+                    'tax' => $tax,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $paymentMethod,
+                    'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
+                    'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
+                    'status' => $isDigitalPayment ? 'pending' : 'completed',
+                    'order_status' => 'completed', // Mark resto order as completed
+                    'payment_status' => $isDigitalPayment ? 'unpaid' : 'paid',
+                    'note' => $request->note,
+                    'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
+                    'points_redeemed' => $pointsRedeemed,
+                    'points_discount_amount' => $pointsDiscountAmount,
+                    'updated_at' => $transactionDate,
+                ]);
+
+                // Hapus item lama agar diganti dengan yang baru dari POS (jika kasir ada modifikasi)
+                $transaction->items()->delete();
+                
+            } else {
+                $transaction = Transaction::create([
+                    'transaction_code' => Transaction::generateTransactionCode(),
+                    'user_id' => auth()->id(),
+                    'shift_id' => $openShift ? $openShift->id : null,
+                    'customer_name' => $customer ? $customer->name : ($request->customer_name ?: 'Umum'),
+                    'customer_phone' => $customer ? $customer->phone : null,
+                    'is_self_order' => false,
+                    'table_id' => $request->table_id, // <-- Add this
+                    'subtotal' => $subtotal,
+                    'discount' => $discount,
+                    'tax' => $tax,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $paymentMethod,
+                    'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
+                    'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
+                    'status' => $isDigitalPayment ? 'pending' : 'completed',
+                    'customer_name' => $request->customer_name ?? 'Umum',
+                    'note' => $request->note,
+                    'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
+                    'points_redeemed' => $pointsRedeemed,
+                    'points_discount_amount' => $pointsDiscountAmount,
+                    'created_at' => $transactionDate,
+                    'updated_at' => $transactionDate,
+                ]);
+            }
 
             // Create transaction items and update stock
             foreach ($items as $item) {
@@ -422,7 +570,7 @@ class PosController extends Controller
             // === PAYMENT GATEWAY LOGIC ===
             if ($isDigitalPayment) {
                 // Panggil payment gateway API untuk mendapatkan URL pembayaran
-                $pgResult = $pgService->createTransaction($transaction, $request->payment_method, $request->payment_channel);
+                $pgResult = $pgService->createTransaction($transaction, $paymentMethod, $request->payment_channel);
                 $transaction->update([
                     'pg_provider' => $storeSettings->pg_active,
                     'pg_reference' => $pgResult['reference'],
