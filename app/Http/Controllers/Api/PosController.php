@@ -163,6 +163,8 @@ class PosController extends Controller
                 'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
                 'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
                 'status' => $isDigitalPayment ? 'pending' : 'completed',
+                'order_status' => $storeSettings->business_mode === 'resto' ? 'pending' : 'completed',
+                'payment_status' => $isDigitalPayment ? 'unpaid' : (($request->payment_method === 'utang') ? 'unpaid' : 'paid'),
                 'customer_name' => $request->customer_name ?? 'Umum',
                 'note' => $request->note . ($request->created_at ? " (Offline Sync)" : ""),
                 'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
