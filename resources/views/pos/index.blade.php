@@ -17,15 +17,25 @@
 @endsection
 
 @section('content')
-<div class="p-4 sm:p-6 lg:p-8 min-h-screen">
-    <!-- Page Header -->
-    <div class="mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🛒 Point of Sale</h1>
-                <p class="text-gray-600 mt-1">Scan, add products, and process transactions</p>
-            </div>
+<div class="h-[calc(100vh-4rem)] bg-slate-50 overflow-y-auto" id="pos-container" x-data="posApp()">
+    <div class="p-4 sm:p-6 lg:p-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">🛒 Point of Sale</h1>
+                    <p class="text-gray-600 mt-1">Scan, add products, and process transactions</p>
+                </div>
             <div class="mt-4 sm:mt-0 flex items-center space-x-3">
+                @if(data_get($settings, 'business_mode', 'retail') === 'resto')
+                <button @click="showPendingOrders = true" class="relative inline-flex items-center px-4 py-2 bg-amber-50 text-amber-600 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors border border-amber-200 gap-2">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span>Pesanan Masuk</span>
+                    </div>
+                    <span x-cloak x-show="pendingOrdersCount > 0" class="flex items-center justify-center w-5 h-5 p-0 text-[10px] sm:text-xs font-bold text-white bg-red-500 rounded-full shadow-sm" x-text="pendingOrdersCount"></span>
+                </button>
+                @endif
                 <a href="{{ route('pos.shift.close') }}" class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors border border-red-200">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Tutup Kasir
@@ -34,11 +44,11 @@
                     <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
                     <span class="text-sm font-medium text-gray-700">Online</span>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {{-- Products Section (Left Side) --}}
         <div class="md:col-span-2 lg:col-span-3 space-y-6">
             {{-- Search Area --}}
@@ -125,6 +135,22 @@
                 
                 <div id="cart-items-container" class="space-y-3 mb-6 max-h-80 overflow-y-auto scrollbar-thin">
                     {{-- Cart items will be populated here --}}
+                    <!-- Order Masuk & Kitchen (Resto Mode) -->
+                @if(data_get($settings, 'business_mode', 'retail') === 'resto')
+                <div class="flex items-center gap-2">
+                    <button @click="showPendingOrders = true" class="relative bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2 rounded-lg flex items-center transition-colors shadow-sm">
+                        <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        Order Masuk
+                        <span x-show="pendingOrdersCount > 0" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow border-2 border-white animate-bounce" x-text="pendingOrdersCount"></span>
+                    </button>
+
+                    <a href="{{ route('pos.kitchen') }}" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-lg flex items-center transition-colors shadow-sm" title="Buka Kitchen View">
+                        🍳 Dapur
+                    </a>
+                </div>
+                @endif
+                
+                <!-- Category Filters (Scrollable) -->
                 </div>
                 
                 <div class="border-t border-gray-200 pt-6 space-y-3">
@@ -242,9 +268,9 @@
 
 {{-- Modal Pembayaran --}}
 <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto overflow-hidden flex flex-col" style="max-height: 90vh;">
 
-        <div class="grid grid-cols-2">
+        <div class="grid grid-cols-2 flex-shrink-0">
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 text-white">
                 <p class="text-sm font-medium opacity-80">Total Belanja</p>
                 <p class="text-3xl font-bold tracking-tight" id="modal-total">Rp 0</p>
@@ -255,7 +281,7 @@
             </div>
         </div>
 
-        <div class="p-6 space-y-5">
+        <div class="p-6 space-y-5 overflow-y-auto" style="flex: 1; min-height: 0;">
             <div class="grid grid-cols-2 gap-4">
                 <div x-data="{
                     open: false,
@@ -373,6 +399,19 @@
                  @else
                  <input type="hidden" id="use-points" value="0">
                  @endif
+                 
+                 @if(data_get($settings, 'business_mode', 'retail') === 'resto')
+                 <div>
+                    <label for="table-id" class="block text-xs font-medium text-gray-500 mb-1">Meja (Opsional)</label>
+                    <select id="table-id"
+                            class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-sm">
+                        <option value="">-- Pilih Meja / Bawa Pulang --</option>
+                        @foreach($tables ?? [] as $table)
+                            <option value="{{ $table->id }}">{{ $table->nama_meja }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
                  <div>
                     <label for="payment-method" class="block text-xs font-medium text-gray-500 mb-1">Metode Pembayaran</label>
@@ -380,7 +419,9 @@
                             class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                         <option value="">Pilih metode...</option>
                         <option value="cash">💵 Tunai</option>
+                        @if(data_get($settings, 'business_mode', 'retail') !== 'resto')
                         <option value="utang">📝 Utang</option>
+                        @endif
                         <option value="card">💳 Kartu</option>
                         <option value="ewallet">📱 E-Wallet</option>
                         <option value="transfer">🏦 Transfer Bank</option>
@@ -390,11 +431,10 @@
 
                 <!-- Channel Selector Placeholder -->
                 <div id="channel-selector-container" class="hidden mt-3">
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Pilih Provider</label>
-                    <div id="channel-selector-grid" class="grid grid-cols-2 gap-2">
+                    <label for="payment-channel" class="block text-xs font-medium text-gray-500 mb-1">Pilih Provider</label>
+                    <select id="payment-channel" class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-sm">
                         <!-- Channels rendered here -->
-                    </div>
-                    <input type="hidden" id="payment-channel" value="">
+                    </select>
                 </div>
             </div>
             
@@ -431,7 +471,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2">
+        <div class="grid grid-cols-2 flex-shrink-0">
             <button onclick="closePaymentModal()"
                     class="py-4 text-center font-bold text-white bg-gradient-to-br from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 transition">
                 Batal
@@ -807,85 +847,6 @@
     }
 
     function startScanner() {
-        if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", { fps: 10, qrbox: 250 });
-            
-            html5QrcodeScanner.render(onScanSuccess);
-        }
-    }
-
-    function onScanSuccess(decodedText, decodedResult) {
-        console.log(`Code matched = ${decodedText}`, decodedResult);
-        
-        // Cekap scanner sebentar agar tidak kepencet berkali-kali
-        html5QrcodeScanner.pause();
-
-        // Masukkan text ke form pencarian
-        const searchInput = document.getElementById('product-search');
-        searchInput.value = decodedText;
-        
-        // Trigger pencarian
-        currentPage = 1;
-        loadProducts().then(() => {
-            // Check if exact match variant/group logic needed, backend handles barcode search.
-            // If strictly 1 result and it's a single product, it auto-adds (logic in loadProducts).
-            
-            // Resume scanner setelah 1.5 detik
-            setTimeout(() => {
-                if(html5QrcodeScanner) html5QrcodeScanner.resume();
-            }, 1500);
-        });
-        
-        // Opsional: Tutup modal otomatis setelah scan sukses (tergantung preferensi user)
-        // closeScannerModal(); 
-    }
-
-    // === PAYMENT CHANNEL UI ===
-    document.addEventListener('DOMContentLoaded', function() {
-        const paymentMethodSelect = document.getElementById('payment-method');
-        if (paymentMethodSelect) {
-            paymentMethodSelect.addEventListener('change', async function() {
-                const method = this.value;
-                const channelContainer = document.getElementById('channel-selector-container');
-                const channelGrid = document.getElementById('channel-selector-grid');
-                const channelInput = document.getElementById('payment-channel');
-                
-                channelInput.value = ''; // Reset
-                channelGrid.innerHTML = '';
-                
-                if (DIGITAL_METHODS.includes(method)) {
-                    channelContainer.classList.remove('hidden');
-                    channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-gray-500 py-2 pb-4">Memuat provider...</div>';
-                    
-                    try {
-                        const response = await fetch(`/pos/payment-channels?method=${method}`);
-                        const res = await response.json();
-                        
-                        if (res.success && res.data.length > 0) {
-                            channelGrid.innerHTML = res.data.map(ch => `
-                                <div onclick="selectPaymentChannel('${ch.code}', this)" class="channel-option cursor-pointer border rounded-lg p-2 text-center text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-500 transition-colors bg-white">
-                                    ${ch.name}
-                                </div>
-                            `).join('');
-                        } else {
-                            channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-red-500 py-2">Provider tidak tersedia / belum dikonfigurasi.</div>';
-                        }
-                    } catch (e) {
-                        channelGrid.innerHTML = '<div class="col-span-2 text-center text-sm text-red-500 py-2">Gagal memuat provider.</div>';
-                    }
-                } else {
-                    channelContainer.classList.add('hidden');
-                }
-            });
-        }
-    });
-
-    function selectPaymentChannel(code, el) {
-        document.getElementById('payment-channel').value = code;
-        document.querySelectorAll('.channel-option').forEach(el => el.classList.remove('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-200'));
-        el.classList.add('bg-blue-50', 'border-blue-500', 'ring-2', 'ring-blue-200');
-    }
         if (html5QrcodeScanner) {
             // Already running
             return;
@@ -995,6 +956,60 @@
              document.getElementById('scanner-modal').classList.add('hidden');
         }
     }
+
+    // === PAYMENT CHANNEL UI ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethodSelect = document.getElementById('payment-method');
+        if (paymentMethodSelect) {
+            paymentMethodSelect.addEventListener('change', async function() {
+                const method = this.value;
+                const channelContainer = document.getElementById('channel-selector-container');
+                const channelInput = document.getElementById('payment-channel');
+                
+                channelInput.innerHTML = '';
+                channelInput.value = '';
+            
+            if (DIGITAL_METHODS.includes(method)) {
+                // Khusus QRIS: kita hide containernya dan auto-select provider pertama
+                if (method === 'qris') {
+                    channelContainer.classList.add('hidden');
+                } else {
+                    channelContainer.classList.remove('hidden');
+                    channelInput.innerHTML = '<option value="">Memuat provider...</option>';
+                }
+                
+                try {
+                    const response = await fetch(`/pos/payment-channels?method=${method}`);
+                    const res = await response.json();
+                    
+                    if (res.success && res.data.length > 0) {
+                        if (method === 'qris') {
+                            // Langsung otomatis assign QRIS channel pertama
+                            channelInput.innerHTML = `<option value="${res.data[0].code}">${res.data[0].name}</option>`;
+                            channelInput.value = res.data[0].code;
+                        } else {
+                            channelInput.innerHTML = '<option value="">-- Pilih Provider --</option>' + res.data.map(ch => `
+                                <option value="${ch.code}">${ch.name}</option>
+                            `).join('');
+                        }
+                    } else {
+                        if (method !== 'qris') {
+                            channelInput.innerHTML = '<option value="">Provider tidak tersedia / belum dikonfigurasi</option>';
+                        } else {
+                            channelInput.innerHTML = '<option value="">QRIS tidak dikonfigurasi</option>';
+                        }
+                    }
+                } catch (e) {
+                    if (method !== 'qris') {
+                        channelInput.innerHTML = '<option value="">Gagal memuat provider</option>';
+                    }
+                }
+            } else {
+                channelContainer.classList.add('hidden');
+            }
+        });
+        }
+    });
 
     // === QUICK ADD CUSTOMER ===
     function closeAddCustomerModal() {
@@ -1359,12 +1374,14 @@
             payment_channel: paymentChannel,
             amount_paid: amountPaid,
             customer_name: document.getElementById('customer-name').value || 'Umum',
+            table_id: document.getElementById('table-id') ? document.getElementById('table-id').value : null,
             discount: discount,
             tax: tax,
             subtotal: subtotal,
             note: document.getElementById('transaction-note').value,
             transaction_date: document.getElementById('transaction-date') ? document.getElementById('transaction-date').value : null,
             points_redeemed: parseInt(document.getElementById('use-points').value) || 0,
+            pending_order_code: window.currentPendingOrderCode || null,
         };
 
         try {
@@ -1644,7 +1661,217 @@
         ThermalPrinter.printBrowser(data.receiptHTML);
         ThermalPrinter.savePreference('browser');
     }
+</script>    <!-- RESTO MODE: PENDING ORDERS MODAL -->
+    @if(data_get($settings, 'business_mode', 'retail') === 'resto')
+    <div x-cloak x-show="showPendingOrders" class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display:none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showPendingOrders" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showPendingOrders = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div x-show="showPendingOrders" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b">
+                    <div class="flex justify-between items-center bg-amber-50 p-4 rounded-lg border border-amber-200">
+                        <div>
+                            <h3 class="text-xl font-bold leading-6 text-amber-900" id="modal-title">🍽️ Antrean Pesanan Masuk</h3>
+                            <p class="text-sm text-amber-700 mt-1">Daftar pesanan mandiri dari meja pelanggan.</p>
+                        </div>
+                        <button @click="showPendingOrders = false" class="text-amber-500 hover:text-amber-700">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 max-h-[60vh] overflow-y-auto">
+                        <template x-if="pendingOrders.length === 0">
+                            <div class="text-center py-8 text-gray-500">
+                                Belum ada pesanan masuk.
+                            </div>
+                        </template>
+                        <div class="space-y-3">
+                            <template x-for="order in pendingOrders" :key="order.id">
+                                <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer" @click="openPendingOrder(order)">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-bold text-lg text-gray-900" x-text="order.table_name"></span>
+                                            <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded" x-text="order.transaction_code"></span>
+                                            <template x-if="order.customer_name">
+                                                <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded flex items-center gap-1 font-medium">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                                    <span x-text="order.customer_name"></span>
+                                                </span>
+                                            </template>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-2 truncate max-w-sm" x-text="order.items_summary"></p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs font-semibold px-2 py-0.5 rounded" 
+                                                  :class="order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                                                  x-text="order.payment_status === 'paid' ? 'SUDAH BAYAR (' + (order.payment_method || 'QRIS').toUpperCase() + ')' : 'BELUM LUNAS'"></span>
+                                            
+                                            <!-- KITCHEN STATUS -->
+                                            <span class="text-xs font-semibold px-2 py-0.5 rounded"
+                                                  :class="{
+                                                    'bg-orange-100 text-orange-700': order.order_status === 'pending',
+                                                    'bg-blue-100 text-blue-700': order.order_status === 'processing',
+                                                    'bg-green-100 text-green-700': order.order_status === 'completed'
+                                                  }"
+                                                  x-text="order.order_status === 'pending' ? 'DAPUR: MENUNGGU' : (order.order_status === 'processing' ? 'DAPUR: DIMASAK' : 'DAPUR: SELESAI')">
+                                            </span>
+
+                                            <span class="text-xs text-gray-400" x-text="order.time_ago"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex flex-col items-end">
+                                        <span class="font-bold text-lg text-green-600 mb-2" x-text="formatRupiah(order.total_amount)"></span>
+                                        <div class="flex gap-2">
+                                            <button @click.stop="cancelPendingOrder(order)" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-sm font-medium transition-colors">
+                                                Batalkan
+                                            </button>
+                                            <button @click="openPendingOrder(order)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors shadow-sm">
+                                                Buka & Proses
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    </div><!-- End of inner wrapper -->
+</div><!-- End of pos-container -->
+
+<!-- AlpineJS data for Resto Mode -->
+<script>
+    function posApp() {
+        return {
+            showPendingOrders: false,
+            pendingOrders: [],
+            
+            get pendingOrdersCount() {
+                return this.pendingOrders.length;
+            },
+
+            init() {
+                @if(data_get($settings, 'business_mode', 'retail') === 'resto')
+                this.fetchPendingOrders();
+                setInterval(() => {
+                    this.fetchPendingOrders();
+                }, 10000); // Check every 10 seconds
+                @endif
+            },
+
+            async fetchPendingOrders() {
+                try {
+                    const res = await fetch('{{ route('pos.api.orders.pending') }}');
+                    if (res.ok) {
+                        this.pendingOrders = await res.json();
+                    }
+                } catch (e) {
+                    console.error('Gagal memuat antrean:', e);
+                }
+            },
+
+            async cancelPendingOrder(order) {
+                Swal.fire({
+                    title: 'Tolak Pesanan?',
+                    text: 'Apakah Anda yakin ingin membatalkan/menghapus pesanan ' + order.transaction_code + ' dari ' + order.table_name + '?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Tolak!',
+                    cancelButtonText: 'Batal'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            const response = await fetch(`/pos/api/orders/${order.transaction_code}/status`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({ status: 'cancelled' }) // Mengubah status menjadi cancelled
+                            });
+
+                            if (response.ok) {
+                                this.pendingOrders = this.pendingOrders.filter(o => o.transaction_code !== order.transaction_code);
+                                Swal.fire('Ditolak', 'Pesanan berhasil dibatalkan.', 'success');
+                            } else {
+                                Swal.fire('Gagal', 'Terjadi kesalahan saat menolak pesanan.', 'error');
+                            }
+                        } catch (e) {
+                            console.error('Error cancelling order:', e);
+                            Swal.fire('Gagal', 'Terjadi kesalahan pada sistem.', 'error');
+                        }
+                    }
+                });
+            },
+
+            openPendingOrder(order) {
+                // Confirm action via SweetAlert
+                Swal.fire({
+                    title: 'Proses Pesanan ' + order.table_name + '?',
+                    text: "Order " + order.transaction_code + " senilai " + formatRupiah(order.total_amount) + " akan dimasukkan ke keranjang POS.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Pindahkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Close pending orders modal
+                        this.showPendingOrders = false;
+                        
+                        // Set customer search and actual hidden input
+                        const searchEl = document.getElementById('customer-search');
+                        const nameEl = document.getElementById('customer-name');
+                        if (searchEl) searchEl.value = order.customer_name || 'Umum';
+                        if (nameEl) nameEl.value = order.customer_name || 'Umum';
+                        
+                        // Set table picker
+                        const tableEl = document.getElementById('table-id');
+                        if (tableEl && order.table_name) {
+                            // Find option by text matching table_name
+                            Array.from(tableEl.options).forEach(opt => {
+                                if (opt.text.includes(order.table_name)) {
+                                    tableEl.value = opt.value;
+                                }
+                            });
+                        }
+                        
+                        // Clear existing POS cart
+                        clearCart();
+                        
+                        // Inject pending order items into the global POS cart 
+                        // Note: addToCart comes from regular pos/index.blade.php javascript 
+                        if (order.items && order.items.length > 0) {
+                            order.items.forEach(item => {
+                                // Add item multiple times based on qty or using custom add strategy
+                                // Since addToCart only adds 1 qty or increments, we loop it
+                                for (let i = 0; i < item.qty; i++) {
+                                    addToCart(item.id, item.name, item.price, 999, item.image, item.type);
+                                }
+                            });
+                        }
+                        
+                        // Set global tracking variable to indicate this is a pending order settlement
+                        window.currentPendingOrderCode = order.transaction_code;
+                        window.currentPendingOrderTable = order.table_name;
+                        
+                        Swal.fire({
+                            title: 'Pesanan Dimuat',
+                            text: 'Pilih metode pembayaran dan tekan Checkout untuk menyelesaikan.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            }
+        }
+    }
 </script>
+
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="{{ asset('js/thermal-printer.js') }}"></script>
 @endsection
