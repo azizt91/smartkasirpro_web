@@ -29,6 +29,18 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div class="md:col-span-2">
+                                <label for="business_mode" class="block text-sm font-medium text-gray-700 mb-1">Mode Bisnis <span class="text-red-500">*</span></label>
+                                <select id="business_mode" name="business_mode" required
+                                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    <option value="retail" {{ old('business_mode', $settings->business_mode ?? 'retail') == 'retail' ? 'selected' : '' }}>🛒 Retail (Minimarket, Toko Kelontong, dll)</option>
+                                    <option value="resto" {{ old('business_mode', $settings->business_mode ?? 'retail') == 'resto' ? 'selected' : '' }}>🍽️ Cafe / Resto (Dengan Fitur QR Meja)</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Catatan: Mode Resto akan menyembunyikan piutang/utang di POS dan mengaktifkan opsi Manajemen Meja.</p>
+                                @error('business_mode')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="store_phone" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
                                 <input type="text" id="store_phone" name="store_phone" value="{{ old('store_phone', $settings->store_phone) }}"
                                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                                        placeholder="(021) 123-4567">
@@ -403,7 +415,6 @@ use Illuminate\Support\Facades\Storage;
                             <p class="text-xs text-green-800">
                                 <strong>ℹ️ Catatan:</strong> Notifikasi WA hanya dikirim ke pelanggan yang terdaftar dengan nomor HP. 
                                 Pelanggan berkategori "Umum" atau tanpa nomor HP akan otomatis dilewati (skip). 
-                                Pastikan <strong>Laravel Queue</strong> aktif: <code class="bg-green-100 px-1 rounded">php artisan queue:work</code>
                             </p>
                         </div>
                     </div>

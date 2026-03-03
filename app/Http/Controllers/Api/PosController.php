@@ -363,4 +363,34 @@ class PosController extends Controller
         
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Get available payment channels for mobile.
+     */
+    public function paymentChannels(Request $request, PaymentGatewayService $pgService)
+    {
+        $method = $request->query('method');
+        if (!$method || !in_array($method, ['ewallet', 'transfer', 'qris'])) {
+            return response()->json(['success' => false, 'message' => 'Invalid method']);
+        }
+
+        $channels = $pgService->getAvailableChannels($method);
+
+        return response()->json([
+            'success' => true,
+            'data' => $channels
+        ]);
+    }
+
+    /**
+     * Get available tables for mobile POS.
+     */
+    public function getTables()
+    {
+        $tables = \App\Models\Table::all();
+        return response()->json([
+            'success' => true,
+            'data' => $tables
+        ]);
+    }
 }

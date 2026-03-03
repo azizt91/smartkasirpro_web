@@ -18,6 +18,7 @@ SmartKasir Pro adalah aplikasi Point of Sale (POS) berbasis web yang modern dan 
 - **Loyalty Points:** Sistem poin pelanggan — earn & redeem otomatis saat transaksi
 - **Pembelian Stok (Restok):** Catat pembelian barang masuk dan update stok otomatis
 - **Biaya Operasional:** Catat pengeluaran toko (listrik, gaji, dll)
+- **Akuntansi (Buku Besar & Laba Rugi):** Jurnal umum otomatis, Chart of Accounts, dan laporan validasi pendapatan bersih
 - **Riwayat Transaksi:** Lihat dan kelola histori penjualan (termasuk fitur Void/Batal)
 - **Support Printer:** Cetak struk via USB (WebUSB), Bluetooth, dan Browser Dialog
 - **Barang & Jasa:** Mendukung penjualan produk fisik maupun layanan non-fisik (Jasa) tanpa memotong stok
@@ -25,8 +26,17 @@ SmartKasir Pro adalah aplikasi Point of Sale (POS) berbasis web yang modern dan 
 - **Batch Payment Komisi:** Checkbox per baris, pilih sumber dana (Tunai/Bank), otomatis catat sebagai Pengeluaran
 - **Manajemen Shift Kasir:** Validasi buka/tutup shift kasir, input modal awal, dan pencocokan uang fisik dengan X-Report
 - **Log Aktivitas (Audit):** Pantau penambahan produk, penghapusan transaksi, atau settlement komisi (Data Lama vs Baru)
+- **WhatsApp Gateway:** Kirim notifikasi transaksi via WA (menggunakan API Fonnte) untuk nota pelanggan
 - **Import Produk via Excel:** Tambah data produk massal menggunakan template Excel/CSV yang sudah disediakan
 - **Pengaturan Toko:** Nama toko, alamat, logo, dan lainnya
+
+## Panduan WhatsApp Gateway (Fonnte)
+Aplikasi ini terintegrasi dengan [Fonnte](https://fonnte.com/) untuk pengiriman notifikasi WhatsApp otomatis saat ada transaksi berhasil.
+1. Daftar atau login di dashboard Fonnte.
+2. Dapatkan API Token.
+3. Di SmartKasir, masuk ke menu **Pengaturan**, tab **Sistem**.
+4. Masukkan **Fonnte Token** dan aktifkan fitur WhatsApp Notification.
+5. Anda dapat menguji pengaturan menggunakan tombol **Test Koneksi API Fonnte**.
 
 ## Panduan Printer USB
 

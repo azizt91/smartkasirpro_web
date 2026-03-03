@@ -295,6 +295,7 @@ class DatabaseSeeder extends Seeder
             ExpenseSeeder::class,
             PurchaseSeeder::class,
             SettingSeeder::class,
+            AccountSeeder::class,
         ]);
 
         $this->command->info('');

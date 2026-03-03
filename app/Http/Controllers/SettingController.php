@@ -28,6 +28,7 @@ class SettingController extends Controller
 
         $request->validate([
             'store_name' => 'required|string|max:255',
+            'business_mode' => 'required|in:retail,resto',
             'store_address' => 'nullable|string|max:500',
             'store_phone' => 'nullable|string|max:50',
             'store_description' => 'nullable|string|max:1000',
@@ -55,7 +56,7 @@ class SettingController extends Controller
         ]);
 
         $data = $request->only([
-            'store_name', 'store_address', 'store_phone', 'store_description',
+            'store_name', 'business_mode', 'store_address', 'store_phone', 'store_description',
             'tax_rate', 'point_earning_rate', 'point_exchange_rate', 'employee_label',
             // Payment Gateway
             'pg_active', 'pg_mode', 'pg_fee_bearer',

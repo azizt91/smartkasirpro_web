@@ -26,6 +26,12 @@ Route::post('/payment/callback/midtrans', [\App\Http\Controllers\PaymentCallback
 // Public Digital Receipt (no auth required — shared via WhatsApp)
 Route::get('/receipt/{code}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipt.public');
 
+// Public Self Ordering (QR Menu)
+Route::get('/order/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'showMenu'])->name('public.order');
+Route::get('/api/order/products', [\App\Http\Controllers\PublicOrderController::class, 'getProducts'])->name('public.order.products');
+Route::post('/order/{hash}/submit', [\App\Http\Controllers\PublicOrderController::class, 'submitOrder'])->name('public.order.submit');
+Route::get('/order/success/{code}', [\App\Http\Controllers\PublicOrderController::class, 'success'])->name('public.order.success');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -44,12 +50,18 @@ Route::middleware('auth')->group(function () {
     // Main POS interface (requires open shift)
     Route::middleware('shift.open')->group(function () {
         Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::get('/pos/kitchen', [PosController::class, 'kitchen'])->name('pos.kitchen');
         Route::get('/pos/products/search', [PosController::class, 'searchProducts'])->name('pos.products.search');
         Route::get('/pos/categories', [PosController::class, 'getCategories'])->name('pos.categories');
         Route::post('/pos/search', [PosController::class, 'searchProducts'])->name('pos.search');
         Route::post('/pos/transaction', [PosController::class, 'store'])->name('pos.transaction');
         Route::get('/pos/transaction/{code}/status', [PosController::class, 'checkStatus'])->name('pos.transaction.status');
         Route::get('/pos/payment-channels', [PosController::class, 'paymentChannels'])->name('pos.payment-channels');
+        
+        // Resto API Routes
+        Route::get('/pos/api/orders/pending', [PosController::class, 'getPendingOrders'])->name('pos.api.orders.pending');
+        Route::get('/pos/api/orders/kitchen', [PosController::class, 'getKitchenOrders'])->name('pos.api.orders.kitchen');
+        Route::post('/pos/api/orders/{code}/status', [PosController::class, 'updateOrderStatus'])->name('pos.api.orders.update-status');
     });
 
 
@@ -98,10 +110,21 @@ Route::middleware('auth')->group(function () {
         
         // Audit Logs Report
         Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits');
+        
+        // Accounting Reports
+        Route::get('/ledger', [ReportController::class, 'ledger'])->name('ledger');
+        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss');
     });
 
     // Admin only routes
     Route::middleware('admin')->group(function () {
+        Route::get('/accounts', [\App\Http\Controllers\AccountController::class, 'index'])->name('accounts.index');
+        Route::post('/accounts/{account}/initial-balance', [\App\Http\Controllers\AccountController::class, 'setInitialBalance'])->name('accounts.initialBalance');
+
+        Route::get('tables/{table}/qrcode', [\App\Http\Controllers\TableController::class, 'qrCode'])->name('tables.qrcode');
+        Route::post('tables/{table}/clear', [\App\Http\Controllers\TableController::class, 'clear'])->name('tables.clear');
+        Route::resource('tables', \App\Http\Controllers\TableController::class);
+
         Route::resource('users', UserController::class);
         Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');

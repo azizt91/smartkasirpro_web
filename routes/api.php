@@ -37,8 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/sync', [\App\Http\Controllers\Api\ProductController::class, 'sync']);
     Route::post('/products/{id}/adjust', [\App\Http\Controllers\Api\ProductController::class, 'adjustStock']);
 
-    // POS Transaction (Sync Upstream)
+    // POS Transaction (Sync Upstream & Resto Mode)
     Route::post('/pos/transaction', [\App\Http\Controllers\Api\PosController::class, 'store']);
+    Route::get('/pos/api/orders/pending', [\App\Http\Controllers\Api\PosController::class, 'getPendingOrders']);
+    Route::get('/pos/api/orders/kitchen', [\App\Http\Controllers\Api\PosController::class, 'getKitchenOrders']);
+    Route::post('/pos/api/orders/{code}/status', [\App\Http\Controllers\Api\PosController::class, 'updateOrderStatus']);
+    Route::get('/pos/api/orders/tables', [\App\Http\Controllers\Api\PosController::class, 'getTables']);
+    Route::get('/pos/payment-channels', [\App\Http\Controllers\Api\PosController::class, 'paymentChannels']);
 
     // Transaction History
     Route::get('/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);

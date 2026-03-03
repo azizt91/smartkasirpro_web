@@ -69,7 +69,12 @@ class Transaction extends Model
         'change_amount',
         'status',
         'customer_name',
+        'customer_phone',
         'note',
+        'is_self_order',
+        'table_id',
+        'order_status',
+        'payment_status',
         'points_earned',
         'points_redeemed',
         'points_discount_amount',
@@ -119,6 +124,14 @@ class Transaction extends Model
     public function items(): HasMany
     {
         return $this->hasMany(TransactionItem::class);
+    }
+
+    /**
+     * Get the table associated with the transaction.
+     */
+    public function table(): BelongsTo
+    {
+        return $this->belongsTo(Table::class);
     }
 
     /**

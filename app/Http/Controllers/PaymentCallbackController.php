@@ -182,7 +182,11 @@ class PaymentCallbackController extends Controller
 
         DB::transaction(function () use ($transaction) {
             // 1. Update status to completed
-            $transaction->update(['status' => 'completed']);
+            $transaction->update([
+                'status' => 'completed',
+                'payment_status' => 'paid',
+                'amount_paid' => $transaction->total_amount
+            ]);
 
             // 2. Load items with products
             $transaction->load('items.product');

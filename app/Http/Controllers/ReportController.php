@@ -450,4 +450,110 @@ class ReportController extends BaseController
             ], 500);
         }
     }
+
+    public function ledger(Request $request)
+    {
+        $this->checkAdminAccess();
+
+        $accounts = \App\Models\Account::orderBy('code')->get();
+        $accountId = $request->get('account_id');
+        
+        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
+
+        $ledgers = collect();
+        $startingBalance = 0;
+        $selectedAccount = null;
+
+        if ($accountId) {
+            $selectedAccount = \App\Models\Account::find($accountId);
+            
+            // Calculate Starting Balance before start_date
+            $pastLedger = \App\Models\Ledger::where('account_id', $accountId)
+                ->whereDate('date', '<', $startDate)
+                ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
+                ->first();
+
+            $totalDebit = $pastLedger->total_debit ?? 0;
+            $totalCredit = $pastLedger->total_credit ?? 0;
+
+            $startingBalance = $selectedAccount->default_balance === 'debit' 
+                ? ($totalDebit - $totalCredit) 
+                : ($totalCredit - $totalDebit);
+
+            // Get ledgers within date range
+            $ledgers = \App\Models\Ledger::where('account_id', $accountId)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->orderBy('date', 'asc')
+                ->orderBy('created_at', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+        }
+
+        return view('reports.ledger', compact('accounts', 'selectedAccount', 'ledgers', 'startingBalance', 'startDate', 'endDate'));
+    }
+
+    public function profitLoss(Request $request)
+    {
+        $this->checkAdminAccess();
+
+        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
+
+        // Load all accounts to group by type
+        $accounts = \App\Models\Account::all();
+        
+        // Sum ledgers mapped to each account in date range
+        $sums = \App\Models\Ledger::selectRaw('account_id, SUM(debit) as debit, SUM(credit) as credit')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->groupBy('account_id')
+            ->get()
+            ->keyBy('account_id');
+
+        $revenues = [];
+        $totalRevenue = 0;
+
+        $cogs = [];
+        $totalCogs = 0;
+
+        $expenses = [];
+        $totalExpense = 0;
+
+        foreach ($accounts as $account) {
+            $sum = $sums->get($account->id);
+            $debit = $sum ? $sum->debit : 0;
+            $credit = $sum ? $sum->credit : 0;
+
+            if ($account->type === 'revenue') {
+                $balance = $credit - $debit;
+                if ($balance != 0) {
+                    $revenues[] = ['name' => $account->name, 'balance' => $balance];
+                    $totalRevenue += $balance;
+                }
+            } elseif ($account->type === 'expense') {
+                $balance = $debit - $credit;
+                if ($balance != 0) {
+                    if (stripos($account->name, 'HPP') !== false || stripos($account->name, 'Harga Pokok') !== false) {
+                        $cogs[] = ['name' => $account->name, 'balance' => $balance];
+                        $totalCogs += $balance;
+                    } else {
+                        $expenses[] = ['name' => $account->name, 'balance' => $balance];
+                        $totalExpense += $balance;
+                    }
+                }
+            }
+        }
+
+        $grossProfit = $totalRevenue - $totalCogs;
+        $netProfit = $grossProfit - $totalExpense;
+
+        return view('reports.profit_loss', compact(
+            'startDate', 'endDate',
+            'revenues', 'totalRevenue',
+            'cogs', 'totalCogs',
+            'grossProfit',
+            'expenses', 'totalExpense',
+            'netProfit'
+        ));
+    }
 }

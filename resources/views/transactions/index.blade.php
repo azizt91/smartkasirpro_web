@@ -81,21 +81,25 @@
                                         {{ $transaction->payment_method }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($transaction->status == 'void')
+                                        @if($transaction->status === 'void')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 Dibatalkan
                                             </span>
-                                        @elseif($transaction->status == 'pending')
+                                        @elseif($transaction->status === 'cancelled')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Expired / Ditolak
+                                            </span>
+                                        @elseif(in_array($transaction->status, ['pending', 'pending_payment']))
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                 ⏳ Pending
                                             </span>
-                                        @elseif($transaction->status == 'cancelled')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Expired
+                                        @elseif($transaction->payment_status === 'unpaid' && $transaction->payment_method !== 'utang')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                ⏳ Belum Bayar
                                             </span>
-                                        @elseif($transaction->payment_method == 'utang')
+                                        @elseif($transaction->payment_method === 'utang' && $transaction->payment_status !== 'paid')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                                Menunggu
+                                                Menunggu (Utang)
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
