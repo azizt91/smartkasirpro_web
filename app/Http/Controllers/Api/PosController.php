@@ -254,13 +254,113 @@ class PosController extends Controller
                 'message' => 'Transaksi berhasil disinkronisasi.',
                 'transaction' => $transaction,
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
-            ], 422); // Unprocessable Entity
+                'message' => 'Gagal sinkronisasi: ' . $e->getMessage()
+            ], 500);
         }
+    }
+
+    /**
+     * RESTO MODE: Fetch Pending/Processing Orders for POS Cashier
+     */
+    public function getPendingOrders()
+    {
+        $orders = Transaction::with(['items', 'table'])
+            ->where('is_self_order', true)
+            ->whereNotIn('status', ['cancelled', 'void'])
+            ->where(function ($q) {
+                // Tampilkan jika dapur belum selesai (pending/processing) ATAU kasir belum bayar (unpaid)
+                $q->whereIn('order_status', ['pending', 'processing'])
+                  ->orWhere('payment_status', 'unpaid');
+            })
+            ->orderBy('created_at', 'ASC')
+            ->get()->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'transaction_code' => $t->transaction_code,
+                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'customer_name' => $t->customer_name,
+                    'order_status' => $t->order_status,
+                    'payment_status' => $t->payment_status,
+                    'payment_method' => $t->payment_method,
+                    'time_ago' => $t->created_at->diffForHumans(),
+                    'total_amount' => $t->total_amount,
+                    'items_summary' => $t->items->map(function($i) {
+                        return "{$i->quantity}x {$i->product_name}";
+                    })->join(', '),
+                    'items' => $t->items->map(function($i) {
+                        return [
+                            'id' => $i->product_id,
+                            'name' => $i->product_name,
+                            'price' => $i->price,
+                            'qty' => $i->quantity,
+                            'type' => $i->type ?? 'barang',
+                            'image' => '' 
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json($orders);
+    }
+
+    /**
+     * RESTO MODE: Fetch Pending/Processing Orders for Kitchen
+     */
+    public function getKitchenOrders()
+    {
+        $orders = Transaction::with(['items', 'table'])
+            ->where('is_self_order', true)
+            ->whereIn('order_status', ['pending', 'processing'])
+            ->orderBy('created_at', 'ASC')
+            ->get()->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'transaction_code' => $t->transaction_code,
+                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'order_status' => $t->order_status,
+                    'time_ago' => $t->created_at->diffForHumans(),
+                    'items' => $t->items->map(function($i) {
+                        return [
+                            'name' => $i->product_name,
+                            'qty' => $i->quantity,
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json($orders);
+    }
+    
+    /**
+     * RESTO MODE: Update Kitchen Order Status
+     */
+    public function updateOrderStatus(Request $request, $code)
+    {
+        $transaction = Transaction::where('transaction_code', $code)->firstOrFail();
+        $status = $request->get('status');
+        
+        if (in_array($status, ['pending', 'processing', 'completed', 'cancelled'])) {
+            $updateData = ['order_status' => $status];
+            if ($status === 'cancelled') {
+                $updateData['status'] = 'cancelled';
+            }
+            $transaction->update($updateData);
+            
+            // Update table status if completed or cancelled
+            if (in_array($status, ['completed', 'cancelled'])) {
+                if ($transaction->table_id) {
+                    $table = \App\Models\Table::find($transaction->table_id);
+                    if ($table) {
+                        $table->update(['status' => 'available']);
+                    }
+                }
+            }
+        }
+        
+        return response()->json(['success' => true]);
     }
 }
