@@ -314,9 +314,12 @@
                     }
                 }" 
                 x-init="window.addEventListener('customer-added', (e) => {
-                    customers.unshift(e.detail); // Add to top of list
-                    selectCustomer(e.detail.name); // Auto select
-                })"
+                    customers.unshift(e.detail);
+                    selectCustomer(e.detail.name);
+                });
+                window.addEventListener('select-customer', (e) => {
+                    selectCustomer(e.detail);
+                });"
                 class="relative z-50">
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nama Customer</label>
                     
@@ -1822,11 +1825,10 @@
                         // Close pending orders modal
                         this.showPendingOrders = false;
                         
-                        // Set customer search and actual hidden input
-                        const searchEl = document.getElementById('customer-search');
-                        const nameEl = document.getElementById('customer-name');
-                        if (searchEl) searchEl.value = order.customer_name || 'Umum';
-                        if (nameEl) nameEl.value = order.customer_name || 'Umum';
+                        // Dispatch event to update Alpine.js customer dropdown
+                        window.dispatchEvent(new CustomEvent('select-customer', { 
+                            detail: order.customer_name || 'Umum' 
+                        }));
                         
                         // Set table picker
                         const tableEl = document.getElementById('table-id');
