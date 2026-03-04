@@ -152,16 +152,15 @@ class FirebaseNotificationService
         $message = [
             'message' => [
                 'token' => $fcmToken,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                'data' => array_map('strval', $data),
+                // DATA-ONLY message: the app controls all display logic
+                // This ensures custom notification channels and sounds always work,
+                // both in foreground and background.
+                'data' => array_merge(
+                    ['title' => $title, 'body' => $body],
+                    array_map('strval', $data)
+                ),
                 'android' => [
                     'priority' => 'high',
-                    'notification' => [
-                        'channel_id' => 'high_importance_channel',
-                    ],
                 ],
             ],
         ];
