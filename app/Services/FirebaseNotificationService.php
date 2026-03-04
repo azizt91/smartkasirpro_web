@@ -161,7 +161,6 @@ class FirebaseNotificationService
                     'priority' => 'high',
                     'notification' => [
                         'channel_id' => 'high_importance_channel',
-                        'sound' => 'default',
                     ],
                 ],
             ],

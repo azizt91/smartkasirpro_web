@@ -115,6 +115,7 @@ class OrderCreated extends Notification
             'data' => [
                 'transaction_id' => (string) $this->transaction->id,
                 'type' => 'order_created',
+                'notification_type' => 'order',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]
         ];

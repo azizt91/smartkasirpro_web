@@ -56,6 +56,7 @@ class AuditAlert extends Notification
             'data' => [
                 'audit_log_id' => (string) $this->auditLog->id,
                 'type' => 'audit_alert',
+                'notification_type' => 'audit',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]
         ];

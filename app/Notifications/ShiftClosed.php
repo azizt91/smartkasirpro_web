@@ -62,6 +62,7 @@ class ShiftClosed extends Notification
             'data' => [
                 'shift_id' => (string) $this->shift->id,
                 'type' => 'shift_closed',
+                'notification_type' => 'shift',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]
         ];
