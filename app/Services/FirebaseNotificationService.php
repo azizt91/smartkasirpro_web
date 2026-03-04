@@ -149,18 +149,28 @@ class FirebaseNotificationService
 
         $url = "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send";
 
+        // Determine Android channel based on notification_type
+        $notificationType = $data['notification_type'] ?? 'default';
+        $channelMap = [
+            'order' => 'channel_order_alert',
+            'shift' => 'channel_chime',
+            'audit' => 'channel_ding',
+        ];
+        $channelId = $channelMap[$notificationType] ?? 'high_importance_channel';
+
         $message = [
             'message' => [
                 'token' => $fcmToken,
-                // DATA-ONLY message: the app controls all display logic
-                // This ensures custom notification channels and sounds always work,
-                // both in foreground and background.
-                'data' => array_merge(
-                    ['title' => $title, 'body' => $body],
-                    array_map('strval', $data)
-                ),
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => array_map('strval', $data),
                 'android' => [
                     'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => $channelId,
+                    ],
                 ],
             ],
         ];
