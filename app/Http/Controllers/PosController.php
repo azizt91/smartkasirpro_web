@@ -473,9 +473,12 @@ class PosController extends Controller
 
             // Create or Update transaction
             if ($request->filled('pending_order_code')) {
-                $transaction = Transaction::where('transaction_code', $request->pending_order_code)->firstOrFail();
+                // Gunakan Eloquent dengan lockForUpdate untuk mencegah race conditions saat pembayaran bersamaan
+                $transaction = Transaction::where('transaction_code', $request->pending_order_code)->lockForUpdate()->firstOrFail();
+                
                 $transaction->update([
                     'shift_id' => $openShift ? $openShift->id : null,
+                    'table_id' => $request->table_id ?? $transaction->table_id, // Gunakan dari request atau pertahankan yang lama
                     'subtotal' => $subtotal,
                     'discount' => $discount,
                     'tax' => $tax,
@@ -484,7 +487,7 @@ class PosController extends Controller
                     'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
                     'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
                     'status' => $isDigitalPayment ? 'pending' : 'completed',
-                    'order_status' => 'completed', // Mark resto order as completed
+                    'order_status' => 'completed', // Memastikan pesanan hilang dari "Antrean Pesanan Masuk"
                     'payment_status' => $isDigitalPayment ? 'unpaid' : 'paid',
                     'note' => $request->note,
                     'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
