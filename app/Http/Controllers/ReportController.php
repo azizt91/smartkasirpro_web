@@ -547,6 +547,31 @@ class ReportController extends BaseController
         $grossProfit = $totalRevenue - $totalCogs;
         $netProfit = $grossProfit - $totalExpense;
 
+        $format = $request->get('format', 'view');
+
+        if ($format === 'pdf') {
+            $pdf = Pdf::loadView('reports.profit_loss-pdf', compact(
+                'startDate', 'endDate',
+                'revenues', 'totalRevenue',
+                'cogs', 'totalCogs',
+                'grossProfit',
+                'expenses', 'totalExpense',
+                'netProfit'
+            ));
+            return $pdf->download('laporan-laba-rugi-' . $startDate . '-to-' . $endDate . '.pdf');
+        }
+
+        if ($format === 'excel') {
+            return Excel::download(new \App\Exports\ProfitLossReportExport(
+                $startDate, $endDate,
+                $revenues, $totalRevenue,
+                $cogs, $totalCogs,
+                $grossProfit,
+                $expenses, $totalExpense,
+                $netProfit
+            ), 'laporan-laba-rugi-' . $startDate . '-to-' . $endDate . '.xlsx');
+        }
+
         return view('reports.profit_loss', compact(
             'startDate', 'endDate',
             'revenues', 'totalRevenue',
