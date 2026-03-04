@@ -538,18 +538,18 @@ class ProductController extends Controller
 
         // Cek apakah ada produk yang dipilih, jika tidak, ambil semua produk
         if ($productIds && is_array($productIds)) {
-            $productsToPrint = Product::whereIn('id', $productIds)->get();
+            $products = Product::whereIn('id', $productIds)->get();
         } else {
-            $productsToPrint = Product::all();
+            $products = Product::all();
         }
 
         // Jika tidak ada produk sama sekali, kembali
-        if ($productsToPrint->isEmpty()) {
+        if ($products->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada produk untuk dicetak.');
         }
 
         // Kirim data produk ke view khusus untuk cetak barcode
-        return view('products.print-barcodes', compact('productsToPrint'));
+        return view('products.barcodes', compact('products'));
     }
 
     public function exportTemplate()
