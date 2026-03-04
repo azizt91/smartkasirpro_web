@@ -13,6 +13,7 @@
 <script>
     const STORE_SETTINGS = @json($settings);
     const AUTH_USER = @json(auth()->user() ? ['name' => auth()->user()->name] : ['name' => 'Kasir']);
+    const POS_CUSTOMERS = @json($customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points]));
 </script>
 @endsection
 
@@ -287,7 +288,7 @@
                     open: false,
                     search: '',
                     selected: 'Umum',
-                    customers: {{ $customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points])->toJson() }},
+                    customers: POS_CUSTOMERS,
                     get filteredCustomers() {
                         if (this.search === '') return this.customers;
                         return this.customers.filter(c => 
