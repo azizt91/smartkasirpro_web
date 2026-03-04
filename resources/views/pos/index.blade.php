@@ -13,7 +13,7 @@
 <script>
     const STORE_SETTINGS = @json($settings);
     const AUTH_USER = @json(auth()->user() ? ['name' => auth()->user()->name] : ['name' => 'Kasir']);
-    const POS_CUSTOMERS = @json($customers->map(fn($c) => ['name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points]));
+    const POS_CUSTOMERS = @json($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points]));
 </script>
 @endsection
 
@@ -366,7 +366,7 @@
                                 <span class="font-medium">Umum</span>
                             </li>
 
-                            <template x-for="customer in filteredCustomers" :key="customer.name">
+                            <template x-for="customer in filteredCustomers" :key="customer.id">
                                 <li @click="selectCustomer(customer)" 
                                     class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between items-center"
                                     :class="{'bg-blue-50 text-blue-700': selected === customer.name}">
