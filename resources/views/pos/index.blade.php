@@ -9,11 +9,17 @@
         'tax_rate' => 0
     ];
     $settings = $storeSettings ?? $defaultSettings;
+    $mappedCustomers = $customers->map(fn($c) => [
+        'id' => $c->id, 
+        'name' => $c->name, 
+        'phone' => $c->phone ?? '-', 
+        'points' => $c->points
+    ])->values()->all();
 @endphp
 <script>
     const STORE_SETTINGS = @json($settings);
     const AUTH_USER = @json(auth()->user() ? ['name' => auth()->user()->name] : ['name' => 'Kasir']);
-    const POS_CUSTOMERS = @json($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone ?? '-', 'points' => $c->points]));
+    const POS_CUSTOMERS = @json($mappedCustomers);
 </script>
 @endsection
 
