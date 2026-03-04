@@ -259,6 +259,7 @@ class PosController extends Controller
             ->get()->map(function($t) {
                 return [
                     'id' => $t->id,
+                    'table_id' => $t->table_id,
                     'transaction_code' => $t->transaction_code,
                     'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
                     'customer_name' => $t->customer_name,
