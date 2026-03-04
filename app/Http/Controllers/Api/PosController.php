@@ -237,6 +237,20 @@ class PosController extends Controller
                 }
             }
 
+            // Kirim Notifikasi FCM ke semua user yang punya token
+            try {
+                $transaction->load('items.product');
+                $usersToNotify = \App\Models\User::whereNotNull('fcm_token')
+                    ->where('fcm_token', '!=', '')
+                    ->get();
+                    
+                if ($usersToNotify->count() > 0) {
+                    \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\OrderCreated($transaction));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi mobile: ' . $e->getMessage());
+            }
+
             // Load transaction with items for receipt
             $transaction->load(['items.product', 'user']);
 

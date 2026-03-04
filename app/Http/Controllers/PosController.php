@@ -561,15 +561,19 @@ class PosController extends Controller
                 }
             }
 
-            // Kirim Notifikasi (DINOAKTIFKAN SESUAI REQUEST)
-            // try {
-            //     $user = auth()->user();
-            //     if ($user) {
-            //         $user->notify(new \App\Notifications\OrderCreated($transaction));
-            //     }
-            // } catch (\Exception $e) {
-            //     \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi: ' . $e->getMessage());
-            // }
+            // Kirim Notifikasi FCM ke semua user yang punya token
+            try {
+                $transaction->load('items.product');
+                $usersToNotify = \App\Models\User::whereNotNull('fcm_token')
+                    ->where('fcm_token', '!=', '')
+                    ->get();
+                    
+                if ($usersToNotify->count() > 0) {
+                    \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\OrderCreated($transaction));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim notifikasi: ' . $e->getMessage());
+            }
 
             $transaction->load(['items.product', 'user']);
 
