@@ -151,28 +151,58 @@ class PosController extends Controller
                 }
             }
             
-            $transaction = Transaction::create([
-                'transaction_code' => Transaction::generateTransactionCode(),
-                'user_id' => auth()->id(), // Authenticated mobile user
-                'shift_id' => $openShift ? $openShift->id : null,
-                'subtotal' => $subtotal,
-                'discount' => $discount,
-                'tax' => $tax,
-                'total_amount' => $totalAmount,
-                'payment_method' => $request->payment_method,
-                'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
-                'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
-                'status' => $isDigitalPayment ? 'pending' : 'completed',
-                'order_status' => $storeSettings->business_mode === 'resto' ? 'pending' : 'completed',
-                'payment_status' => $isDigitalPayment ? 'unpaid' : (($request->payment_method === 'utang') ? 'unpaid' : 'paid'),
-                'customer_name' => $request->customer_name ?? 'Umum',
-                'note' => $request->note . ($request->created_at ? " (Offline Sync)" : ""),
-                'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
-                'points_redeemed' => $pointsRedeemed,
-                'points_discount_amount' => $pointsDiscountAmount,
-                'created_at' => $transactionDate,
-                'updated_at' => now(), // Record when it was synced to server
-            ]);
+            if ($request->filled('pending_order_code')) {
+                // Gunakan Eloquent dengan lockForUpdate untuk mencegah race conditions
+                $transaction = Transaction::where('transaction_code', $request->pending_order_code)->lockForUpdate()->firstOrFail();
+                
+                $transaction->update([
+                    'shift_id' => $openShift ? $openShift->id : null,
+                    'table_id' => $request->table_id ?? $transaction->table_id, // Gunakan dari request atau pertahankan yang lama
+                    'subtotal' => $subtotal,
+                    'discount' => $discount,
+                    'tax' => $tax,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $request->payment_method,
+                    'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
+                    'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
+                    'status' => $isDigitalPayment ? 'pending' : 'completed',
+                    'order_status' => 'completed', // Memastikan pesanan hilang dari "Antrean Pesanan Masuk"
+                    'payment_status' => $isDigitalPayment ? 'unpaid' : (($request->payment_method === 'utang') ? 'unpaid' : 'paid'),
+                    'customer_name' => $customer ? $customer->name : ($request->customer_name ?? 'Umum'),
+                    'note' => $request->note . ($request->created_at ? " (Offline Sync)" : ""),
+                    'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
+                    'points_redeemed' => $pointsRedeemed,
+                    'points_discount_amount' => $pointsDiscountAmount,
+                    'updated_at' => now(),
+                ]);
+
+                // Hapus item lama agar diganti dengan yang baru dari keranjang mobile
+                $transaction->items()->delete();
+            } else {            
+                $transaction = Transaction::create([
+                    'transaction_code' => Transaction::generateTransactionCode(),
+                    'user_id' => auth()->id(), // Authenticated mobile user
+                    'shift_id' => $openShift ? $openShift->id : null,
+                    'table_id' => $request->table_id, // <-- Add table_id
+                    'subtotal' => $subtotal,
+                    'discount' => $discount,
+                    'tax' => $tax,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $request->payment_method,
+                    'amount_paid' => $isDigitalPayment ? $totalAmount : $amountPaid,
+                    'change_amount' => $isDigitalPayment ? 0 : $changeAmount,
+                    'status' => $isDigitalPayment ? 'pending' : 'completed',
+                    'order_status' => $storeSettings->business_mode === 'resto' ? 'pending' : 'completed',
+                    'payment_status' => $isDigitalPayment ? 'unpaid' : (($request->payment_method === 'utang') ? 'unpaid' : 'paid'),
+                    'customer_name' => $customer ? $customer->name : ($request->customer_name ?? 'Umum'),
+                    'note' => $request->note . ($request->created_at ? " (Offline Sync)" : ""),
+                    'points_earned' => $isDigitalPayment ? 0 : $pointsEarned,
+                    'points_redeemed' => $pointsRedeemed,
+                    'points_discount_amount' => $pointsDiscountAmount,
+                    'created_at' => $transactionDate,
+                    'updated_at' => now(), // Record when it was synced to server
+                ]);
+            }
 
             // 4. Create Items & Update Stock
             foreach ($items as $item) {
