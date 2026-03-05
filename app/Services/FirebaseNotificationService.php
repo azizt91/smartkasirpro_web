@@ -152,11 +152,18 @@ class FirebaseNotificationService
         // Determine Android channel based on notification_type
         $notificationType = $data['notification_type'] ?? 'default';
         $channelMap = [
-            'order' => 'channel_order_alert',
-            'shift' => 'channel_chime',
-            'audit' => 'channel_ding',
+            'order' => 'high_importance_channel', // Force use of high_importance_channel which we know works reliably
+            'shift' => 'high_importance_channel',
+            'audit' => 'high_importance_channel',
         ];
         $channelId = $channelMap[$notificationType] ?? 'high_importance_channel';
+
+        $soundMap = [
+            'order' => 'notif_order_alert',
+            'shift' => 'notif_chime',
+            'audit' => 'notif_ding',
+        ];
+        $sound = $soundMap[$notificationType] ?? 'default';
 
         $message = [
             'message' => [
@@ -170,6 +177,7 @@ class FirebaseNotificationService
                     'priority' => 'high',
                     'notification' => [
                         'channel_id' => $channelId,
+                        'sound' => $sound,
                     ],
                 ],
             ],
