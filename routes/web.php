@@ -11,7 +11,7 @@ use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -131,6 +131,76 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::post('/settings/test-whatsapp', [SettingController::class, 'testWhatsapp'])->name('settings.test-whatsapp');
     });
+});
+
+// ── FCM Debug Test Link (accessible from browser) ──
+Route::get('/test-fcm', function () {
+    $results = [];
+
+    // 1. Check credentials
+    $projectId = config('services.firebase.project_id');
+    $credPath = config('services.firebase.credentials', 'service-account-file.json');
+    $credExists = file_exists(base_path($credPath));
+    $results['config'] = [
+        'project_id' => $projectId ?: '❌ MISSING',
+        'credentials_path' => $credPath,
+        'credentials_exists' => $credExists ? '✅ Yes' : '❌ No',
+    ];
+
+    // 2. Find users with FCM tokens
+    $users = \App\Models\User::whereNotNull('fcm_token')
+        ->where('fcm_token', '!=', '')
+        ->get(['id', 'name', 'fcm_token']);
+
+    $results['users_with_tokens'] = $users->map(fn($u) => [
+        'id' => $u->id,
+        'name' => $u->name,
+        'token_preview' => substr($u->fcm_token, 0, 25) . '...',
+        'token_length' => strlen($u->fcm_token),
+    ])->toArray();
+
+    if ($users->isEmpty()) {
+        $results['error'] = '❌ No users have FCM tokens! App must be opened and logged in first.';
+        return response()->json($results, 200)->header('Content-Type', 'application/json');
+    }
+
+    // 3. Send test notification to each user individually
+    $results['send_results'] = [];
+    try {
+        $fcmService = new \App\Services\FirebaseNotificationService();
+
+        foreach ($users as $user) {
+            try {
+                $sent = $fcmService->sendToDevice(
+                    $user->fcm_token,
+                    '🔔 Test FCM - ' . now()->format('H:i:s'),
+                    'Halo ' . $user->name . '! Jika muncul, notifikasi berfungsi!',
+                    [
+                        'notification_type' => 'order',
+                        'type' => 'test',
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    ]
+                );
+                $results['send_results'][] = [
+                    'user' => $user->name,
+                    'status' => $sent ? '✅ SUCCESS' : '❌ FAILED (check laravel.log)',
+                ];
+            } catch (\Exception $e) {
+                $results['send_results'][] = [
+                    'user' => $user->name,
+                    'status' => '❌ ERROR: ' . $e->getMessage(),
+                ];
+            }
+        }
+    } catch (\Exception $e) {
+        $results['fatal_error'] = '❌ ' . $e->getMessage();
+    }
+
+    $results['log_hint'] = 'Check storage/logs/laravel.log for detailed Firebase request/response logs';
+    $results['timestamp'] = now()->toDateTimeString();
+
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        ->header('Content-Type', 'application/json');
 });
 
 require __DIR__.'/auth.php';
