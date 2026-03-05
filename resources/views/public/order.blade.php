@@ -53,17 +53,30 @@
     <!-- Product List -->
     <main class="p-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <template x-for="product in products" :key="product.id">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full relative">
-                <div class="aspect-square bg-gray-50 flex items-center justify-center p-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full relative" :class="{'opacity-75': product.type !== 'jasa' && product.stock <= 0}">
+                <div class="aspect-square bg-gray-50 flex items-center justify-center p-2 relative">
                     <template x-if="product.image">
                         <img :src="product.image" :alt="product.name" class="w-full h-full object-contain rounded-lg">
                     </template>
                     <template x-if="!product.image">
                         <span class="text-3xl">🍽️</span>
                     </template>
+
+                    <!-- OOS Overlay -->
+                    <template x-if="product.type !== 'jasa' && product.stock <= 0">
+                        <div class="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+                            <span class="bg-red-500 text-white px-3 py-1 text-xs font-bold rounded-full shadow-sm">HABIS</span>
+                        </div>
+                    </template>
                 </div>
                 <div class="p-3 flex-1 flex flex-col">
                     <h3 class="text-sm font-medium text-gray-900 line-clamp-2 leading-tight flex-1" x-text="product.name"></h3>
+                    <template x-if="product.type !== 'jasa'">
+                        <p class="text-[10px] mt-1 mb-1">
+                            <span x-show="product.stock > 0" class="text-gray-500 font-medium" x-text="'Stok: ' + product.stock"></span>
+                            <span x-show="product.stock <= 0" class="text-red-500 font-bold">Stok Habis</span>
+                        </p>
+                    </template>
                     <div class="mt-2 flex items-center justify-between">
                         <span class="text-sm font-bold text-teal-600" x-text="formatMoney(product.price)"></span>
                         <div class="flex items-center gap-2">
@@ -72,12 +85,16 @@
                                 <div class="flex items-center bg-gray-100 rounded-lg">
                                     <button @click="updateCart(product, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-indigo-600 focus:outline-none focus:bg-gray-200 rounded-l-lg">-</button>
                                     <span class="w-6 text-center text-xs font-bold text-gray-900" x-text="getCartQty(product.id)"></span>
-                                    <button @click="updateCart(product, 1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-indigo-600 focus:outline-none focus:bg-gray-200 rounded-r-lg">+</button>
+                                    <button @click="if(product.type === 'jasa' || getCartQty(product.id) < product.stock) updateCart(product, 1)" 
+                                            :class="{'opacity-50 cursor-not-allowed': product.type !== 'jasa' && getCartQty(product.id) >= product.stock}"
+                                            class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-indigo-600 focus:outline-none focus:bg-gray-200 rounded-r-lg">+</button>
                                 </div>
                             </template>
                             <!-- Show Add button if not in cart -->
                             <template x-if="getCartQty(product.id) === 0">
-                                <button @click="updateCart(product, 1)" class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 flex items-center justify-center transition-colors">
+                                <button @click="if(product.type === 'jasa' || product.stock > 0) updateCart(product, 1)" 
+                                        :class="{'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed': product.type !== 'jasa' && product.stock <= 0, 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-100': product.type === 'jasa' || product.stock > 0}"
+                                        class="w-7 h-7 rounded-lg border flex items-center justify-center transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 </button>
                             </template>

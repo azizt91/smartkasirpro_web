@@ -27,10 +27,8 @@ class PublicOrderController extends Controller
             abort(404, 'Fitur pemesanan mandiri tidak aktif.');
         }
 
-        // Ambil kategori yang ada produknya
-        $categories = Category::whereHas('products', function($q) {
-            $q->where('stock', '>', 0)->orWhere('type', 'jasa');
-        })->get();
+        // Ambil kategori yang ada produknya (meskipun stok habis agar ditampilkan 'habis')
+        $categories = Category::whereHas('products')->get();
 
         $transferChannels = [];
         $ewalletChannels = [];
@@ -49,9 +47,7 @@ class PublicOrderController extends Controller
     public function getProducts(Request $request)
     {
         $categoryId = $request->get('category_id');
-        $query = Product::where(function($q) {
-            $q->where('stock', '>', 0)->orWhere('type', 'jasa');
-        });
+        $query = Product::query();
 
         if ($categoryId && $categoryId !== 'all') {
             $query->where('category_id', $categoryId);
@@ -63,7 +59,9 @@ class PublicOrderController extends Controller
                 'name' => $product->name,
                 'price' => (float) $product->selling_price,
                 'image' => $product->image ? asset('storage/' . $product->image) : null,
-                'description' => $product->description ?? ''
+                'description' => $product->description ?? '',
+                'stock' => $product->stock,
+                'type' => $product->type,
             ];
         });
 
