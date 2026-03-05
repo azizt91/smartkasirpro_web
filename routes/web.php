@@ -135,69 +135,123 @@ Route::middleware('auth')->group(function () {
 
 // ── FCM Debug Test Link (accessible from browser) ──
 Route::get('/test-fcm', function () {
-    $results = [];
+    $results = ['step' => []];
 
-    // 1. Check credentials
+    // 1. Check config
     $projectId = config('services.firebase.project_id');
-    $credPath = config('services.firebase.credentials', 'service-account-file.json');
-    $credExists = file_exists(base_path($credPath));
+    $credPath  = config('services.firebase.credentials', 'service-account-file.json');
+    $credFull  = base_path($credPath);
+    $credExists = file_exists($credFull);
+    $results['step'][] = '1️⃣ Config check';
     $results['config'] = [
-        'project_id' => $projectId ?: '❌ MISSING',
-        'credentials_path' => $credPath,
-        'credentials_exists' => $credExists ? '✅ Yes' : '❌ No',
+        'project_id'         => $projectId ?: '❌ MISSING',
+        'credentials_path'   => $credPath,
+        'credentials_exists' => $credExists ? '✅ Yes' : '❌ No (' . $credFull . ')',
     ];
+    if (!$projectId || !$credExists) {
+        return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
 
-    // 2. Find users with FCM tokens
+    // 2. Get access token
+    $results['step'][] = '2️⃣ Getting OAuth2 access token';
+    try {
+        $sa = json_decode(file_get_contents($credFull), true);
+        $now = time();
+        $header = base64_encode(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+        $claim = base64_encode(json_encode([
+            'iss'   => $sa['client_email'],
+            'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+            'aud'   => 'https://oauth2.googleapis.com/token',
+            'iat'   => $now,
+            'exp'   => $now + 3600,
+        ]));
+        $sig = '';
+        openssl_sign("$header.$claim", $sig, $sa['private_key'], 'SHA256');
+        $jwt = "$header.$claim." . base64_encode($sig);
+
+        $tokenResp = \Illuminate\Support\Facades\Http::asForm()->post('https://oauth2.googleapis.com/token', [
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion'  => $jwt,
+        ]);
+        $accessToken = $tokenResp->json('access_token');
+        $results['access_token'] = $accessToken ? '✅ Obtained (' . strlen($accessToken) . ' chars)' : '❌ Failed: ' . $tokenResp->body();
+    } catch (\Exception $e) {
+        $results['access_token'] = '❌ Error: ' . $e->getMessage();
+        return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    // 3. Find users with tokens
+    $results['step'][] = '3️⃣ Finding users with FCM tokens';
     $users = \App\Models\User::whereNotNull('fcm_token')
         ->where('fcm_token', '!=', '')
         ->get(['id', 'name', 'fcm_token']);
-
-    $results['users_with_tokens'] = $users->map(fn($u) => [
-        'id' => $u->id,
+    $results['users'] = $users->map(fn($u) => [
+        'id'   => $u->id,
         'name' => $u->name,
-        'token_preview' => substr($u->fcm_token, 0, 25) . '...',
+        'token' => substr($u->fcm_token, 0, 30) . '...',
         'token_length' => strlen($u->fcm_token),
     ])->toArray();
 
     if ($users->isEmpty()) {
-        $results['error'] = '❌ No users have FCM tokens! App must be opened and logged in first.';
-        return response()->json($results, 200)->header('Content-Type', 'application/json');
+        $results['error'] = '❌ No users with FCM tokens!';
+        return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
-    // 3. Send test notification to each user individually
+    // 4. Send FCM to each user and capture FULL Google response
+    $results['step'][] = '4️⃣ Sending test notifications (showing raw Google response)';
     $results['send_results'] = [];
-    try {
-        $fcmService = new \App\Services\FirebaseNotificationService();
+    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
-        foreach ($users as $user) {
-            try {
-                $sent = $fcmService->sendToDevice(
-                    $user->fcm_token,
-                    '🔔 Test FCM - ' . now()->format('H:i:s'),
-                    'Halo ' . $user->name . '! Jika muncul, notifikasi berfungsi!',
-                    [
-                        'notification_type' => 'order',
-                        'type' => 'test',
-                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                    ]
-                );
-                $results['send_results'][] = [
-                    'user' => $user->name,
-                    'status' => $sent ? '✅ SUCCESS' : '❌ FAILED (check laravel.log)',
-                ];
-            } catch (\Exception $e) {
-                $results['send_results'][] = [
-                    'user' => $user->name,
-                    'status' => '❌ ERROR: ' . $e->getMessage(),
-                ];
-            }
+    foreach ($users as $user) {
+        $payload = [
+            'message' => [
+                'token' => $user->fcm_token,
+                'notification' => [
+                    'title' => '🔔 Test FCM - ' . now()->format('H:i:s'),
+                    'body'  => 'Halo ' . $user->name . '! Jika muncul, FCM berfungsi!',
+                ],
+                'data' => [
+                    'notification_type' => 'order',
+                    'type' => 'test',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                ],
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'high_importance_channel',
+                        'sound' => 'notif_order_alert',
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($accessToken)
+                ->post($url, $payload);
+
+            $results['send_results'][] = [
+                'user'              => $user->name,
+                'http_status'       => $response->status(),
+                'google_response'   => $response->json(),
+                'verdict'           => $response->successful() ? '✅ Google accepted' : '❌ Google rejected',
+            ];
+        } catch (\Exception $e) {
+            $results['send_results'][] = [
+                'user'    => $user->name,
+                'verdict' => '❌ HTTP Error: ' . $e->getMessage(),
+            ];
         }
-    } catch (\Exception $e) {
-        $results['fatal_error'] = '❌ ' . $e->getMessage();
     }
 
-    $results['log_hint'] = 'Check storage/logs/laravel.log for detailed Firebase request/response logs';
     $results['timestamp'] = now()->toDateTimeString();
+    $results['important_notes'] = [
+        'Jika Google accepted tapi HP tidak muncul notif:',
+        '1. Pastikan sudah install APK baru (setelah namespace fix)',
+        '2. WAJIB uninstall dulu app lama, lalu install ulang',
+        '3. Login ulang agar token FCM baru terdaftar',
+        '4. Cek: Settings > Apps > Smart Kasir Pro > Notifications > pastikan ON',
+        '5. Jika google_response berisi error UNREGISTERED = token expired, perlu login ulang',
+    ];
 
     return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
         ->header('Content-Type', 'application/json');
