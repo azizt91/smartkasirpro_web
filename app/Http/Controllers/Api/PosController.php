@@ -364,13 +364,16 @@ class PosController extends Controller
                 return [
                     'id' => $t->id,
                     'transaction_code' => $t->transaction_code,
-                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'is_takeaway' => (bool) $t->is_takeaway,
+                    'table_name' => $t->is_takeaway ? null : ($t->table ? $t->table->nama_meja : null),
                     'order_status' => $t->order_status,
                     'time_ago' => $t->created_at->diffForHumans(),
+                    'created_at' => $t->created_at ? $t->created_at->toIso8601String() : null,
                     'items' => $t->items->map(function($i) {
                         return [
                             'name' => $i->product_name,
                             'qty' => $i->quantity,
+                            'note' => $i->note,
                         ];
                     })
                 ];
