@@ -188,7 +188,7 @@ use Illuminate\Support\Facades\Storage;
                 </a>
             @endif
 
-            @if(auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_receivables'))
+            @if((auth()->user()->role === 'admin' || auth()->user()->hasPermission('view_receivables')) && \App\Models\Setting::getStoreSettings()->business_mode !== 'resto')
                 <!-- Piutang -->
                 <a href="{{ route('reports.receivables') }}"
                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group {{ request()->routeIs('reports.receivables') ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
