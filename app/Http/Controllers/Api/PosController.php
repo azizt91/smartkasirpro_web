@@ -323,18 +323,16 @@ class PosController extends Controller
             })
             ->orderBy('created_at', 'ASC')
             ->get()->map(function($t) {
-            return [
-                'id' => $t->id,
-                'transaction_code' => $t->transaction_code,
-                'is_takeaway' => (bool) $t->is_takeaway,
-                'table_name' => $t->is_takeaway ? null : ($t->table ? $t->table->nama_meja : null),
-                'customer_name' => $t->customer_name,
-                'order_status' => $t->order_status,
-                'payment_status' => $t->payment_status,
-                'payment_method' => $t->payment_method,
-                'time_ago' => $t->created_at->diffForHumans(),
-                'created_at' => $t->created_at ? $t->created_at->toIso8601String() : null,
-                'total_amount' => $t->total_amount,
+                return [
+                    'id' => $t->id,
+                    'transaction_code' => $t->transaction_code,
+                    'table_name' => $t->table ? $t->table->nama_meja : 'Unknown',
+                    'customer_name' => $t->customer_name,
+                    'order_status' => $t->order_status,
+                    'payment_status' => $t->payment_status,
+                    'payment_method' => $t->payment_method,
+                    'time_ago' => $t->created_at->diffForHumans(),
+                    'total_amount' => $t->total_amount,
                     'items_summary' => $t->items->map(function($i) {
                         return "{$i->quantity}x {$i->product_name}";
                     })->join(', '),

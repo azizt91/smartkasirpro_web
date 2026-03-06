@@ -206,15 +206,21 @@ Route::get('/test-fcm', function () {
         $payload = [
             'message' => [
                 'token' => $user->fcm_token,
-                // Omit 'notification' block to force a "Data-Only" message.
-                // This lets the Flutter app's firebaseMessagingBackgroundHandler run
-                // and play custom sounds chosen in SharedPreferences.
-                'data' => [
+                'notification' => [
                     'title' => '🔔 Test FCM - ' . now()->format('H:i:s'),
                     'body'  => 'Halo ' . $user->name . '! Jika muncul, FCM berfungsi!',
+                ],
+                'data' => [
                     'notification_type' => 'order',
                     'type' => 'test',
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                ],
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'high_importance_channel',
+                        'sound' => 'notif_order_alert',
+                    ],
                 ],
             ],
         ];

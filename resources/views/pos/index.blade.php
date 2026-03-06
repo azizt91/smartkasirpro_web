@@ -429,9 +429,7 @@
                             class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                         <option value="">Pilih metode...</option>
                         <option value="cash">💵 Tunai</option>
-                        @if(data_get($settings, 'business_mode', 'retail') !== 'resto')
                         <option value="utang">📝 Utang</option>
-                        @endif
                         <option value="card">💳 Kartu</option>
                         <option value="ewallet">📱 E-Wallet</option>
                         <option value="transfer">🏦 Transfer Bank</option>
