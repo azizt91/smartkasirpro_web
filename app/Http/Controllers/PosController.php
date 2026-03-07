@@ -619,6 +619,11 @@ class PosController extends Controller
 
             DB::commit();
 
+            // Dispatch WA notification for success transaction (cash/completed)
+            if (WhatsappService::isEnabled() && $customer) {
+                SendWhatsappNotification::dispatch('success', $transaction->id, $customer->id)->onConnection('sync');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Transaksi berhasil diproses.',

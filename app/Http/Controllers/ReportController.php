@@ -298,6 +298,29 @@ class ReportController extends BaseController
         }
 
         $transaction->update([
+            'payment_method' => 'cash', // Default to cash
+            'payment_status' => 'paid',
+            'amount_paid' => $transaction->total_amount,
+            'change_amount' => 0,
+            'updated_at' => now(),
+        ]);
+
+        // Dispatch WA notification for paid receivable
+        if (\App\Services\WhatsappService::isEnabled()) {
+            // Resolve customer ID
+            $customerId = $transaction->customer_id;
+            if (!$customerId && $transaction->customer_name && $transaction->customer_name !== 'Umum') {
+                $customer = \App\Models\Customer::where('name', $transaction->customer_name)->first();
+                $customerId = $customer?->id;
+            }
+
+            if ($customerId) {
+                \App\Jobs\SendWhatsappNotification::dispatch('success', $transaction->id, $customerId)->onConnection('sync');
+            }
+        }
+
+        return back()->with('success', 'Transaksi piutang berhasil ditandai LUNAS.');
+    }
             'payment_method' => 'cash',
         ]);
 
