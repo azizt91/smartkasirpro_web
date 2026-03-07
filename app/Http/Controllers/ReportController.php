@@ -321,11 +321,6 @@ class ReportController extends BaseController
 
         return back()->with('success', 'Transaksi piutang berhasil ditandai LUNAS.');
     }
-            'payment_method' => 'cash',
-        ]);
-
-        return back()->with('success', 'Piutang berhasil ditandai sebagai lunas.');
-    }
 
     /**
      * Display commissions report
