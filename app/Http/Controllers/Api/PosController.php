@@ -219,8 +219,8 @@ class PosController extends Controller
                     'updated_at' => now(),
                 ]);
 
-                // Update product stock (BYPASS FOR JASA & digital payment pending)
-                if ($item['product']->type !== 'jasa' && !$isDigitalPayment) {
+                // Update product stock (Always deduct stock upfront)
+                if ($item['product']->type !== 'jasa') {
                     $item['product']->decrement('stock', $item['quantity']);
 
                     // Record stock movement

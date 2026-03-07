@@ -162,7 +162,7 @@ class PaymentCallbackController extends Controller
         }
         // Payment failed/expired/cancelled
         elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            $transaction->update(['status' => 'cancelled']);
+            $this->cancelTransaction($transaction);
             Log::info('[Midtrans Webhook] Payment cancelled', ['code' => $orderId, 'status' => $transactionStatus]);
         }
 
@@ -170,7 +170,7 @@ class PaymentCallbackController extends Controller
     }
 
     /**
-     * Complete a pending transaction: reduce stock, earn points, send notification.
+     * Complete a pending transaction: earn points, send notification.
      * Wrapped in DB::transaction for atomicity.
      */
     protected function completeTransaction(Transaction $transaction): void
@@ -191,27 +191,7 @@ class PaymentCallbackController extends Controller
             // 2. Load items with products
             $transaction->load('items.product');
 
-            // 3. Reduce stock & record stock movement
-            foreach ($transaction->items as $item) {
-                $product = $item->product;
-                if (!$product) continue;
-
-                // Bypass stock deduction for services
-                if ($product->type === 'jasa') continue;
-
-                $product->decrement('stock', $item->quantity);
-
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'type' => 'out',
-                    'quantity' => $item->quantity,
-                    'reference_type' => 'App\Models\Transaction',
-                    'reference_id' => $transaction->id,
-                    'notes' => "Pembayaran Online - {$transaction->transaction_code}",
-                ]);
-            }
-
-            // 4. Earn loyalty points (if applicable)
+            // 3. Earn loyalty points (if applicable)
             $settings = Setting::getStoreSettings();
             if ($settings->enable_loyalty_points && $transaction->customer_name && $transaction->customer_name !== 'Umum') {
                 $customer = \App\Models\Customer::where('name', $transaction->customer_name)->first();
@@ -226,7 +206,7 @@ class PaymentCallbackController extends Controller
                 }
             }
 
-            // 5. Send AuditAlert notification to owner
+            // 4. Send AuditAlert notification to owner
             try {
                 $admins = \App\Models\User::where('role', 'admin')->get();
                 foreach ($admins as $admin) {
@@ -253,5 +233,43 @@ class PaymentCallbackController extends Controller
                 SendWhatsappNotification::dispatch('success', $transaction->id, $customerId)->onConnection('sync');
             }
         }
+    }
+
+    /**
+     * Cancel a pending transaction: restore stock.
+     */
+    protected function cancelTransaction(Transaction $transaction): void
+    {
+        if (in_array($transaction->status, ['completed', 'cancelled', 'void'])) {
+            Log::info('[PaymentCallback] Transaction already processed', ['code' => $transaction->transaction_code, 'status' => $transaction->status]);
+            return;
+        }
+
+        DB::transaction(function () use ($transaction) {
+            // 1. Update status to cancelled
+            $transaction->update(['status' => 'cancelled']);
+
+            // 2. Restore stock
+            foreach ($transaction->items as $item) {
+                $product = $item->product;
+                if (!$product) continue;
+
+                // Bypass stock restoration for services
+                if ($product->type === 'jasa') continue;
+
+                $product->increment('stock', $item->quantity);
+
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'type' => 'in',
+                    'quantity' => $item->quantity,
+                    'reference_type' => 'App\Models\Transaction',
+                    'reference_id' => $transaction->id,
+                    'notes' => "Pembayaran Gagal/Expired - {$transaction->transaction_code}",
+                ]);
+            }
+        });
+        
+        Log::info('[PaymentCallback] Transaction cancelled and stock restored', ['code' => $transaction->transaction_code]);
     }
 }
