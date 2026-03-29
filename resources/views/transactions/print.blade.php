@@ -86,6 +86,9 @@
     </div>
 
     <div class="text-center">
+        @if(!empty($storeSettings->store_logo))
+            <img src="{{ asset('storage/' . $storeSettings->store_logo) }}" alt="Logo" style="max-width: 100%; max-height: 80px; display: block; margin: 0 auto 5px auto;">
+        @endif
         <div class="store-name">{{ $storeSettings->store_name }}</div>
         <div>{{ $storeSettings->store_address }}</div>
         <div>Telp: {{ $storeSettings->store_phone }}</div>

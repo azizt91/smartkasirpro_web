@@ -272,6 +272,7 @@ const ThermalPrinter = (() => {
         return `
         <div style="font-family: 'Courier New', monospace; font-size: 11px; width: 280px; padding: 10px; color: black;">
             <div style="text-align: center;">
+                ${storeSettings.store_logo ? `<img src="/storage/${storeSettings.store_logo}" alt="Logo" style="max-width: 100%; max-height: 80px; display: block; margin: 0 auto 5px auto;">` : ''}
                 <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${storeSettings.store_name}</div>
                 <div>${storeSettings.store_address}</div>
                 <div>Telp: ${storeSettings.store_phone}</div>

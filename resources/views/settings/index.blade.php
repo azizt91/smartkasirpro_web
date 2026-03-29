@@ -88,37 +88,58 @@ use Illuminate\Support\Facades\Storage;
                         </div>
                     </div>
 
-                    <div>
+                    <div x-data="{ 
+                        logoPreview: null,
+                        fileName: null,
+                        handleFileUpload(event) {
+                            const file = event.target.files[0];
+                            if (file) {
+                                this.fileName = file.name;
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    this.logoPreview = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    }">
                         <h2 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3 mb-6">Branding Toko</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                             <div class="md:col-span-1">
                                 <p class="block text-sm font-medium text-gray-700 mb-2">Logo Saat Ini</p>
-                                <div class="aspect-square w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
-                                    @if($settings->store_logo && Storage::disk('public')->exists($settings->store_logo))
-                                        <img src="{{ Storage::url($settings->store_logo) }}" alt="Logo Toko" class="w-full h-full object-contain p-2 rounded-lg">
-                                    @else
-                                        <div class="text-center text-gray-500 text-xs p-2">
-                                            <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            <p class="mt-1">Belum ada logo</p>
+                                <div class="aspect-square w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center overflow-hidden">
+                                    <template x-if="logoPreview">
+                                        <img :src="logoPreview" alt="Logo Preview" class="w-full h-full object-contain p-2 rounded-lg">
+                                    </template>
+                                    <template x-if="!logoPreview">
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            @if($settings->store_logo && Storage::disk('public')->exists($settings->store_logo))
+                                                <img src="{{ Storage::url($settings->store_logo) }}" alt="Logo Toko" class="w-full h-full object-contain p-2 rounded-lg">
+                                            @else
+                                                <div class="text-center text-gray-500 text-xs p-2">
+                                                    <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <p class="mt-1">Belum ada logo</p>
+                                                </div>
+                                            @endif
                                         </div>
-                                    @endif
+                                    </template>
                                 </div>
                             </div>
                             <div class="md:col-span-2">
                                 <label for="store_logo" class="block text-sm font-medium text-gray-700 mb-2">Upload Logo Baru <span class="text-gray-500">(Opsional)</span></label>
-                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md transition-colors hover:border-indigo-400"
+                                     :class="fileName ? 'border-indigo-500 bg-indigo-50' : ''">
                                     <div class="space-y-1 text-center">
                                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
-                                        <div class="flex text-sm text-gray-600">
-                                            <label for="store_logo_input" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <div class="flex text-sm text-gray-600 justify-center">
+                                            <label for="store_logo_input" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-2">
                                                 <span>Upload file</span>
-                                                <input id="store_logo_input" name="store_logo" type="file" class="sr-only">
+                                                <input id="store_logo_input" name="store_logo" type="file" class="sr-only" accept="image/png, image/jpeg, image/gif" @change="handleFileUpload($event)">
                                             </label>
-                                            <p class="pl-1">atau tarik dan lepas</p>
                                         </div>
-                                        <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 2MB</p>
+                                        <p class="text-xs text-gray-500" x-text="fileName ? 'File terpilih: ' + fileName : 'PNG, JPG, GIF hingga 2MB'"></p>
                                     </div>
                                 </div>
                                 @error('store_logo')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
